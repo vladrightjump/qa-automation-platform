@@ -7,6 +7,7 @@ dist/
 build/
 .next/
 out/
+*.tsbuildinfo
 
 # turbo
 .turbo/
@@ -16,6 +17,9 @@ playwright-report/
 test-results/
 blob-report/
 coverage/
+
+# agent-generated test drafts (review & promote, don't commit)
+tests/e2e/_generated/*.draft.spec.ts
 
 # env / secrets
 .env
@@ -28,3 +32,4 @@ packages/db/prisma/*.db
 # logs / os
 *.log
 .DS_Store
+Thumbs.db

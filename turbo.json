@@ -15,7 +15,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["playwright-report/**", "test-results/**"]
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["DATABASE_URL", "API_BASE_URL", "E2E_BASE_URL", "JWT_SECRET", "ENABLE_TEST_ENDPOINTS"]
     },
     "dev": {
       "cache": false,

@@ -2,12 +2,24 @@
   "name": "@qa/web",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev": "dotenv -e ../../.env -- next dev -p 3000",
+    "build": "dotenv -e ../../.env -- next build --no-lint",
+    "start": "dotenv -e ../../.env -- next start -p 3000"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@qa/config": "workspace:*"
+    "@qa/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "dotenv-cli": "^7.4.4",
+    "tailwindcss": "^4.0.0"
   }
 }

@@ -15,6 +15,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      // Next.js auto-generates this file and adds triple-slash refs we can't control.
+      '**/next-env.d.ts',
     ],
   },
   js.configs.recommended,

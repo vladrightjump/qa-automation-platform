@@ -1,4 +1,15 @@
 {
   "extends": "../packages/config/tsconfig.base.json",
-  "include": ["e2e", "api", "pages", "fixtures", "factories", "support"]
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": [
+    "playwright.config.ts",
+    "e2e",
+    "api",
+    "pages",
+    "fixtures",
+    "factories",
+    "support"
+  ]
 }

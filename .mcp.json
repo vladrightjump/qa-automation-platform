@@ -1,0 +1,9 @@
+{
+  "_comment": "Playwright MCP server — gives a connected agent a real browser against the local SUT for spec authoring / exploration. NOT used in CI (see .github/workflows/ci.yml).",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium"]
+    }
+  }
+}

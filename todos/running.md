@@ -53,12 +53,43 @@ pnpm db:seed                             # deterministic seed data
 pnpm exec playwright install --with-deps # browsers
 ```
 
+**Alternative: native Postgres on macOS (no Docker).** If you can't or don't want to run Docker, install Postgres natively. This is the path currently used on the dev machine:
+
+```bash
+brew install postgresql@16
+brew services start postgresql@16
+# Use the default superuser to create role + db matching .env.example:
+/opt/homebrew/opt/postgresql@16/bin/psql -d postgres -c \
+  "CREATE ROLE qa LOGIN PASSWORD 'qa' CREATEDB;"
+/opt/homebrew/opt/postgresql@16/bin/createdb -O qa qa
+```
+
+CI still uses the `docker-compose.yml` service container — keep that path working.
+
 **Day-to-day:**
 
 ```bash
-pnpm dev                 # turbo: boots api (:3001) + web (:3000)
-pnpm test                # full Playwright suite (api + db + e2e)
-pnpm test --grep @smoke  # fast subset
+# build prerequisites (each app + the shared db package compile output)
+pnpm --filter @qa/db build       # @qa/db consumers require dist/index.js
+pnpm --filter @qa/api build      # NestJS needs emitDecoratorMetadata (tsc, not tsx)
+pnpm --filter @qa/web build      # Next.js production build
+
+# run both apps (two shells)
+pnpm --filter @qa/api start      # → http://localhost:3001 (Swagger UI at /docs)
+pnpm --filter @qa/web start      # → http://localhost:3000
+
+# alt: hot-reload dev mode
+pnpm --filter @qa/api dev        # ts-node-dev watch (slower start, auto-reloads)
+pnpm --filter @qa/web dev        # next dev
+
+# Tests / lint / types
+pnpm --filter @qa/tests exec playwright install chromium   # one-time
+pnpm test                                  # full Playwright suite (32 specs) — webServer boots api + web
+pnpm --filter @qa/tests run test:smoke     # @smoke only (9 specs, ~5s)
+pnpm --filter @qa/tests run test:regression  # @regression only (23 specs)
+pnpm --filter @qa/tests run test:ui        # interactive Playwright UI
+# after a failure:
+pnpm --filter @qa/tests exec playwright show-report playwright-report
 pnpm lint && pnpm typecheck
 ```
 

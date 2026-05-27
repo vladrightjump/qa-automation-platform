@@ -2,15 +2,31 @@
   "name": "@qa/db",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "prisma"],
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "migrate": "echo \"[@qa/db] migrate — implemented in Phase 1\"",
-    "seed": "echo \"[@qa/db] seed — implemented in Phase 1\""
+    "build": "tsc -p tsconfig.build.json",
+    "generate": "prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate deploy",
+    "migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
+    "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
+    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "postinstall": "prisma generate || true"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0"
   },
   "devDependencies": {
-    "@qa/config": "workspace:*"
+    "@qa/config": "workspace:*",
+    "dotenv-cli": "^7.4.4",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.2"
   }
 }

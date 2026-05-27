@@ -1,0 +1,220 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Stop in-flight runs on the same ref when a new commit lands.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Single source of truth for env across all jobs. Mirrors `.env.example`
+# (which CI also copies into place for the dotenv-cli wrappers in db/api).
+env:
+  PNPM_VERSION: '9.15.4'
+  NODE_VERSION: '20'
+  DATABASE_URL: 'postgresql://qa:qa@localhost:5432/qa?schema=public'
+  API_PORT: '3001'
+  WEB_PORT: '3000'
+  JWT_SECRET: 'ci-secret-not-real'
+  ENABLE_TEST_ENDPOINTS: 'true'
+  NEXT_PUBLIC_API_URL: 'http://localhost:3001'
+  API_BASE_URL: 'http://localhost:3001'
+  E2E_BASE_URL: 'http://localhost:3000'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Fast feedback gate.
+  # ─────────────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Build once. Downstream test shards reuse this artifact.
+  # ─────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build (once)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Turbo build (db → contracts → api → web)
+        run: pnpm build
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            packages/db/dist
+            packages/contracts/dist
+            apps/api/dist
+            apps/web/.next
+            !apps/web/.next/cache
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Parallel test shards. Each shard:
+  #   - downloads the build artifact
+  #   - runs migrate + seed against the Postgres service container
+  #   - launches api + web via Playwright's webServer
+  #   - runs `--shard=N/M` of the suite
+  #   - emits a blob report for the merge-reports job
+  # PRs run @smoke only; pushes to main run the full suite.
+  # ─────────────────────────────────────────────────────────────────────────
+  test:
+    name: Test (shard ${{ matrix.shard }}/${{ matrix.total }})
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+        total: [2]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: qa
+          POSTGRES_DB: qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Prepare .env (dotenv-cli wrappers expect it)
+        run: cp .env.example .env
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright (full)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps only (cache hit)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @qa/tests exec playwright install-deps chromium
+
+      - name: Migrate + seed
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+
+      - name: Run tests
+        run: |
+          GREP_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            GREP_ARGS="--grep @smoke"
+            echo "PR run → @smoke only"
+          else
+            echo "main run → full suite"
+          fi
+          pnpm --filter @qa/tests exec playwright test \
+            --shard=${{ matrix.shard }}/${{ matrix.total }} \
+            --reporter=blob,list \
+            $GREP_ARGS
+
+      - name: Upload blob report (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: tests/blob-report
+          retention-days: 7
+
+      - name: Upload failure traces + screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.shard }}
+          path: tests/test-results
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Merge shard reports into a single HTML report uploaded as an artifact.
+  # `if: always()` so the report exists even when a shard failed.
+  # ─────────────────────────────────────────────────────────────────────────
+  merge-reports:
+    name: Merge HTML report
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge into HTML report
+        run: |
+          cd tests
+          pnpm exec playwright merge-reports --reporter html ../all-blob-reports
+
+      - name: Upload merged HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/playwright-report
+          retention-days: 14
