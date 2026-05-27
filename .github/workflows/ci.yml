@@ -69,6 +69,7 @@ jobs:
           name: build-output
           retention-days: 1
           if-no-files-found: error
+          include-hidden-files: true
           path: |
             packages/db/dist
             packages/contracts/dist
