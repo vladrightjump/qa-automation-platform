@@ -137,6 +137,43 @@ export class ApiClient {
     return CartSchema.parse(await res.json());
   }
 
+  async updateCartItem(
+    token: string,
+    productId: string,
+    quantity: number,
+  ): Promise<Cart> {
+    const res = await this.request.patch(
+      `${API_BASE}/cart/items/${productId}`,
+      { headers: authHeader(token), data: { quantity } },
+    );
+    if (!res.ok()) {
+      throw new Error(`updateCartItem: ${res.status()} ${await res.text()}`);
+    }
+    return CartSchema.parse(await res.json());
+  }
+
+  async reorderCart(token: string, order: string[]): Promise<Cart> {
+    const res = await this.request.patch(`${API_BASE}/cart/reorder`, {
+      headers: authHeader(token),
+      data: { order },
+    });
+    if (!res.ok()) {
+      throw new Error(`reorderCart: ${res.status()} ${await res.text()}`);
+    }
+    return CartSchema.parse(await res.json());
+  }
+
+  async cancelOrder(token: string, id: string): Promise<Order> {
+    const res = await this.request.post(
+      `${API_BASE}/orders/${id}/cancel`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`cancelOrder: ${res.status()} ${await res.text()}`);
+    }
+    return OrderSchema.parse(await res.json());
+  }
+
   // --- orders / checkout ---
   async checkout(
     token: string,

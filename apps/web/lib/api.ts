@@ -248,6 +248,20 @@ export const api = {
     ),
   removeFromCart: (token: string, productId: string) =>
     request<Cart>(`/cart/items/${productId}`, { method: 'DELETE' }, token),
+  updateCartItem: (token: string, productId: string, quantity: number) =>
+    request<Cart>(
+      `/cart/items/${productId}`,
+      { method: 'PATCH', body: JSON.stringify({ quantity }) },
+      token,
+    ),
+  reorderCart: (token: string, order: string[]) =>
+    request<Cart>(
+      '/cart/reorder',
+      { method: 'PATCH', body: JSON.stringify({ order }) },
+      token,
+    ),
+  cancelOrder: (token: string, id: string) =>
+    request<Order>(`/orders/${id}/cancel`, { method: 'POST' }, token),
 
   checkout: (token: string, input: CheckoutInput = {}) =>
     request<Order>(

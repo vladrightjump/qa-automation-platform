@@ -182,4 +182,29 @@ export class OrdersService {
     if (order.userId !== userId) throw new ForbiddenException();
     return order;
   }
+
+  async cancel(userId: string, id: string) {
+    const order = await this.get(userId, id);
+    if (order.status !== OrderStatus.PENDING && order.status !== OrderStatus.PAID) {
+      throw new BadRequestException(
+        `Order ${id} cannot be cancelled in status ${order.status}`,
+      );
+    }
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id },
+        data: { status: OrderStatus.CANCELLED },
+        include: { items: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: 'ORDER_CANCELLED',
+          entity: 'Order',
+          entityId: id,
+        },
+      });
+      return updated;
+    });
+  }
 }

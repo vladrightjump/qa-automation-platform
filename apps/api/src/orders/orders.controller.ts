@@ -31,4 +31,9 @@ export class OrdersController {
   applyPromo(@CurrentUser() user: AuthedUser, @Body() dto: ApplyPromoDto) {
     return this.orders.previewPromo(user.id, dto.code);
   }
+
+  @Post('orders/:id/cancel')
+  cancel(@CurrentUser() user: AuthedUser, @Param('id') id: string) {
+    return this.orders.cancel(user.id, id);
+  }
 }

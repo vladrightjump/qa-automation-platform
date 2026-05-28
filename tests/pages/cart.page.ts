@@ -15,8 +15,20 @@ export class CartPage {
     return this.page.getByTestId('cart-subtotal');
   }
 
-  async removeItem(productId: string): Promise<void> {
+  /**
+   * Click Remove and confirm the deletion. The button now opens a modal —
+   * pass `confirm: false` to test the cancel path instead.
+   */
+  async removeItem(
+    productId: string,
+    options: { confirm?: boolean } = {},
+  ): Promise<void> {
     await this.page.getByTestId(`cart-remove-${productId}`).click();
+    if (options.confirm === false) {
+      await this.page.getByTestId('cart-remove-cancel').click();
+    } else {
+      await this.page.getByTestId('cart-remove-confirm').click();
+    }
   }
 
   async proceedToCheckout(): Promise<void> {
