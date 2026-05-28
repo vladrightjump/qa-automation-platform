@@ -21,7 +21,9 @@ test.describe('checkout (UI)', () => {
     const cart = new CartPage(authedPage);
     const checkout = new CheckoutPage(authedPage);
 
-    await storefront.goto();
+    // The home grid paginates by name, so factory products with random
+    // names may not land on page 1. Navigate to the detail page to add.
+    await authedPage.goto(`/products/${product.id}`);
     await expect(storefront.productCard(product.id)).toBeVisible();
     await storefront.addToCart(product.id);
 

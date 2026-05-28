@@ -1,6 +1,7 @@
 import './globals.css';
 import type { ReactNode } from 'react';
 import { AuthProvider } from '@/lib/auth';
+import { ToastProvider } from '@/components/ui/ToastQueue';
 import Navbar from '@/components/Navbar';
 
 export const metadata = {
@@ -12,10 +13,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-900 antialiased">
-        <AuthProvider>
-          <Navbar />
-          <main className="max-w-5xl mx-auto p-6">{children}</main>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Navbar />
+            <main className="max-w-5xl mx-auto p-6">{children}</main>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

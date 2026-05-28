@@ -45,7 +45,28 @@ export default function ProductCard({
       <p className="font-mono text-sm">
         ${(product.priceCents / 100).toFixed(2)}
       </p>
-      <p className="text-xs text-gray-500">Stock: {product.stock}</p>
+      <div className="flex items-center gap-2 text-xs">
+        <span
+          data-testid={`product-category-${product.id}`}
+          className="inline-block px-2 py-0.5 rounded bg-gray-100 text-gray-700 capitalize"
+        >
+          {product.category}
+        </span>
+        <span className="text-gray-500">Stock: {product.stock}</span>
+      </div>
+      {product.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {product.tags.map((t) => (
+            <span
+              key={t}
+              data-testid={`product-tag-${product.id}-${t}`}
+              className="text-[10px] uppercase tracking-wide text-gray-500"
+            >
+              #{t}
+            </span>
+          ))}
+        </div>
+      )}
       <button
         onClick={handleAdd}
         disabled={busy || oos}

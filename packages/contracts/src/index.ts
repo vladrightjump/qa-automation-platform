@@ -8,14 +8,33 @@ export const UserSchema = z.object({
   email: z.string().email(),
 });
 
+export const ProductCategorySchema = z.enum(['gadgets', 'apparel', 'home', 'office']);
+
 export const ProductSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   priceCents: z.number().int().nonnegative(),
   stock: z.number().int().nonnegative(),
+  category: ProductCategorySchema,
+  tags: z.array(z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+export const ProductSortSchema = z.enum([
+  'name_asc',
+  'name_desc',
+  'price_asc',
+  'price_desc',
+  'newest',
+]);
+
+export const PagedProductsSchema = z.object({
+  items: z.array(ProductSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
 });
 
 export const CartItemSchema = z.object({
@@ -69,6 +88,9 @@ export const OrderListSchema = z.array(OrderSchema);
 
 export type User = z.infer<typeof UserSchema>;
 export type Product = z.infer<typeof ProductSchema>;
+export type ProductCategory = z.infer<typeof ProductCategorySchema>;
+export type ProductSort = z.infer<typeof ProductSortSchema>;
+export type PagedProducts = z.infer<typeof PagedProductsSchema>;
 export type CartItem = z.infer<typeof CartItemSchema>;
 export type Cart = z.infer<typeof CartSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;

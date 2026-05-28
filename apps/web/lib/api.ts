@@ -3,12 +3,40 @@
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
+export type ProductCategory = 'gadgets' | 'apparel' | 'home' | 'office';
+
+export type ProductSort =
+  | 'name_asc'
+  | 'name_desc'
+  | 'price_asc'
+  | 'price_desc'
+  | 'newest';
+
 export interface Product {
   id: string;
   name: string;
   description: string | null;
   priceCents: number;
   stock: number;
+  category: ProductCategory;
+  tags: string[];
+}
+
+export interface PagedProducts {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ListProductsQuery {
+  q?: string;
+  category?: ProductCategory[];
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  sort?: ProductSort;
+  page?: number;
+  pageSize?: number;
 }
 
 export interface User {
@@ -86,8 +114,22 @@ async function request<T>(
   return data as T;
 }
 
+function buildProductsQuery(query: ListProductsQuery): string {
+  const params = new URLSearchParams();
+  if (query.q) params.set('q', query.q);
+  if (query.category) for (const c of query.category) params.append('category', c);
+  if (query.minPriceCents != null) params.set('minPriceCents', String(query.minPriceCents));
+  if (query.maxPriceCents != null) params.set('maxPriceCents', String(query.maxPriceCents));
+  if (query.sort) params.set('sort', query.sort);
+  if (query.page) params.set('page', String(query.page));
+  if (query.pageSize) params.set('pageSize', String(query.pageSize));
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
-  listProducts: () => request<Product[]>('/products'),
+  listProducts: (query: ListProductsQuery = {}) =>
+    request<PagedProducts>(`/products${buildProductsQuery(query)}`),
   getProduct: (id: string) => request<Product>(`/products/${id}`),
 
   register: (email: string, password: string) =>

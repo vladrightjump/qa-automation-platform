@@ -1,30 +1,136 @@
 import { test, expect } from '../fixtures';
-import { ProductListSchema, ProductSchema } from '@qa/contracts';
+import { PagedProductsSchema, ProductSchema } from '@qa/contracts';
 import { API_BASE } from '../support/api-client';
 
 test.describe('products', () => {
-  test('@smoke list returns the seeded products with valid shape', async ({ api }) => {
-    const products = await api.listProducts();
-    expect(ProductListSchema.safeParse(products).success).toBe(true);
-    const ids = products.map((p) => p.id);
-    expect(ids).toEqual(expect.arrayContaining(['prod_widget', 'prod_gizmo']));
+  test('@smoke list returns paginated seeded products with valid shape', async ({
+    api,
+  }) => {
+    const page = await api.listProducts({ pageSize: 100 });
+    expect(PagedProductsSchema.safeParse(page).success).toBe(true);
+    expect(page.total).toBeGreaterThan(0);
+    expect(page.items.length).toBeLessThanOrEqual(page.pageSize);
+    const ids = page.items.map((p) => p.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['prod_widget', 'prod_gizmo']),
+    );
   });
 
-  test('@regression list is sorted by id (deterministic for tests)', async ({ api }) => {
-    const products = await api.listProducts();
-    const ids = products.map((p) => p.id);
-    const sorted = [...ids].sort();
-    expect(ids).toEqual(sorted);
+  test('@regression default sort is name ascending', async ({ api }) => {
+    const page = await api.listProducts({ pageSize: 100 });
+    const names = page.items.map((p) => p.name);
+    const sorted = [...names].sort((a, b) => a.localeCompare(b));
+    expect(names).toEqual(sorted);
   });
 
-  test('@regression get by id returns a single product matching the shape', async ({ api }) => {
+  test('@regression filter by category narrows results', async ({ api }) => {
+    const all = await api.listProducts({ pageSize: 100 });
+    const apparel = await api.listProducts({
+      category: ['apparel'],
+      pageSize: 100,
+    });
+    expect(apparel.total).toBeLessThan(all.total);
+    expect(apparel.items.every((p) => p.category === 'apparel')).toBe(true);
+  });
+
+  test('@regression filter by multiple categories returns union', async ({
+    api,
+  }) => {
+    const result = await api.listProducts({
+      category: ['apparel', 'home'],
+      pageSize: 100,
+    });
+    expect(result.total).toBeGreaterThan(0);
+    expect(
+      result.items.every(
+        (p) => p.category === 'apparel' || p.category === 'home',
+      ),
+    ).toBe(true);
+  });
+
+  test('@regression search q matches name and description case-insensitively', async ({
+    api,
+  }) => {
+    const result = await api.listProducts({ q: 'widget' });
+    expect(result.total).toBeGreaterThan(0);
+    expect(
+      result.items.every(
+        (p) =>
+          p.name.toLowerCase().includes('widget') ||
+          (p.description?.toLowerCase().includes('widget') ?? false),
+      ),
+    ).toBe(true);
+  });
+
+  test('@regression search returns empty page when no match', async ({
+    api,
+  }) => {
+    const result = await api.listProducts({ q: 'definitelydoesnotexist' });
+    expect(result.total).toBe(0);
+    expect(result.items).toEqual([]);
+  });
+
+  test('@regression price filter respects min/max', async ({ api }) => {
+    const result = await api.listProducts({
+      minPriceCents: 1000,
+      maxPriceCents: 2000,
+      pageSize: 100,
+    });
+    expect(
+      result.items.every(
+        (p) => p.priceCents >= 1000 && p.priceCents <= 2000,
+      ),
+    ).toBe(true);
+  });
+
+  test('@regression sort=price_asc orders by price ascending', async ({
+    api,
+  }) => {
+    const result = await api.listProducts({ sort: 'price_asc', pageSize: 100 });
+    const prices = result.items.map((p) => p.priceCents);
+    expect([...prices].sort((a, b) => a - b)).toEqual(prices);
+  });
+
+  test('@regression sort=price_desc orders by price descending', async ({
+    api,
+  }) => {
+    const result = await api.listProducts({ sort: 'price_desc', pageSize: 100 });
+    const prices = result.items.map((p) => p.priceCents);
+    expect([...prices].sort((a, b) => b - a)).toEqual(prices);
+  });
+
+  test('@regression pagination returns disjoint pages and respects pageSize', async ({
+    api,
+  }) => {
+    const page1 = await api.listProducts({ page: 1, pageSize: 5 });
+    const page2 = await api.listProducts({ page: 2, pageSize: 5 });
+    expect(page1.items).toHaveLength(5);
+    expect(page1.page).toBe(1);
+    expect(page2.page).toBe(2);
+    const overlap = page1.items
+      .map((p) => p.id)
+      .filter((id) => page2.items.some((p) => p.id === id));
+    expect(overlap).toEqual([]);
+  });
+
+  test('@regression get by id returns a single product matching the shape', async ({
+    api,
+  }) => {
     const product = await api.getProduct('prod_widget');
     expect(ProductSchema.safeParse(product).success).toBe(true);
     expect(product.name).toBe('Widget');
+    expect(product.category).toBe('gadgets');
   });
 
   test('@regression get missing product returns 404', async ({ api }) => {
-    const res = await api.raw().get(`${API_BASE}/products/prod_does_not_exist`);
+    const res = await api
+      .raw()
+      .get(`${API_BASE}/products/prod_does_not_exist`);
     expect(res.status()).toBe(404);
+  });
+
+  test('@regression invalid sort param rejected with 400', async ({ api }) => {
+    const res = await api.raw().get(`${API_BASE}/products?sort=bogus`);
+    expect(res.status()).toBe(400);
   });
 });

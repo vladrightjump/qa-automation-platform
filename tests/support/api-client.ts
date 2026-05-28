@@ -9,15 +9,28 @@ import {
   CartSchema,
   OrderListSchema,
   OrderSchema,
-  ProductListSchema,
+  PagedProductsSchema,
   ProductSchema,
   type AuthResult,
   type Cart,
   type Order,
+  type PagedProducts,
   type Product,
+  type ProductCategory,
+  type ProductSort,
 } from '@qa/contracts';
 
 const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:3001';
+
+export interface ListProductsQuery {
+  q?: string;
+  category?: ProductCategory[];
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  sort?: ProductSort;
+  page?: number;
+  pageSize?: number;
+}
 
 function authHeader(token?: string): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -48,10 +61,23 @@ export class ApiClient {
   }
 
   // --- products ---
-  async listProducts(): Promise<Product[]> {
-    const res = await this.request.get(`${API_BASE}/products`);
+  async listProducts(query: ListProductsQuery = {}): Promise<PagedProducts> {
+    const params = new URLSearchParams();
+    if (query.q) params.set('q', query.q);
+    if (query.category)
+      for (const c of query.category) params.append('category', c);
+    if (query.minPriceCents != null)
+      params.set('minPriceCents', String(query.minPriceCents));
+    if (query.maxPriceCents != null)
+      params.set('maxPriceCents', String(query.maxPriceCents));
+    if (query.sort) params.set('sort', query.sort);
+    if (query.page) params.set('page', String(query.page));
+    if (query.pageSize) params.set('pageSize', String(query.pageSize));
+    const qs = params.toString();
+    const url = qs ? `${API_BASE}/products?${qs}` : `${API_BASE}/products`;
+    const res = await this.request.get(url);
     if (!res.ok()) throw new Error(`listProducts: ${res.status()}`);
-    return ProductListSchema.parse(await res.json());
+    return PagedProductsSchema.parse(await res.json());
   }
 
   async getProduct(id: string): Promise<Product> {

@@ -1,6 +1,5 @@
 // Negative UI paths: unauthenticated access, out-of-stock, validation messaging.
 import { test, expect } from '../fixtures';
-import { StorefrontPage } from '../pages/storefront.page';
 
 test.describe('negative paths (UI)', () => {
   test('@regression unauthenticated /cart redirects to /login', async ({ page }) => {
@@ -12,9 +11,10 @@ test.describe('negative paths (UI)', () => {
   test('@regression out-of-stock product shows disabled "Out of stock" button', async ({
     authedPage,
   }) => {
-    const storefront = new StorefrontPage(authedPage);
-    await storefront.goto();
-    const card = storefront.productCard('prod_oos');
+    // Navigate directly to the OOS sample's detail page — the home grid
+    // paginates so it may not be on the first page.
+    await authedPage.goto('/products/prod_oos');
+    const card = authedPage.getByTestId('product-card-prod_oos');
     await expect(card).toBeVisible();
     const btn = authedPage.getByTestId('add-to-cart-prod_oos');
     await expect(btn).toBeDisabled();

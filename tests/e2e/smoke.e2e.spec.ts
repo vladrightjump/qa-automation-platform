@@ -20,8 +20,8 @@ test('@smoke storefront loads with seeded products and an authed user', async ({
   );
 
   // 2) API surface matches the DB and conforms to the shared Zod schema.
-  const apiProducts = await api.listProducts();
-  expect(apiProducts.map((p) => p.id)).toEqual(expect.arrayContaining(dbIds));
+  const apiPage = await api.listProducts({ pageSize: 100 });
+  expect(apiPage.items.map((p) => p.id)).toEqual(expect.arrayContaining(dbIds));
 
   // 3) Browser session is authenticated (token injected before page load) and
   //    the testid map is wired up — the navbar shows the cart count badge.
@@ -31,6 +31,8 @@ test('@smoke storefront loads with seeded products and an authed user', async ({
   await expect(authedPage.getByTestId('cart-count')).toBeVisible();
   // Signed-in users see the Orders link too.
   await expect(authedPage.getByTestId('nav-orders')).toBeVisible();
-  // Seeded product card is rendered after client hydration + fetch.
+  // Seeded product is reachable via the detail route. The home grid is
+  // now paginated so prod_widget isn't necessarily on page 1.
+  await authedPage.goto('/products/prod_widget');
   await expect(authedPage.getByTestId('product-card-prod_widget')).toBeVisible();
 });
