@@ -32,13 +32,19 @@ test.describe('catalog filters', () => {
     await expect(storefront.productCard('prod_widget')).toHaveCount(0);
   });
 
-  test('@regression sort=price_asc shows cheapest first', async ({ page }) => {
+  test('@regression sort=price_asc shows cheapest first in a filtered set', async ({
+    page,
+  }) => {
     const storefront = new StorefrontPage(page);
     await storefront.goto();
+    // Scope to office so parallel admin-API tests creating random products
+    // can't interfere with the assertion about which item is cheapest.
+    await storefront.toggleCategory('office');
+    await page.waitForURL(/category=office/);
     await storefront.setSort('price_asc');
     await page.waitForURL(/sort=price_asc/);
 
-    // Pen 3-pack is the cheapest seeded product ($5.99).
+    // prod_pen_gel ($5.99) is the cheapest office item in the seed.
     const firstCard = storefront.productCards().first();
     await expect(firstCard).toHaveAttribute(
       'data-testid',

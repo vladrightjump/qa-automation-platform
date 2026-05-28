@@ -1,6 +1,6 @@
 import { Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { prisma } from '@qa/db';
+import { prisma, upsertAdmin } from '@qa/db';
 import { TestEndpointsGuard } from './test-endpoints.guard';
 
 @ApiTags('test')
@@ -9,8 +9,8 @@ import { TestEndpointsGuard } from './test-endpoints.guard';
 export class TestController {
   /**
    * Wipes user-level data (users, carts, orders, audit log) but leaves
-   * the deterministic product catalog intact. Re-seed via `pnpm db:seed`
-   * if product stock has been altered.
+   * the deterministic product catalog intact. Re-seeds the admin user
+   * so admin-only flows stay testable across resets.
    */
   @Post('reset')
   async reset() {
@@ -20,6 +20,7 @@ export class TestController {
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
     await prisma.user.deleteMany();
+    await upsertAdmin(prisma);
     return { ok: true };
   }
 }

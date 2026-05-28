@@ -1,15 +1,19 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 
+export type UserRole = 'USER' | 'ADMIN';
+
 export interface AuthedUser {
   id: string;
   email: string;
+  role: UserRole;
 }
 
 type ReqWithUser = Request & { user?: AuthedUser };
@@ -26,11 +30,32 @@ export class AuthGuard implements CanActivate {
     }
     const token = header.slice('Bearer '.length);
     try {
-      const payload = this.jwt.verify<{ sub: string; email: string }>(token);
-      req.user = { id: payload.sub, email: payload.email };
+      const payload = this.jwt.verify<{
+        sub: string;
+        email: string;
+        role?: UserRole;
+      }>(token);
+      req.user = {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role ?? 'USER',
+      };
       return true;
     } catch {
       throw new UnauthorizedException();
     }
+  }
+}
+
+@Injectable()
+export class AdminGuard extends AuthGuard {
+  override canActivate(ctx: ExecutionContext): boolean {
+    const ok = super.canActivate(ctx);
+    if (!ok) return false;
+    const req = ctx.switchToHttp().getRequest<ReqWithUser>();
+    if (req.user?.role !== 'ADMIN') {
+      throw new ForbiddenException('Admin role required');
+    }
+    return true;
   }
 }

@@ -8,7 +8,8 @@
 // Specs `import { test, expect } from '../fixtures'` and request only the
 // fixtures they need; unused ones are never built.
 import { test as base, expect } from '@playwright/test';
-import { prisma, type PrismaClient } from '@qa/db';
+import { prisma, ADMIN_EMAIL, ADMIN_PASSWORD, type PrismaClient } from '@qa/db';
+import type { UserRole } from '@qa/contracts';
 import { ApiClient } from '../support/api-client';
 import { TOKEN_KEY, USER_KEY } from '../support/keys';
 import { UserFactory } from '../factories/user.factory';
@@ -17,13 +18,16 @@ interface AuthedTestUser {
   id: string;
   email: string;
   password: string;
+  role: UserRole;
   token: string;
 }
 
 interface Fixtures {
   api: ApiClient;
   testUser: AuthedTestUser;
+  adminUser: AuthedTestUser;
   authedPage: import('@playwright/test').Page;
+  adminPage: import('@playwright/test').Page;
 }
 
 interface WorkerFixtures {
@@ -49,32 +53,59 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
   testUser: async ({ api }, use) => {
     const creds = UserFactory.build();
     const { token, user } = await api.register(creds.email, creds.password);
-    await use({ id: user.id, email: user.email, password: creds.password, token });
+    await use({
+      id: user.id,
+      email: user.email,
+      password: creds.password,
+      role: user.role,
+      token,
+    });
+  },
+
+  adminUser: async ({ api }, use) => {
+    // The deterministic admin is seeded (and re-seeded by /test/reset).
+    const { token, user } = await api.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    await use({
+      id: user.id,
+      email: user.email,
+      password: ADMIN_PASSWORD,
+      role: user.role,
+      token,
+    });
   },
 
   authedPage: async ({ page, testUser }, use) => {
-    // `addInitScript` runs before any of the page's own scripts — including
-    // the React hydration that reads localStorage in the AuthProvider, so
-    // the storefront sees the user as already signed in.
-    await page.addInitScript(
-      (args: {
-        tokenKey: string;
-        userKey: string;
-        token: string;
-        user: { id: string; email: string };
-      }) => {
-        window.localStorage.setItem(args.tokenKey, args.token);
-        window.localStorage.setItem(args.userKey, JSON.stringify(args.user));
-      },
-      {
-        tokenKey: TOKEN_KEY,
-        userKey: USER_KEY,
-        token: testUser.token,
-        user: { id: testUser.id, email: testUser.email },
-      },
-    );
+    await injectAuth(page, testUser);
+    await use(page);
+  },
+
+  adminPage: async ({ page, adminUser }, use) => {
+    await injectAuth(page, adminUser);
     await use(page);
   },
 });
+
+async function injectAuth(
+  page: import('@playwright/test').Page,
+  user: AuthedTestUser,
+): Promise<void> {
+  await page.addInitScript(
+    (args: {
+      tokenKey: string;
+      userKey: string;
+      token: string;
+      user: { id: string; email: string; role: UserRole };
+    }) => {
+      window.localStorage.setItem(args.tokenKey, args.token);
+      window.localStorage.setItem(args.userKey, JSON.stringify(args.user));
+    },
+    {
+      tokenKey: TOKEN_KEY,
+      userKey: USER_KEY,
+      token: user.token,
+      user: { id: user.id, email: user.email, role: user.role },
+    },
+  );
+}
 
 export { expect };

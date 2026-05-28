@@ -3,9 +3,12 @@
 // All TS types are inferred from schemas — single source of truth.
 import { z } from 'zod';
 
+export const UserRoleSchema = z.enum(['USER', 'ADMIN']);
+
 export const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
+  role: UserRoleSchema,
 });
 
 export const ProductCategorySchema = z.enum(['gadgets', 'apparel', 'home', 'office']);
@@ -87,6 +90,7 @@ export const ProductListSchema = z.array(ProductSchema);
 export const OrderListSchema = z.array(OrderSchema);
 
 export type User = z.infer<typeof UserSchema>;
+export type UserRole = z.infer<typeof UserRoleSchema>;
 export type Product = z.infer<typeof ProductSchema>;
 export type ProductCategory = z.infer<typeof ProductCategorySchema>;
 export type ProductSort = z.infer<typeof ProductSortSchema>;

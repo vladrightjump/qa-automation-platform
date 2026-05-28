@@ -39,9 +39,12 @@ export interface ListProductsQuery {
   pageSize?: number;
 }
 
+export type UserRole = 'USER' | 'ADMIN';
+
 export interface User {
   id: string;
   email: string;
+  role: UserRole;
 }
 
 export interface AuthResult {
@@ -114,6 +117,16 @@ async function request<T>(
   return data as T;
 }
 
+export interface AdminProductInput {
+  id?: string;
+  name: string;
+  description?: string | null;
+  priceCents: number;
+  stock: number;
+  category: ProductCategory;
+  tags?: string[];
+}
+
 function buildProductsQuery(query: ListProductsQuery): string {
   const params = new URLSearchParams();
   if (query.q) params.set('q', query.q);
@@ -158,4 +171,30 @@ export const api = {
   listOrders: (token: string) => request<Order[]>('/orders', {}, token),
   getOrder: (token: string, id: string) =>
     request<Order>(`/orders/${id}`, {}, token),
+
+  // ---- admin ----
+  adminListProducts: (token: string, page = 1, pageSize = 20) =>
+    request<PagedProducts>(
+      `/admin/products?page=${page}&pageSize=${pageSize}`,
+      {},
+      token,
+    ),
+  adminCreateProduct: (token: string, input: AdminProductInput) =>
+    request<Product>(
+      '/admin/products',
+      { method: 'POST', body: JSON.stringify(input) },
+      token,
+    ),
+  adminUpdateProduct: (
+    token: string,
+    id: string,
+    patch: Partial<AdminProductInput>,
+  ) =>
+    request<Product>(
+      `/admin/products/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patch) },
+      token,
+    ),
+  adminDeleteProduct: (token: string, id: string) =>
+    request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' }, token),
 };

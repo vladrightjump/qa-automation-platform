@@ -16,3 +16,4 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Re-export Prisma types so consumers can import directly from `@qa/db`.
 export * from '@prisma/client';
+export * from './seed-helpers';

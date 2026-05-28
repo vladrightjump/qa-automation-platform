@@ -1,6 +1,7 @@
 // Idempotent seed: deterministic product IDs/stock so tests have a stable baseline.
 // Re-running is safe — every row uses upsert.
 import { PrismaClient } from '@prisma/client';
+import { upsertAdmin } from '../src/seed-helpers';
 
 const prisma = new PrismaClient();
 
@@ -65,7 +66,8 @@ async function main(): Promise<void> {
       create: p,
     });
   }
-  console.log(`[seed] upserted ${PRODUCTS.length} products`);
+  await upsertAdmin(prisma);
+  console.log(`[seed] upserted ${PRODUCTS.length} products + admin user`);
 }
 
 main()

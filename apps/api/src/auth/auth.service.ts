@@ -6,10 +6,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { prisma } from '@qa/db';
 import * as bcrypt from 'bcryptjs';
+import type { UserRole } from './auth.guard';
 
 export interface AuthResult {
   token: string;
-  user: { id: string; email: string };
+  user: { id: string; email: string; role: UserRole };
 }
 
 @Injectable()
@@ -23,7 +24,7 @@ export class AuthService {
     const user = await prisma.user.create({
       data: { email, password: hash },
     });
-    return this.issueToken(user.id, user.email);
+    return this.issueToken(user.id, user.email, user.role);
   }
 
   async login(email: string, password: string): Promise<AuthResult> {
@@ -31,11 +32,15 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid credentials');
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
-    return this.issueToken(user.id, user.email);
+    return this.issueToken(user.id, user.email, user.role);
   }
 
-  private issueToken(userId: string, email: string): AuthResult {
-    const token = this.jwt.sign({ sub: userId, email });
-    return { token, user: { id: userId, email } };
+  private issueToken(
+    userId: string,
+    email: string,
+    role: UserRole,
+  ): AuthResult {
+    const token = this.jwt.sign({ sub: userId, email, role });
+    return { token, user: { id: userId, email, role } };
   }
 }

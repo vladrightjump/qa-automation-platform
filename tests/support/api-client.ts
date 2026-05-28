@@ -146,6 +146,64 @@ export class ApiClient {
     return OrderSchema.parse(await res.json());
   }
 
+  // --- admin/products ---
+  async adminListProducts(token: string, page = 1, pageSize = 20) {
+    const res = await this.request.get(
+      `${API_BASE}/admin/products?page=${page}&pageSize=${pageSize}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`adminListProducts: ${res.status()} ${await res.text()}`);
+    }
+    return PagedProductsSchema.parse(await res.json());
+  }
+
+  async adminCreateProduct(
+    token: string,
+    input: {
+      id: string;
+      name: string;
+      description?: string | null;
+      priceCents: number;
+      stock: number;
+      category: ProductCategory;
+      tags?: string[];
+    },
+  ): Promise<Product> {
+    const res = await this.request.post(`${API_BASE}/admin/products`, {
+      headers: authHeader(token),
+      data: input,
+    });
+    if (!res.ok()) {
+      throw new Error(`adminCreateProduct: ${res.status()} ${await res.text()}`);
+    }
+    return ProductSchema.parse(await res.json());
+  }
+
+  async adminUpdateProduct(
+    token: string,
+    id: string,
+    patch: Record<string, unknown>,
+  ): Promise<Product> {
+    const res = await this.request.patch(`${API_BASE}/admin/products/${id}`, {
+      headers: authHeader(token),
+      data: patch,
+    });
+    if (!res.ok()) {
+      throw new Error(`adminUpdateProduct: ${res.status()} ${await res.text()}`);
+    }
+    return ProductSchema.parse(await res.json());
+  }
+
+  async adminDeleteProduct(token: string, id: string): Promise<void> {
+    const res = await this.request.delete(`${API_BASE}/admin/products/${id}`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) {
+      throw new Error(`adminDeleteProduct: ${res.status()} ${await res.text()}`);
+    }
+  }
+
   // --- test seam (env-guarded on the API side) ---
   async resetTestData(): Promise<void> {
     const res = await this.request.post(`${API_BASE}/test/reset`);
