@@ -96,7 +96,9 @@ test.describe('checkout wizard (UI)', () => {
 
     const checkout = new CheckoutPage(authedPage);
     await checkout.goto();
-    // No saved addresses → form appears inline. Click Next with empty fields.
+    // No saved addresses → the new-address form renders inline. Wait
+    // for the form to appear before clicking Next.
+    await authedPage.getByTestId('checkout-new-line1').waitFor();
     await checkout.next();
     await expect(
       authedPage.getByTestId('checkout-new-name-error'),

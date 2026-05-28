@@ -127,6 +127,45 @@ export interface CheckoutInput {
   promoCode?: string;
 }
 
+export interface WishlistItem {
+  id: string;
+  wishlistId: string;
+  productId: string;
+  product: Product;
+  createdAt: string;
+}
+
+export interface Wishlist {
+  id: string;
+  userId: string;
+  items: WishlistItem[];
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  title: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface PagedReviews {
+  items: Review[];
+  total: number;
+  page: number;
+  pageSize: number;
+  averageRating: number;
+}
+
+export interface ReviewSummary {
+  reviewCount: number;
+  averageRating: number;
+}
+
+export type ReviewSort = 'newest' | 'highest' | 'lowest';
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -239,6 +278,50 @@ export const api = {
     ),
   deleteAddress: (token: string, id: string) =>
     request<{ ok: true }>(`/addresses/${id}`, { method: 'DELETE' }, token),
+
+  // --- wishlist ---
+  getWishlist: (token: string) => request<Wishlist>('/wishlist', {}, token),
+  addToWishlist: (token: string, productId: string) =>
+    request<Wishlist>(
+      '/wishlist/items',
+      { method: 'POST', body: JSON.stringify({ productId }) },
+      token,
+    ),
+  removeFromWishlist: (token: string, productId: string) =>
+    request<Wishlist>(
+      `/wishlist/items/${productId}`,
+      { method: 'DELETE' },
+      token,
+    ),
+
+  // --- reviews ---
+  listReviews: (
+    productId: string,
+    query: { sort?: ReviewSort; page?: number; pageSize?: number } = {},
+  ) => {
+    const params = new URLSearchParams();
+    if (query.sort) params.set('sort', query.sort);
+    if (query.page) params.set('page', String(query.page));
+    if (query.pageSize) params.set('pageSize', String(query.pageSize));
+    const qs = params.toString();
+    return request<PagedReviews>(
+      `/products/${productId}/reviews${qs ? `?${qs}` : ''}`,
+    );
+  },
+  reviewSummary: (productId: string) =>
+    request<ReviewSummary>(`/products/${productId}/reviews/summary`),
+  createReview: (
+    token: string,
+    productId: string,
+    input: { rating: number; title: string; body: string },
+  ) =>
+    request<Review>(
+      `/products/${productId}/reviews`,
+      { method: 'POST', body: JSON.stringify(input) },
+      token,
+    ),
+  deleteReview: (token: string, id: string) =>
+    request<{ ok: true }>(`/reviews/${id}`, { method: 'DELETE' }, token),
   listOrders: (token: string) => request<Order[]>('/orders', {}, token),
   getOrder: (token: string, id: string) =>
     request<Order>(`/orders/${id}`, {}, token),

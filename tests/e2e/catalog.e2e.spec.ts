@@ -7,17 +7,17 @@ test.describe('catalog filters', () => {
   }) => {
     const storefront = new StorefrontPage(page);
     await storefront.goto();
-    await storefront.search('widget');
+    // "Thingamajig" is a unique seed name (no factory products collide).
+    await storefront.search('Thingamajig');
 
-    // wait for debounce + URL replace
-    await page.waitForURL(/q=widget/, { timeout: 2000 });
-    await expect(storefront.productCard('prod_widget')).toBeVisible();
+    await page.waitForURL(/q=Thingamajig/, { timeout: 2000 });
+    await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
     await expect(storefront.productCard('prod_gizmo')).toHaveCount(0);
 
     // reload preserves filter
     await page.reload();
-    await expect(storefront.searchInput()).toHaveValue('widget');
-    await expect(storefront.productCard('prod_widget')).toBeVisible();
+    await expect(storefront.searchInput()).toHaveValue('Thingamajig');
+    await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
   });
 
   test('@regression category filter narrows results and writes ?category=', async ({

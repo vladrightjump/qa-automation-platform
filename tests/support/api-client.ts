@@ -11,22 +11,32 @@ import {
   OrderListSchema,
   OrderSchema,
   PagedProductsSchema,
+  PagedReviewsSchema,
   ProductSchema,
   PromoPreviewSchema,
+  ReviewSchema,
+  ReviewSummarySchema,
+  WishlistSchema,
   z,
   type Address,
   type AuthResult,
   type Cart,
   type Order,
   type PagedProducts,
+  type PagedReviews,
   type PaymentMethod,
   type Product,
   type ProductCategory,
   type ProductSort,
   type PromoPreview,
+  type Review,
+  type ReviewSummary,
+  type Wishlist,
 } from '@qa/contracts';
 
 const AddressListSchema = z.array(AddressSchema);
+
+export type ReviewSort = 'newest' | 'highest' | 'lowest';
 
 const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
@@ -209,6 +219,81 @@ export class ApiClient {
       headers: authHeader(token),
     });
     if (!res.ok()) throw new Error(`deleteAddress: ${res.status()}`);
+  }
+
+  // --- wishlist ---
+  async getWishlist(token: string): Promise<Wishlist> {
+    const res = await this.request.get(`${API_BASE}/wishlist`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) throw new Error(`getWishlist: ${res.status()}`);
+    return WishlistSchema.parse(await res.json());
+  }
+
+  async addToWishlist(token: string, productId: string): Promise<Wishlist> {
+    const res = await this.request.post(`${API_BASE}/wishlist/items`, {
+      headers: authHeader(token),
+      data: { productId },
+    });
+    if (!res.ok()) {
+      throw new Error(`addToWishlist: ${res.status()} ${await res.text()}`);
+    }
+    return WishlistSchema.parse(await res.json());
+  }
+
+  async removeFromWishlist(token: string, productId: string): Promise<Wishlist> {
+    const res = await this.request.delete(
+      `${API_BASE}/wishlist/items/${productId}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) throw new Error(`removeFromWishlist: ${res.status()}`);
+    return WishlistSchema.parse(await res.json());
+  }
+
+  // --- reviews ---
+  async listReviews(
+    productId: string,
+    query: { sort?: ReviewSort; page?: number; pageSize?: number } = {},
+  ): Promise<PagedReviews> {
+    const params = new URLSearchParams();
+    if (query.sort) params.set('sort', query.sort);
+    if (query.page) params.set('page', String(query.page));
+    if (query.pageSize) params.set('pageSize', String(query.pageSize));
+    const qs = params.toString();
+    const url = `${API_BASE}/products/${productId}/reviews${qs ? `?${qs}` : ''}`;
+    const res = await this.request.get(url);
+    if (!res.ok()) throw new Error(`listReviews: ${res.status()}`);
+    return PagedReviewsSchema.parse(await res.json());
+  }
+
+  async reviewSummary(productId: string): Promise<ReviewSummary> {
+    const res = await this.request.get(
+      `${API_BASE}/products/${productId}/reviews/summary`,
+    );
+    if (!res.ok()) throw new Error(`reviewSummary: ${res.status()}`);
+    return ReviewSummarySchema.parse(await res.json());
+  }
+
+  async createReview(
+    token: string,
+    productId: string,
+    input: { rating: number; title: string; body: string },
+  ): Promise<Review> {
+    const res = await this.request.post(
+      `${API_BASE}/products/${productId}/reviews`,
+      { headers: authHeader(token), data: input },
+    );
+    if (!res.ok()) {
+      throw new Error(`createReview: ${res.status()} ${await res.text()}`);
+    }
+    return ReviewSchema.parse(await res.json());
+  }
+
+  async deleteReview(token: string, id: string): Promise<void> {
+    const res = await this.request.delete(`${API_BASE}/reviews/${id}`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) throw new Error(`deleteReview: ${res.status()}`);
   }
 
   async listOrders(token: string): Promise<Order[]> {

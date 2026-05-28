@@ -39,22 +39,26 @@ model User {
   orders    Order[]
   auditLogs AuditLog[]
   addresses Address[]
+  wishlist  Wishlist?
+  reviews   Review[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
 // fixtures and assertions remain stable across runs / CI shards.
 model Product {
-  id          String      @id
-  name        String
-  description String?
-  priceCents  Int
-  stock       Int
-  category    String      @default("gadgets")
-  tags        String[]    @default([])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  id            String         @id
+  name          String
+  description   String?
+  priceCents    Int
+  stock         Int
+  category      String         @default("gadgets")
+  tags          String[]       @default([])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
+  reviews       Review[]
 
   @@index([category])
   @@index([name])
@@ -126,6 +130,42 @@ model PromoCode {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   orders          Order[]
+}
+
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId, createdAt])
 }
 
 model OrderItem {

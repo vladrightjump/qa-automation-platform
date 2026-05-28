@@ -3,17 +3,15 @@ import { PagedProductsSchema, ProductSchema } from '@qa/contracts';
 import { API_BASE } from '../support/api-client';
 
 test.describe('products', () => {
-  test('@smoke list returns paginated seeded products with valid shape', async ({
+  test('@smoke list returns paginated products with the agreed shape', async ({
     api,
   }) => {
-    // Query specific products so the assertion is robust when factory
-    // products from other specs inflate the catalog past 100 items.
-    const page = await api.listProducts({ q: 'Widget' });
+    const page = await api.listProducts({ category: ['office'] });
     expect(PagedProductsSchema.safeParse(page).success).toBe(true);
     expect(page.total).toBeGreaterThan(0);
     expect(page.items.length).toBeLessThanOrEqual(page.pageSize);
-    const ids = page.items.map((p) => p.id);
-    expect(ids).toContain('prod_widget');
+    expect(page.items.every((p) => p.category === 'office')).toBe(true);
+    expect(page.items.map((p) => p.id)).toContain('prod_notebook_a5');
   });
 
   test('@regression default sort is name ascending', async ({ api }) => {

@@ -28,6 +28,13 @@ export default function Navbar() {
           {token ? (
             <>
               <Link
+                href="/wishlist"
+                data-testid="nav-wishlist"
+                className="text-gray-700"
+              >
+                Wishlist
+              </Link>
+              <Link
                 href="/orders"
                 data-testid="nav-orders"
                 className="text-gray-700"

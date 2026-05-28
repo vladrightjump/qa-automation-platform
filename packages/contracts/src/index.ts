@@ -86,6 +86,46 @@ export const PromoPreviewSchema = z.object({
   promoCodeId: z.string(),
 });
 
+export const WishlistItemSchema = z.object({
+  id: z.string(),
+  wishlistId: z.string(),
+  productId: z.string(),
+  product: ProductSchema,
+  createdAt: z.string(),
+});
+
+export const WishlistSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  items: z.array(WishlistItemSchema),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const ReviewSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  userId: z.string(),
+  rating: z.number().int().min(1).max(5),
+  title: z.string(),
+  body: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const PagedReviewsSchema = z.object({
+  items: z.array(ReviewSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  averageRating: z.number(),
+});
+
+export const ReviewSummarySchema = z.object({
+  reviewCount: z.number().int().nonnegative(),
+  averageRating: z.number(),
+});
+
 export const OrderItemSchema = z.object({
   id: z.string(),
   orderId: z.string(),
@@ -125,6 +165,11 @@ export type PagedProducts = z.infer<typeof PagedProductsSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;
+export type Wishlist = z.infer<typeof WishlistSchema>;
+export type WishlistItem = z.infer<typeof WishlistItemSchema>;
+export type Review = z.infer<typeof ReviewSchema>;
+export type PagedReviews = z.infer<typeof PagedReviewsSchema>;
+export type ReviewSummary = z.infer<typeof ReviewSummarySchema>;
 export type CartItem = z.infer<typeof CartItemSchema>;
 export type Cart = z.infer<typeof CartSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;

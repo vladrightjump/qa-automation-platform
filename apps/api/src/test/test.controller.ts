@@ -19,6 +19,9 @@ export class TestController {
     await prisma.order.deleteMany();
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
+    await prisma.wishlistItem.deleteMany();
+    await prisma.wishlist.deleteMany();
+    await prisma.review.deleteMany();
     await prisma.address.deleteMany();
     await prisma.user.deleteMany();
     await upsertAdmin(prisma);
