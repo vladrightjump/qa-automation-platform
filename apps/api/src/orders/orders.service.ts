@@ -5,15 +5,68 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus, Prisma, prisma } from '@qa/db';
+import type { CheckoutDto, PaymentMethod } from './dto';
+
+export interface PromoApplyResult {
+  code: string;
+  discountCents: number;
+  promoCodeId: string;
+}
 
 @Injectable()
 export class OrdersService {
+  /**
+   * Validate a promo code against the user's current cart total.
+   * Pure — does not mutate state. Returns the computed discount in
+   * cents. Throws 400/404 on invalid/expired/inactive codes.
+   */
+  async previewPromo(userId: string, rawCode: string): Promise<PromoApplyResult> {
+    const code = rawCode.trim().toUpperCase();
+    const promo = await prisma.promoCode.findUnique({ where: { code } });
+    if (!promo) {
+      throw new NotFoundException(`Promo code ${code} not found`);
+    }
+    if (!promo.active) {
+      throw new BadRequestException(`Promo code ${code} is inactive`);
+    }
+    if (promo.expiresAt && promo.expiresAt < new Date()) {
+      throw new BadRequestException(`Promo code ${code} has expired`);
+    }
+
+    const cart = await prisma.cart.findUnique({
+      where: { userId },
+      include: { items: { include: { product: true } } },
+    });
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestException('Cart is empty');
+    }
+    const total = cart.items.reduce(
+      (sum, i) => sum + i.product.priceCents * i.quantity,
+      0,
+    );
+    const discountCents = this.computeDiscount(promo, total);
+    return { code: promo.code, discountCents, promoCodeId: promo.id };
+  }
+
+  private computeDiscount(
+    promo: { percentOff: number | null; flatOffCents: number | null },
+    total: number,
+  ): number {
+    if (promo.percentOff != null) {
+      return Math.min(total, Math.floor((total * promo.percentOff) / 100));
+    }
+    if (promo.flatOffCents != null) {
+      return Math.min(total, promo.flatOffCents);
+    }
+    return 0;
+  }
+
   /**
    * Checkout the user's cart. Wrapped in a single transaction so the
    * order, stock decrement, audit log row, and cart clear either all
    * land or none do — this is the side-effect surface tests assert on.
    */
-  async checkout(userId: string) {
+  async checkout(userId: string, dto: CheckoutDto = {}) {
     const cart = await prisma.cart.findUnique({
       where: { userId },
       include: { items: { include: { product: true } } },
@@ -31,13 +84,32 @@ export class OrdersService {
       }
     }
 
-    const totalCents = cart.items.reduce(
+    // Optional address — must belong to user.
+    if (dto.addressId) {
+      const address = await prisma.address.findUnique({
+        where: { id: dto.addressId },
+      });
+      if (!address || address.userId !== userId) {
+        throw new BadRequestException(`Invalid addressId`);
+      }
+    }
+
+    // Optional promo — re-validates server-side; the client-applied
+    // discount is not trusted.
+    let promoResult: PromoApplyResult | null = null;
+    if (dto.promoCode) {
+      promoResult = await this.previewPromo(userId, dto.promoCode);
+    }
+
+    const subtotalCents = cart.items.reduce(
       (sum, i) => sum + i.product.priceCents * i.quantity,
       0,
     );
+    const discountCents = promoResult?.discountCents ?? 0;
+    const totalCents = Math.max(0, subtotalCents - discountCents);
+    const paymentMethod: PaymentMethod = dto.paymentMethod ?? 'CARD';
 
     return prisma.$transaction(async (tx) => {
-      // Conditional decrement — only succeeds while stock is still sufficient.
       for (const item of cart.items) {
         const updated = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity } },
@@ -55,6 +127,10 @@ export class OrdersService {
           userId,
           status: OrderStatus.PAID,
           totalCents,
+          discountCents,
+          paymentMethod,
+          shippingAddressId: dto.addressId ?? null,
+          promoCodeId: promoResult?.promoCodeId ?? null,
           items: {
             create: cart.items.map((i) => ({
               productId: i.productId,
@@ -74,12 +150,15 @@ export class OrdersService {
           entityId: order.id,
           metadata: {
             totalCents,
+            subtotalCents,
+            discountCents,
+            paymentMethod,
+            promoCode: promoResult?.code ?? null,
             itemCount: cart.items.length,
           } as Prisma.InputJsonValue,
         },
       });
 
-      // Clear the cart (keep the cart row itself).
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return order;

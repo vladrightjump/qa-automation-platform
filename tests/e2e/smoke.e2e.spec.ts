@@ -20,8 +20,12 @@ test('@smoke storefront loads with seeded products and an authed user', async ({
   );
 
   // 2) API surface matches the DB and conforms to the shared Zod schema.
-  const apiPage = await api.listProducts({ pageSize: 100 });
-  expect(apiPage.items.map((p) => p.id)).toEqual(expect.arrayContaining(dbIds));
+  //    Search by name so the assertion is independent of how many factory
+  //    products other concurrent specs have left in the DB.
+  const apiPage = await api.listProducts({ q: 'Widget' });
+  expect(apiPage.items.map((p) => p.id)).toEqual(
+    expect.arrayContaining(['prod_widget']),
+  );
 
   // 3) Browser session is authenticated (token injected before page load) and
   //    the testid map is wired up — the navbar shows the cart count badge.

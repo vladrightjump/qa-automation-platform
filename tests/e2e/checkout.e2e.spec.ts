@@ -2,16 +2,25 @@
 // Page Objects, ground truth verified in the DB.
 import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
+import { AddressFactory } from '../factories/address.factory';
 import { StorefrontPage } from '../pages/storefront.page';
 import { CartPage } from '../pages/cart.page';
 import { CheckoutPage } from '../pages/checkout.page';
 
 test.describe('checkout (UI)', () => {
-  test('@smoke complete flow: browse → cart → checkout → confirmation + DB row', async ({
+  test('@smoke complete flow: browse → cart → checkout wizard → confirmation + DB row', async ({
     authedPage,
+    api,
     db,
     testUser,
   }) => {
+    // Pre-create a default address so the wizard can advance from step 1
+    // without typing a brand-new address each run. (The new-address path
+    // gets its own dedicated spec.)
+    await api.createAddress(
+      testUser.token,
+      AddressFactory.build({ isDefault: true }),
+    );
     // Seed a fresh product so this test owns its own stock baseline.
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 1200, name: 'Test Widget' }),
@@ -35,6 +44,11 @@ test.describe('checkout (UI)', () => {
     await expect(cart.subtotal()).toHaveText(/\$12\.00/);
     await cart.proceedToCheckout();
 
+    // Walk the 3-step wizard. Wait for saved addresses to load so Next
+    // isn't a no-op (no selectedAddressId yet).
+    await checkout.waitForAddressReady();
+    await checkout.next(); // address → payment
+    await checkout.next(); // payment → review
     await checkout.placeOrder();
     await expect(authedPage).toHaveURL(/\/orders\/.+/);
     await expect(checkout.orderStatus()).toHaveText('PAID');

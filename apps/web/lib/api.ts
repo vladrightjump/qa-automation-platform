@@ -74,13 +74,57 @@ export interface OrderItem {
   unitPriceCents: number;
 }
 
+export type PaymentMethod = 'CARD' | 'PAYPAL' | 'COD';
+
 export interface Order {
   id: string;
   userId: string;
   status: OrderStatus;
   totalCents: number;
+  discountCents?: number;
+  paymentMethod?: PaymentMethod | null;
+  shippingAddressId?: string | null;
+  promoCodeId?: string | null;
   createdAt: string;
   items: OrderItem[];
+}
+
+export interface Address {
+  id: string;
+  userId: string;
+  label: string;
+  name: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddressInput {
+  label: string;
+  name: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode: string;
+  country?: string;
+  isDefault?: boolean;
+}
+
+export interface PromoPreview {
+  code: string;
+  discountCents: number;
+  promoCodeId: string;
+}
+
+export interface CheckoutInput {
+  addressId?: string;
+  paymentMethod?: PaymentMethod;
+  promoCode?: string;
 }
 
 export class ApiError extends Error {
@@ -166,8 +210,35 @@ export const api = {
   removeFromCart: (token: string, productId: string) =>
     request<Cart>(`/cart/items/${productId}`, { method: 'DELETE' }, token),
 
-  checkout: (token: string) =>
-    request<Order>('/orders', { method: 'POST' }, token),
+  checkout: (token: string, input: CheckoutInput = {}) =>
+    request<Order>(
+      '/orders',
+      { method: 'POST', body: JSON.stringify(input) },
+      token,
+    ),
+
+  applyPromo: (token: string, code: string) =>
+    request<PromoPreview>(
+      '/promo-codes/apply',
+      { method: 'POST', body: JSON.stringify({ code }) },
+      token,
+    ),
+
+  listAddresses: (token: string) => request<Address[]>('/addresses', {}, token),
+  createAddress: (token: string, input: AddressInput) =>
+    request<Address>(
+      '/addresses',
+      { method: 'POST', body: JSON.stringify(input) },
+      token,
+    ),
+  updateAddress: (token: string, id: string, patch: Partial<AddressInput>) =>
+    request<Address>(
+      `/addresses/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patch) },
+      token,
+    ),
+  deleteAddress: (token: string, id: string) =>
+    request<{ ok: true }>(`/addresses/${id}`, { method: 'DELETE' }, token),
   listOrders: (token: string) => request<Order[]>('/orders', {}, token),
   getOrder: (token: string, id: string) =>
     request<Order>(`/orders/${id}`, {}, token),

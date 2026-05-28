@@ -5,20 +5,28 @@
 // site.
 import type { APIRequestContext } from '@playwright/test';
 import {
+  AddressSchema,
   AuthResultSchema,
   CartSchema,
   OrderListSchema,
   OrderSchema,
   PagedProductsSchema,
   ProductSchema,
+  PromoPreviewSchema,
+  z,
+  type Address,
   type AuthResult,
   type Cart,
   type Order,
   type PagedProducts,
+  type PaymentMethod,
   type Product,
   type ProductCategory,
   type ProductSort,
+  type PromoPreview,
 } from '@qa/contracts';
+
+const AddressListSchema = z.array(AddressSchema);
 
 const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
@@ -120,14 +128,87 @@ export class ApiClient {
   }
 
   // --- orders / checkout ---
-  async checkout(token: string): Promise<Order> {
+  async checkout(
+    token: string,
+    input: {
+      addressId?: string;
+      paymentMethod?: PaymentMethod;
+      promoCode?: string;
+    } = {},
+  ): Promise<Order> {
     const res = await this.request.post(`${API_BASE}/orders`, {
       headers: authHeader(token),
+      data: input,
     });
     if (!res.ok()) {
       throw new Error(`checkout: ${res.status()} ${await res.text()}`);
     }
     return OrderSchema.parse(await res.json());
+  }
+
+  async applyPromo(token: string, code: string): Promise<PromoPreview> {
+    const res = await this.request.post(`${API_BASE}/promo-codes/apply`, {
+      headers: authHeader(token),
+      data: { code },
+    });
+    if (!res.ok()) {
+      throw new Error(`applyPromo: ${res.status()} ${await res.text()}`);
+    }
+    return PromoPreviewSchema.parse(await res.json());
+  }
+
+  // --- addresses ---
+  async listAddresses(token: string): Promise<Address[]> {
+    const res = await this.request.get(`${API_BASE}/addresses`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) throw new Error(`listAddresses: ${res.status()}`);
+    return AddressListSchema.parse(await res.json());
+  }
+
+  async createAddress(
+    token: string,
+    input: {
+      label: string;
+      name: string;
+      line1: string;
+      line2?: string;
+      city: string;
+      postalCode: string;
+      country?: string;
+      isDefault?: boolean;
+    },
+  ): Promise<Address> {
+    const res = await this.request.post(`${API_BASE}/addresses`, {
+      headers: authHeader(token),
+      data: input,
+    });
+    if (!res.ok()) {
+      throw new Error(`createAddress: ${res.status()} ${await res.text()}`);
+    }
+    return AddressSchema.parse(await res.json());
+  }
+
+  async updateAddress(
+    token: string,
+    id: string,
+    patch: Record<string, unknown>,
+  ): Promise<Address> {
+    const res = await this.request.patch(`${API_BASE}/addresses/${id}`, {
+      headers: authHeader(token),
+      data: patch,
+    });
+    if (!res.ok()) {
+      throw new Error(`updateAddress: ${res.status()} ${await res.text()}`);
+    }
+    return AddressSchema.parse(await res.json());
+  }
+
+  async deleteAddress(token: string, id: string): Promise<void> {
+    const res = await this.request.delete(`${API_BASE}/addresses/${id}`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) throw new Error(`deleteAddress: ${res.status()}`);
   }
 
   async listOrders(token: string): Promise<Order[]> {

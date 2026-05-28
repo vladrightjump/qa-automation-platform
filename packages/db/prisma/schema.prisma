@@ -22,6 +22,12 @@ enum UserRole {
   ADMIN
 }
 
+enum PaymentMethod {
+  CARD
+  PAYPAL
+  COD
+}
+
 model User {
   id        String     @id @default(cuid())
   email     String     @unique
@@ -32,6 +38,7 @@ model User {
   cart      Cart?
   orders    Order[]
   auditLogs AuditLog[]
+  addresses Address[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
@@ -74,14 +81,51 @@ model CartItem {
 }
 
 model Order {
-  id         String      @id @default(cuid())
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id])
+  status            OrderStatus    @default(PENDING)
+  totalCents        Int
+  discountCents     Int            @default(0)
+  paymentMethod     PaymentMethod?
+  shippingAddressId String?
+  shippingAddress   Address?       @relation(fields: [shippingAddressId], references: [id])
+  promoCodeId       String?
+  promoCode         PromoCode?     @relation(fields: [promoCodeId], references: [id])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  items             OrderItem[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
   userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  status     OrderStatus @default(PENDING)
-  totalCents Int
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  items      OrderItem[]
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String
+  name       String
+  line1      String
+  line2      String?
+  city       String
+  postalCode String
+  country    String   @default("US")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  orders     Order[]
+
+  @@index([userId])
+}
+
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  percentOff      Int? // 0..100; mutually exclusive with flatOffCents
+  flatOffCents    Int?
+  active          Boolean   @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  orders          Order[]
 }
 
 model OrderItem {

@@ -63,6 +63,29 @@ export const OrderStatusSchema = z.enum([
   'CANCELLED',
 ]);
 
+export const PaymentMethodSchema = z.enum(['CARD', 'PAYPAL', 'COD']);
+
+export const AddressSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  name: z.string(),
+  line1: z.string(),
+  line2: z.string().nullable(),
+  city: z.string(),
+  postalCode: z.string(),
+  country: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const PromoPreviewSchema = z.object({
+  code: z.string(),
+  discountCents: z.number().int().nonnegative(),
+  promoCodeId: z.string(),
+});
+
 export const OrderItemSchema = z.object({
   id: z.string(),
   orderId: z.string(),
@@ -76,6 +99,10 @@ export const OrderSchema = z.object({
   userId: z.string(),
   status: OrderStatusSchema,
   totalCents: z.number().int().nonnegative(),
+  discountCents: z.number().int().nonnegative().optional().default(0),
+  paymentMethod: PaymentMethodSchema.nullable().optional(),
+  shippingAddressId: z.string().nullable().optional(),
+  promoCodeId: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   items: z.array(OrderItemSchema),
@@ -95,6 +122,9 @@ export type Product = z.infer<typeof ProductSchema>;
 export type ProductCategory = z.infer<typeof ProductCategorySchema>;
 export type ProductSort = z.infer<typeof ProductSortSchema>;
 export type PagedProducts = z.infer<typeof PagedProductsSchema>;
+export type Address = z.infer<typeof AddressSchema>;
+export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+export type PromoPreview = z.infer<typeof PromoPreviewSchema>;
 export type CartItem = z.infer<typeof CartItemSchema>;
 export type Cart = z.infer<typeof CartSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;

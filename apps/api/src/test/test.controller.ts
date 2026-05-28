@@ -1,6 +1,6 @@
 import { Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { prisma, upsertAdmin } from '@qa/db';
+import { prisma, upsertAdmin, upsertPromoCodes } from '@qa/db';
 import { TestEndpointsGuard } from './test-endpoints.guard';
 
 @ApiTags('test')
@@ -19,8 +19,10 @@ export class TestController {
     await prisma.order.deleteMany();
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
+    await prisma.address.deleteMany();
     await prisma.user.deleteMany();
     await upsertAdmin(prisma);
+    await upsertPromoCodes(prisma);
     return { ok: true };
   }
 }
