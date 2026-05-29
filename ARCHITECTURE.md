@@ -151,7 +151,28 @@ Fix: `apps/api` runtime stack switched to `ts-node-dev` (which compiles via `tsc
 
 ---
 
-## 6. File map — where to find what
+## 6. Test framework layers (portfolio surface)
+
+The Playwright suite is layered to demonstrate the framework's full surface, not just `click().then(expect())`:
+
+| Layer | Where | What it shows off |
+|---|---|---|
+| **Selectors** | `tests/pages/*.page.ts` | Lead with `getByRole` / `getByLabel` / `getByText` / `getByPlaceholder`; `data-testid` only where the element has no stable accessible name. Doubles as a passive a11y check. |
+| **Fixtures** | `tests/fixtures/index.ts` | `db` (worker-scoped Prisma), `api` (Zod-validating client), `testUser`/`adminUser` (per-test users via API), `authedPage`/`adminPage` (token injected into localStorage), plus all 5 Page Objects as fixtures so specs just destructure them. |
+| **Setup project** | `tests/setup/auth.setup.ts` | Runs **once** before any test project, writes `tests/.auth/{user,admin}.json` storageState files. Visual project consumes them; per-test fixtures stay the default elsewhere. Both auth patterns demonstrated. |
+| **Custom matchers** | `tests/support/matchers.ts` | `toHaveCartCount(n)` (auto-retrying navbar badge read), `toMatchContract(schema)` (Zod parse with path-aware diff), `toBeAccessible(opts)` (`@axe-core/playwright` wrapper). Registered via `expect.extend`. |
+| **Smart waits** | smoke checkout, network mocking specs | `test.step('phase', …)` for HTML-report grouping, `expect.poll` for eventual conditions (audit-log read), `expect.soft` for assertion accumulation, `page.waitForResponse` over DOM polling for server-confirmed UI updates. |
+| **Network mocking** | `tests/e2e/network-mocking.e2e.spec.ts` | `page.route` covering 500 / 401 / slow / contract-drift paths — exercises UI states the real backend can't easily produce. |
+| **a11y scans** | `tests/e2e/a11y.e2e.spec.ts` | Axe core run via `toBeAccessible` against every major route, tagged `@a11y @regression`. Surfaced as `pnpm test:a11y`. |
+| **Visual regression** | `tests/e2e/*.visual.spec.ts` | `toHaveScreenshot` with masks on dynamic regions. Lives in a separate `visual` project so screenshots don't tag along with every shard. Update baselines via `pnpm test:update-snapshots`. |
+| **Multi-project config** | `tests/playwright.config.ts` | `setup` → `chromium-desktop` (default) / `chromium-mobile` (Pixel 5, @smoke + @mobile) / `webkit` (@smoke) / `visual` (storageState + trace=on). Per-project trace and screenshot policies. |
+| **Reporters** | `tests/playwright.config.ts` | `html` (always), `list` (always), `junit` (CI consumption), `github` (PR annotations, CI-only). |
+
+The point isn't to use every pattern in every test — it's that each pattern has a clear home and an obvious "why now" trigger.
+
+---
+
+## 7. File map — where to find what
 
 | Concern | Location |
 |---|---|
@@ -165,7 +186,10 @@ Fix: `apps/api` runtime stack switched to `ts-node-dev` (which compiles via `tsc
 | The checkout transaction (the side-effects under test) | [`apps/api/src/orders/orders.service.ts`](./apps/api/src/orders/orders.service.ts) |
 | The `/test/reset` seam | [`apps/api/src/test/`](./apps/api/src/test/) |
 | Auth hydration (the bug from §5) | [`apps/web/lib/auth.tsx`](./apps/web/lib/auth.tsx) |
-| Playwright config (incl. `webServer`, `testIgnore` for drafts) | [`tests/playwright.config.ts`](./tests/playwright.config.ts) |
+| Playwright config (multi-project, reporters, timeouts) | [`tests/playwright.config.ts`](./tests/playwright.config.ts) |
+| Custom expect matchers (`toHaveCartCount`, `toMatchContract`, `toBeAccessible`) | [`tests/support/matchers.ts`](./tests/support/matchers.ts) |
+| Setup project (storageState producer) | [`tests/setup/auth.setup.ts`](./tests/setup/auth.setup.ts) |
+| Network mocking, a11y, visual specs | [`tests/e2e/network-mocking.e2e.spec.ts`](./tests/e2e/network-mocking.e2e.spec.ts), [`a11y.e2e.spec.ts`](./tests/e2e/a11y.e2e.spec.ts), [`*.visual.spec.ts`](./tests/e2e/) |
 | CI workflow | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) |
 | Playwright MCP config | [`.mcp.json`](./.mcp.json) |
 | Build plan — phase by phase, with "as built" status blocks | [`todos/`](./todos/) |

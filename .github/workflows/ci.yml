@@ -140,11 +140,11 @@ jobs:
 
       - name: Install Playwright (full)
         if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium
+        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium webkit
 
       - name: Install Playwright system deps only (cache hit)
         if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @qa/tests exec playwright install-deps chromium
+        run: pnpm --filter @qa/tests exec playwright install-deps chromium webkit
 
       - name: Migrate + seed
         run: |
@@ -160,7 +160,12 @@ jobs:
           else
             echo "main run → full suite"
           fi
+          # Restrict to the default chromium-desktop project in CI; the
+          # visual/mobile/webkit projects are dev-targeted and run via the
+          # dedicated `test:visual`/`test:mobile`/`test:webkit` scripts.
+          # Setup project is pulled in automatically as a dependency.
           pnpm --filter @qa/tests exec playwright test \
+            --project=chromium-desktop \
             --shard=${{ matrix.shard }}/${{ matrix.total }} \
             --reporter=blob,list \
             $GREP_ARGS
