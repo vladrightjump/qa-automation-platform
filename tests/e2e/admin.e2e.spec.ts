@@ -53,6 +53,7 @@ test.describe('admin/products UI', () => {
   test('admin can edit a product price + stock in a modal', {
     tag: ['@regression', '@admin'],
   }, async ({
+    adminPage, // injects admin auth into the shared page the POM drives
     api,
     adminUser,
     adminProducts,
