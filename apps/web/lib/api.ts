@@ -121,6 +121,14 @@ export interface PromoPreview {
   promoCodeId: string;
 }
 
+export interface PromoCode {
+  code: string;
+  description: string | null;
+  percentOff: number | null;
+  flatOffCents: number | null;
+  minSpendCents: number;
+}
+
 export interface CheckoutInput {
   addressId?: string;
   paymentMethod?: PaymentMethod;
@@ -276,6 +284,9 @@ export const api = {
       { method: 'POST', body: JSON.stringify({ code }) },
       token,
     ),
+
+  // Public discovery — featured/active deals shown in the checkout panel.
+  listPromoCodes: () => request<PromoCode[]>('/promo-codes', {}),
 
   listAddresses: (token: string) => request<Address[]>('/addresses', {}, token),
   createAddress: (token: string, input: AddressInput) =>

@@ -150,7 +150,7 @@ Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/we
 | UI hybrid (incl. POMs) | `tests/e2e/*.e2e.spec.ts` × 4 | 8 |
 | **Total** | **10 files** | **32 — 9 `@smoke` + 23 `@regression`** |
 
-Every spec is tagged `@smoke` or `@regression`. The signature DB-layer spec ([`tests/api/checkout.db.spec.ts`](./tests/api/checkout.db.spec.ts)) asserts the full transactional side-effect surface of one checkout in one place.
+Every spec carries a kind tag (`@smoke`/`@regression`) plus a feature tag (`@auth`, `@cart`, `@checkout`, `@promo`, …), and one critical test per feature is tagged `@sanity` to form a fast pre-deploy gate. The full rulebook — assertion conventions, tag taxonomy, and the sanity-suite definition — lives in [`tests/TESTING.md`](./tests/TESTING.md). The signature DB-layer spec ([`tests/api/checkout.db.spec.ts`](./tests/api/checkout.db.spec.ts)) asserts the full transactional side-effect surface of one checkout in one place.
 
 ## CI
 
@@ -158,8 +158,8 @@ Every spec is tagged `@smoke` or `@regression`. The signature DB-layer spec ([`t
 
 ```
 lint  ─┐                                                       (fast feedback)
-build ─┴──► test (shard 1/2) ──┐
-              test (shard 2/2) ──┴──► merge-reports (HTML, 14-day artifact)
+build ─┴──► sanity (@sanity gate) ──► test (shard 1/2) ──┐
+                                       test (shard 2/2) ──┴──► merge-reports (HTML)
 ```
 
 - **Postgres 16** as a service container with `pg_isready` healthcheck (mirrors local `docker-compose.yml`).

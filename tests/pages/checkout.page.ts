@@ -78,11 +78,34 @@ export class CheckoutPage {
 
   async applyPromo(code: string): Promise<void> {
     await this.promoInput().fill(code);
-    await this.page.getByRole('button', { name: 'Apply' }).click();
+    // Scope to the manual promo-apply control — the deals panel renders its
+    // own "Apply" buttons, so an unscoped role lookup is ambiguous.
+    await this.page.getByTestId('checkout-promo-apply').click();
   }
 
   async removePromo(): Promise<void> {
-    await this.page.getByRole('button', { name: 'remove' }).click();
+    await this.page.getByTestId('checkout-promo-remove').click();
+  }
+
+  // --- available deals (promo discovery) ---
+  dealsPanel(): Locator {
+    return this.page.getByTestId('promo-deals');
+  }
+
+  deal(code: string): Locator {
+    return this.page.getByTestId(`promo-deal-${code}`);
+  }
+
+  dealLocked(code: string): Locator {
+    return this.page.getByTestId(`promo-deal-locked-${code}`);
+  }
+
+  async applyDeal(code: string): Promise<void> {
+    await this.page.getByTestId(`promo-deal-apply-${code}`).click();
+  }
+
+  promoApplied(): Locator {
+    return this.page.getByTestId('checkout-promo-applied');
   }
 
   summaryTotal(): Locator {

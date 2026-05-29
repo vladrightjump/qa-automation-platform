@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures';
 
 test.describe('reviews (UI)', () => {
-  test('@smoke writing a review updates the summary count', async ({
+  test('writing a review updates the summary count', {
+    tag: ['@smoke', '@reviews', '@sanity'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/products/prod_widget');
@@ -24,7 +26,9 @@ test.describe('reviews (UI)', () => {
     ).not.toHaveText('0');
   });
 
-  test('@regression duplicate review surfaces an error toast', async ({
+  test('duplicate review surfaces an error toast', {
+    tag: ['@regression', '@reviews'],
+  }, async ({
     authedPage,
     api,
     testUser,
@@ -45,7 +49,9 @@ test.describe('reviews (UI)', () => {
     await expect(authedPage.getByTestId('toast-error')).toBeVisible();
   });
 
-  test('@regression star rating supports keyboard nav', async ({
+  test('star rating supports keyboard nav', {
+    tag: ['@regression', '@reviews', '@a11y'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/products/prod_widget');
@@ -58,7 +64,9 @@ test.describe('reviews (UI)', () => {
     await expect(widget).toHaveAttribute('data-value', '4');
   });
 
-  test('@regression tabs respond to arrow-key navigation (ARIA contract)', async ({
+  test('tabs respond to arrow-key navigation (ARIA contract)', {
+    tag: ['@regression', '@reviews', '@a11y'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/products/prod_widget');

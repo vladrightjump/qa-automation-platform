@@ -15,7 +15,9 @@ const PLAYFUL_PALETTE: { disableRules: string[] } = {
 };
 
 test.describe('a11y scans', () => {
-  test('@a11y @regression storefront has no serious violations', async ({
+  test('storefront has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     storefront,
     page,
   }) => {
@@ -23,21 +25,27 @@ test.describe('a11y scans', () => {
     await expect(page).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression product detail page has no serious violations', async ({
+  test('product detail page has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     page,
   }) => {
     await page.goto('/products/prod_widget');
     await expect(page).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression cart page (empty state) has no serious violations', async ({
+  test('cart page (empty state) has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/cart');
     await expect(authedPage).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression checkout wizard step 1 has no serious violations', async ({
+  test('checkout wizard step 1 has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     authedPage,
     api,
     testUser,
@@ -55,21 +63,27 @@ test.describe('a11y scans', () => {
     await expect(authedPage).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression wishlist (empty) has no serious violations', async ({
+  test('wishlist (empty) has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/wishlist');
     await expect(authedPage).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression login page has no serious violations', async ({
+  test('login page has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     page,
   }) => {
     await page.goto('/login');
     await expect(page).toBeAccessible(PLAYFUL_PALETTE);
   });
 
-  test('@a11y @regression admin/products has no serious violations', async ({
+  test('admin/products has no serious violations', {
+    tag: ['@a11y', '@regression'],
+  }, async ({
     adminPage,
     adminProducts,
   }) => {

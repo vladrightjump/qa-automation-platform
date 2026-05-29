@@ -12,7 +12,9 @@ const CART_ITEMS_GLOB = '**/cart/items';
 const CART_GLOB = '**/cart';
 
 test.describe('network mocking (UI)', () => {
-  test('@regression @network 500 on add-to-cart surfaces an error toast and leaves cart empty', async ({
+  test('500 on add-to-cart surfaces an error toast and leaves cart empty', {
+    tag: ['@regression', '@network', '@cart'],
+  }, async ({
     authedPage,
     storefront,
   }) => {
@@ -31,7 +33,9 @@ test.describe('network mocking (UI)', () => {
     await expect(authedPage).toHaveCartCount(0);
   });
 
-  test('@regression @network 401 on cart redirects authed user to /login', async ({
+  test('401 on cart redirects authed user to /login', {
+    tag: ['@regression', '@network', '@auth'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.route(CART_GLOB, (route) =>
@@ -51,7 +55,9 @@ test.describe('network mocking (UI)', () => {
       .toMatch(/\/login|\/cart/);
   });
 
-  test('@regression @network slow /products shows the loading state', async ({
+  test('slow /products shows the loading state', {
+    tag: ['@regression', '@network', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {
@@ -66,7 +72,9 @@ test.describe('network mocking (UI)', () => {
     await expect(page.locator('.skeleton').first()).toBeVisible();
   });
 
-  test('@regression @network contract drift is caught by toMatchContract', async ({
+  test('contract drift is caught by toMatchContract', {
+    tag: ['@regression', '@network', '@catalog'],
+  }, async ({
     api,
   }) => {
     // Sanity check the matcher itself: drift response is missing
@@ -84,7 +92,9 @@ test.describe('network mocking (UI)', () => {
     expect(real).toMatchContract(PagedProductsSchema);
   });
 
-  test('@regression @network waitForResponse fires when search debounces', async ({
+  test('waitForResponse fires when search debounces', {
+    tag: ['@regression', '@network', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {

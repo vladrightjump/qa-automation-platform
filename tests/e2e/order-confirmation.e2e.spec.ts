@@ -3,7 +3,9 @@ import { ProductFactory } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('order confirmation (UI)', () => {
-  test('@smoke checkout flow lands on the confirmation hero', async ({
+  test('checkout flow lands on the confirmation hero', {
+    tag: ['@smoke', '@orders'],
+  }, async ({
     authedPage,
     api,
     db,

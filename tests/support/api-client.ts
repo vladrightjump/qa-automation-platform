@@ -13,6 +13,7 @@ import {
   PagedProductsSchema,
   PagedReviewsSchema,
   ProductSchema,
+  PromoCodeListSchema,
   PromoPreviewSchema,
   ReviewSchema,
   ReviewSummarySchema,
@@ -28,6 +29,7 @@ import {
   type Product,
   type ProductCategory,
   type ProductSort,
+  type PromoCode,
   type PromoPreview,
   type Review,
   type ReviewSummary,
@@ -202,6 +204,15 @@ export class ApiClient {
       throw new Error(`applyPromo: ${res.status()} ${await res.text()}`);
     }
     return PromoPreviewSchema.parse(await res.json());
+  }
+
+  // Public promo discovery — no auth required.
+  async listPromoCodes(): Promise<PromoCode[]> {
+    const res = await this.request.get(`${API_BASE}/promo-codes`);
+    if (!res.ok()) {
+      throw new Error(`listPromoCodes: ${res.status()} ${await res.text()}`);
+    }
+    return PromoCodeListSchema.parse(await res.json());
   }
 
   // --- addresses ---

@@ -6,7 +6,9 @@
 // Existence of this passing test is the Phase 4 Definition of Done.
 import { test, expect } from '../fixtures';
 
-test('@smoke storefront loads with seeded products and an authed user', async ({
+test('storefront loads with seeded products and an authed user', {
+  tag: ['@smoke', '@auth', '@sanity'],
+}, async ({
   authedPage,
   api,
   db,

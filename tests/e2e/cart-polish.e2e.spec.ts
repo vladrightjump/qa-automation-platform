@@ -2,7 +2,9 @@ import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('cart quantity + remove modal (UI)', () => {
-  test('@smoke quantity stepper updates the line subtotal', async ({
+  test('quantity stepper updates the line subtotal', {
+    tag: ['@smoke', '@cart', '@sanity'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -36,7 +38,9 @@ test.describe('cart quantity + remove modal (UI)', () => {
     ).toContainText('$20.00');
   });
 
-  test('@regression remove button opens confirmation modal and Cancel keeps the item', async ({
+  test('remove button opens confirmation modal and Cancel keeps the item', {
+    tag: ['@regression', '@cart'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -63,7 +67,9 @@ test.describe('cart quantity + remove modal (UI)', () => {
     ).toBeVisible();
   });
 
-  test('@regression remove confirmation actually removes the item', async ({
+  test('remove confirmation actually removes the item', {
+    tag: ['@regression', '@cart'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -83,7 +89,9 @@ test.describe('cart quantity + remove modal (UI)', () => {
     ).toHaveCount(0);
   });
 
-  test('@regression quantity is clamped to product stock by the API', async ({
+  test('quantity is clamped to product stock by the API', {
+    tag: ['@regression', '@cart'],
+  }, async ({
     authedPage,
     api,
     db,

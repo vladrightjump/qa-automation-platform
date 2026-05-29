@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures';
 
 test.describe('quick-view modal (UI)', () => {
-  test('@smoke quick view opens, adds to cart, then closes', async ({
+  test('quick view opens, adds to cart, then closes', {
+    tag: ['@smoke', '@catalog'],
+  }, async ({
     authedPage,
     storefront,
   }) => {
@@ -9,7 +11,7 @@ test.describe('quick-view modal (UI)', () => {
     // Pick the first product card on page 1 — its specific id is irrelevant;
     // the test is about the modal flow.
     const firstCard = storefront.productCards().first();
-    await firstCard.waitFor();
+    await expect(firstCard).toBeVisible();
     await firstCard.scrollIntoViewIfNeeded();
     const productTestId = await firstCard.getAttribute('data-testid');
     const productId = productTestId!.replace(/^product-card-/, '');
@@ -29,13 +31,15 @@ test.describe('quick-view modal (UI)', () => {
     await expect(authedPage).toHaveCartCount(1);
   });
 
-  test('@regression quick view ESC dismisses without adding to cart', async ({
+  test('quick view ESC dismisses without adding to cart', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     authedPage,
     storefront,
   }) => {
     await storefront.goto();
     const firstCard = storefront.productCards().first();
-    await firstCard.waitFor();
+    await expect(firstCard).toBeVisible();
     await firstCard.scrollIntoViewIfNeeded();
     const productTestId = await firstCard.getAttribute('data-testid');
     const productId = productTestId!.replace(/^product-card-/, '');

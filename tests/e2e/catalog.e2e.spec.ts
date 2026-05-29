@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures';
 
 test.describe('catalog filters', () => {
-  test('@smoke search filters products by name (debounced) and persists in URL', async ({
+  test('search filters products by name (debounced) and persists in URL', {
+    tag: ['@smoke', '@catalog', '@sanity'],
+  }, async ({
     page,
     storefront,
   }) => {
@@ -19,7 +21,9 @@ test.describe('catalog filters', () => {
     await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
   });
 
-  test('@regression category filter narrows results and writes ?category=', async ({
+  test('category filter narrows results and writes ?category=', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {
@@ -31,7 +35,9 @@ test.describe('catalog filters', () => {
     await expect(storefront.productCard('prod_widget')).toHaveCount(0);
   });
 
-  test('@regression sort=price_asc shows cheapest first in a filtered set', async ({
+  test('sort=price_asc shows cheapest first in a filtered set', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {
@@ -51,7 +57,9 @@ test.describe('catalog filters', () => {
     );
   });
 
-  test('@regression empty state appears when no products match', async ({
+  test('empty state appears when no products match', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {
@@ -67,7 +75,9 @@ test.describe('catalog filters', () => {
     await expect(storefront.searchInput()).toHaveValue('');
   });
 
-  test('@regression pagination advances pages and result count is stable', async ({
+  test('pagination advances pages and result count is stable', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     page,
     storefront,
   }) => {

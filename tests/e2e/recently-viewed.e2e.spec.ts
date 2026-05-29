@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures';
 
 test.describe('recently viewed (UI)', () => {
-  test('@smoke visiting two product pages populates the recently-viewed strip', async ({
+  test('visiting two product pages populates the recently-viewed strip', {
+    tag: ['@smoke', '@catalog'],
+  }, async ({
     authedPage,
   }) => {
     // Recently-viewed is localStorage-backed; visiting a detail page
