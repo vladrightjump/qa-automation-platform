@@ -1,5 +1,11 @@
 import type { Locator, Page } from '@playwright/test';
 
+/**
+ * Page Object for /account/addresses.
+ *
+ * Selector strategy mirrors AdminProductsPage: user-facing locators for
+ * actions + form fields, testids only for dynamic-id structural elements.
+ */
 export class AddressesPage {
   constructor(private readonly page: Page) {}
 
@@ -15,19 +21,27 @@ export class AddressesPage {
     return this.page.getByTestId(`address-default-${id}`);
   }
 
+  private modal(): Locator {
+    return this.page.getByTestId('address-modal');
+  }
+
+  private deleteModal(): Locator {
+    return this.page.getByTestId('address-delete-modal');
+  }
+
   async openCreate(): Promise<void> {
-    await this.page.getByTestId('addresses-new').click();
-    await this.page.getByTestId('address-modal').waitFor();
+    await this.page.getByRole('button', { name: 'Add address' }).click();
+    await this.modal().waitFor();
   }
 
   async openEdit(id: string): Promise<void> {
-    await this.page.getByTestId(`address-edit-${id}`).click();
-    await this.page.getByTestId('address-modal').waitFor();
+    await this.card(id).getByRole('button', { name: 'Edit' }).click();
+    await this.modal().waitFor();
   }
 
   async openDelete(id: string): Promise<void> {
-    await this.page.getByTestId(`address-delete-${id}`).click();
-    await this.page.getByTestId('address-delete-modal').waitFor();
+    await this.card(id).getByRole('button', { name: 'Delete' }).click();
+    await this.deleteModal().waitFor();
   }
 
   async fillForm(form: {
@@ -38,33 +52,30 @@ export class AddressesPage {
     postalCode?: string;
     isDefault?: boolean;
   }): Promise<void> {
+    const dialog = this.modal();
     if (form.label !== undefined)
-      await this.page.getByTestId('address-form-label').fill(form.label);
+      await dialog.getByLabel('Label').fill(form.label);
     if (form.name !== undefined)
-      await this.page.getByTestId('address-form-name').fill(form.name);
+      await dialog.getByLabel('Full name').fill(form.name);
     if (form.line1 !== undefined)
-      await this.page.getByTestId('address-form-line1').fill(form.line1);
+      await dialog.getByLabel('Line 1').fill(form.line1);
     if (form.city !== undefined)
-      await this.page.getByTestId('address-form-city').fill(form.city);
+      await dialog.getByLabel('City').fill(form.city);
     if (form.postalCode !== undefined)
-      await this.page.getByTestId('address-form-postal').fill(form.postalCode);
+      await dialog.getByLabel('Postal').fill(form.postalCode);
     if (form.isDefault === true)
-      await this.page.getByTestId('address-form-default').check();
+      await dialog.getByLabel('Set as default').check();
     if (form.isDefault === false)
-      await this.page.getByTestId('address-form-default').uncheck();
+      await dialog.getByLabel('Set as default').uncheck();
   }
 
   async submit(): Promise<void> {
-    await this.page.getByTestId('address-form-submit').click();
-    await this.page
-      .getByTestId('address-modal')
-      .waitFor({ state: 'detached' });
+    await this.modal().getByRole('button', { name: 'Save' }).click();
+    await this.modal().waitFor({ state: 'detached' });
   }
 
   async confirmDelete(): Promise<void> {
-    await this.page.getByTestId('address-delete-confirm').click();
-    await this.page
-      .getByTestId('address-delete-modal')
-      .waitFor({ state: 'detached' });
+    await this.deleteModal().getByRole('button', { name: 'Delete' }).click();
+    await this.deleteModal().waitFor({ state: 'detached' });
   }
 }

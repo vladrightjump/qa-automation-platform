@@ -2,8 +2,12 @@ import type { Locator, Page } from '@playwright/test';
 
 /**
  * Page Object for /admin/products — the admin product table + modal forms.
- * Surfaces intent over selectors; consumers compose flows like
- * `await admin.create({ id, name, ... })` rather than clicking the form.
+ *
+ * Selector strategy:
+ *   - Buttons + form fields: prefer user-facing locators
+ *     (`getByRole`, `getByLabel`). They double as a passive a11y check.
+ *   - Per-row + modal *containers*: keep `data-testid` (structural ids that
+ *     embed dynamic productId values aren't visible text).
  */
 export class AdminProductsPage {
   constructor(private readonly page: Page) {}
@@ -16,19 +20,29 @@ export class AdminProductsPage {
     return this.page.getByTestId(`admin-row-${productId}`);
   }
 
+  private modal(): Locator {
+    return this.page.getByTestId('admin-product-modal');
+  }
+
+  private deleteModal(): Locator {
+    return this.page.getByTestId('admin-delete-modal');
+  }
+
   async openCreate(): Promise<void> {
-    await this.page.getByTestId('admin-new-product').click();
-    await this.page.getByTestId('admin-product-modal').waitFor();
+    await this.page.getByRole('button', { name: 'New product' }).click();
+    await this.modal().waitFor();
   }
 
   async openEdit(productId: string): Promise<void> {
-    await this.page.getByTestId(`admin-edit-${productId}`).click();
-    await this.page.getByTestId('admin-product-modal').waitFor();
+    // Per-row "Edit" button — the row container scopes the locator so
+    // `getByRole('button', { name: 'Edit' })` resolves unambiguously.
+    await this.row(productId).getByRole('button', { name: 'Edit' }).click();
+    await this.modal().waitFor();
   }
 
   async openDelete(productId: string): Promise<void> {
-    await this.page.getByTestId(`admin-delete-${productId}`).click();
-    await this.page.getByTestId('admin-delete-modal').waitFor();
+    await this.row(productId).getByRole('button', { name: 'Delete' }).click();
+    await this.deleteModal().waitFor();
   }
 
   async fillForm(form: {
@@ -40,43 +54,40 @@ export class AdminProductsPage {
     category?: 'gadgets' | 'apparel' | 'home' | 'office';
     tags?: string;
   }): Promise<void> {
+    const dialog = this.modal();
     if (form.id !== undefined)
-      await this.page.getByTestId('admin-form-id').fill(form.id);
+      await dialog.getByLabel('ID').fill(form.id);
     if (form.name !== undefined)
-      await this.page.getByTestId('admin-form-name').fill(form.name);
+      await dialog.getByLabel('Name').fill(form.name);
     if (form.description !== undefined)
-      await this.page
-        .getByTestId('admin-form-description')
-        .fill(form.description);
+      await dialog.getByLabel('Description').fill(form.description);
     if (form.priceCents !== undefined)
-      await this.page
-        .getByTestId('admin-form-price')
-        .fill(String(form.priceCents));
+      await dialog.getByLabel(/^Price/).fill(String(form.priceCents));
     if (form.stock !== undefined)
-      await this.page.getByTestId('admin-form-stock').fill(String(form.stock));
+      await dialog.getByLabel('Stock').fill(String(form.stock));
     if (form.category !== undefined)
-      await this.page.getByTestId('admin-form-category').selectOption(form.category);
+      await dialog.getByLabel('Category').selectOption(form.category);
     if (form.tags !== undefined)
-      await this.page.getByTestId('admin-form-tags').fill(form.tags);
+      await dialog.getByLabel(/^Tags/).fill(form.tags);
   }
 
   async submit(): Promise<void> {
-    await this.page.getByTestId('admin-form-submit').click();
+    await this.modal().getByRole('button', { name: 'Save' }).click();
     // Wait for the modal to close — confirms the request resolved.
-    await this.page
-      .getByTestId('admin-product-modal')
-      .waitFor({ state: 'detached' });
+    await this.modal().waitFor({ state: 'detached' });
   }
 
   async cancelForm(): Promise<void> {
-    await this.page.getByTestId('admin-form-cancel').click();
+    await this.modal().getByRole('button', { name: 'Cancel' }).click();
   }
 
   async confirmDelete(): Promise<void> {
-    await this.page.getByTestId('admin-delete-confirm').click();
+    // Delete-confirm modal — the destructive "Delete" button is the only
+    // button-with-name-Delete inside that dialog.
+    await this.deleteModal().getByRole('button', { name: 'Delete' }).click();
   }
 
   async cancelDelete(): Promise<void> {
-    await this.page.getByTestId('admin-delete-cancel').click();
+    await this.deleteModal().getByRole('button', { name: 'Cancel' }).click();
   }
 }

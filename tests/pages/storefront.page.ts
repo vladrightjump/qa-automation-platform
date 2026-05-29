@@ -2,8 +2,14 @@ import type { Locator, Page } from '@playwright/test';
 import type { ProductCategory, ProductSort } from '@qa/contracts';
 
 /**
- * Page Object for the product list / storefront home. Exposes intent
- * (`addToCart(id)`) rather than mechanics (`click('#btn')`).
+ * Page Object for the product list / storefront home.
+ *
+ * Selector strategy:
+ *   - Visible action buttons → `getByRole('button', { name: ... })`.
+ *   - Form fields with visible labels → `getByLabel`.
+ *   - Free-text search → `getByPlaceholder`.
+ *   - Container/structural locators that embed dynamic productIds keep
+ *     `data-testid` since those have no accessible-name equivalent.
  */
 export class StorefrontPage {
   constructor(private readonly page: Page) {}
@@ -17,7 +23,12 @@ export class StorefrontPage {
   }
 
   async addToCart(productId: string): Promise<void> {
-    await this.page.getByTestId(`add-to-cart-${productId}`).click();
+    // Chained locator: scope to the product card, then pick the button
+    // by its visible name. The OR in the regex covers both states so
+    // the locator stays stable when stock drops to zero.
+    await this.productCard(productId)
+      .getByRole('button', { name: /add to cart|out of stock/i })
+      .click();
   }
 
   cartCount(): Locator {
@@ -27,16 +38,18 @@ export class StorefrontPage {
   // ---------- catalog filters / search / sort / pagination ----------
 
   searchInput(): Locator {
-    return this.page.getByTestId('catalog-search');
+    return this.page.getByPlaceholder('Find products…');
   }
 
   async search(query: string): Promise<void> {
-    const input = this.searchInput();
-    await input.fill(query);
+    await this.searchInput().fill(query);
   }
 
   categoryCheckbox(category: ProductCategory): Locator {
-    return this.page.getByTestId(`catalog-category-${category}`);
+    // Visible labels are capitalized; map directly.
+    const label =
+      category.charAt(0).toUpperCase() + category.slice(1);
+    return this.page.getByRole('checkbox', { name: label });
   }
 
   async toggleCategory(category: ProductCategory): Promise<void> {
@@ -44,7 +57,7 @@ export class StorefrontPage {
   }
 
   sortSelect(): Locator {
-    return this.page.getByTestId('catalog-sort');
+    return this.page.getByLabel('Sort');
   }
 
   async setSort(sort: ProductSort): Promise<void> {
@@ -60,7 +73,7 @@ export class StorefrontPage {
   }
 
   clearFiltersButton(): Locator {
-    return this.page.getByTestId('catalog-clear');
+    return this.page.getByRole('button', { name: 'Clear filters' }).first();
   }
 
   async clearFilters(): Promise<void> {
@@ -68,11 +81,15 @@ export class StorefrontPage {
   }
 
   paginationNext(): Locator {
-    return this.page.getByTestId('catalog-pagination-next');
+    return this.page
+      .getByTestId('catalog-pagination')
+      .getByRole('button', { name: 'Next' });
   }
 
   paginationPrev(): Locator {
-    return this.page.getByTestId('catalog-pagination-prev');
+    return this.page
+      .getByTestId('catalog-pagination')
+      .getByRole('button', { name: 'Prev' });
   }
 
   paginationInfo(): Locator {

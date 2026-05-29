@@ -1,6 +1,18 @@
 import type { Locator, Page } from '@playwright/test';
 import type { PaymentMethod } from '@qa/contracts';
 
+/**
+ * Page Object for the 3-step checkout wizard.
+ *
+ * Selector strategy:
+ *   - Buttons: `getByRole('button', { name })` — the wizard's nav buttons
+ *     all have stable visible names (Next / Back / Place order / Apply / remove).
+ *   - Form fields: `getByLabel(...)` for the new-address form labels and
+ *     `getByPlaceholder('WELCOME10')` for the promo input which doesn't have
+ *     a visible <label>.
+ *   - Step indicators and the summary `<dl>`: keep `data-testid` since they
+ *     have no single accessible name.
+ */
 export class CheckoutPage {
   constructor(private readonly page: Page) {}
 
@@ -27,19 +39,22 @@ export class CheckoutPage {
   }
 
   async next(): Promise<void> {
-    await this.page.getByTestId('checkout-next').click();
+    await this.page.getByRole('button', { name: 'Next' }).click();
   }
 
   async back(): Promise<void> {
-    await this.page.getByTestId('checkout-back').click();
+    await this.page.getByRole('button', { name: 'Back' }).click();
   }
 
   async pickAddress(id: string): Promise<void> {
+    // Address radios live inside the address-card label container.
     await this.page.getByTestId(`checkout-address-${id}`).click();
   }
 
   async pickPayment(method: PaymentMethod): Promise<void> {
-    await this.page.getByTestId(`checkout-payment-${method}`).click();
+    // Payment radio is wrapped in a label with visible text — use getByLabel.
+    const visible = method === 'COD' ? /Cash on delivery/ : new RegExp(method);
+    await this.page.getByLabel(visible).check();
   }
 
   async fillNewAddress(address: {
@@ -50,24 +65,24 @@ export class CheckoutPage {
     postalCode: string;
   }): Promise<void> {
     if (address.label)
-      await this.page.getByTestId('checkout-new-label').fill(address.label);
-    await this.page.getByTestId('checkout-new-name').fill(address.name);
-    await this.page.getByTestId('checkout-new-line1').fill(address.line1);
-    await this.page.getByTestId('checkout-new-city').fill(address.city);
-    await this.page.getByTestId('checkout-new-postal').fill(address.postalCode);
+      await this.page.getByLabel('Label').fill(address.label);
+    await this.page.getByLabel('Full name').fill(address.name);
+    await this.page.getByLabel('Line 1').fill(address.line1);
+    await this.page.getByLabel('City').fill(address.city);
+    await this.page.getByLabel('Postal code').fill(address.postalCode);
   }
 
   promoInput(): Locator {
-    return this.page.getByTestId('checkout-promo-input');
+    return this.page.getByPlaceholder('WELCOME10');
   }
 
   async applyPromo(code: string): Promise<void> {
     await this.promoInput().fill(code);
-    await this.page.getByTestId('checkout-promo-apply').click();
+    await this.page.getByRole('button', { name: 'Apply' }).click();
   }
 
   async removePromo(): Promise<void> {
-    await this.page.getByTestId('checkout-promo-remove').click();
+    await this.page.getByRole('button', { name: 'remove' }).click();
   }
 
   summaryTotal(): Locator {
@@ -79,7 +94,7 @@ export class CheckoutPage {
   }
 
   async placeOrder(): Promise<void> {
-    await this.page.getByTestId('checkout-submit').click();
+    await this.page.getByRole('button', { name: 'Place order' }).click();
   }
 
   orderStatus(): Locator {

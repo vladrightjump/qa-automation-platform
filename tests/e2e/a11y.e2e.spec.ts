@@ -1,0 +1,71 @@
+// Accessibility scan suite — runs @axe-core/playwright against each major
+// route. Uses the custom `toBeAccessible` matcher (see support/matchers.ts).
+//
+// Failures here mean a new violation crept in. To document an intentional
+// pre-existing violation, add the rule id to `disableRules` and leave a
+// comment explaining why.
+import { test, expect } from '../fixtures';
+
+test.describe('a11y scans', () => {
+  test('@a11y @regression storefront has no serious violations', async ({
+    storefront,
+    page,
+  }) => {
+    await storefront.goto();
+    await expect(page).toBeAccessible();
+  });
+
+  test('@a11y @regression product detail page has no serious violations', async ({
+    page,
+  }) => {
+    await page.goto('/products/prod_widget');
+    await expect(page).toBeAccessible();
+  });
+
+  test('@a11y @regression cart page (empty state) has no serious violations', async ({
+    authedPage,
+  }) => {
+    await authedPage.goto('/cart');
+    await expect(authedPage).toBeAccessible();
+  });
+
+  test('@a11y @regression checkout wizard step 1 has no serious violations', async ({
+    authedPage,
+    api,
+    testUser,
+  }) => {
+    // Seed an address so the saved-addresses radio group renders.
+    await api.createAddress(testUser.token, {
+      label: 'Home',
+      name: 'Test Person',
+      line1: '1 Test St',
+      city: 'Testville',
+      postalCode: '12345',
+      isDefault: true,
+    });
+    await authedPage.goto('/checkout');
+    await expect(authedPage).toBeAccessible();
+  });
+
+  test('@a11y @regression wishlist (empty) has no serious violations', async ({
+    authedPage,
+  }) => {
+    await authedPage.goto('/wishlist');
+    await expect(authedPage).toBeAccessible();
+  });
+
+  test('@a11y @regression login page has no serious violations', async ({
+    page,
+  }) => {
+    await page.goto('/login');
+    await expect(page).toBeAccessible();
+  });
+
+  test('@a11y @regression admin/products has no serious violations', async ({
+    adminPage,
+    adminProducts,
+  }) => {
+    await adminProducts.goto();
+    await expect(adminPage).toBeAccessible();
+  });
+});
