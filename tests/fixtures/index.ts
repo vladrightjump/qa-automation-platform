@@ -19,7 +19,8 @@
 //
 // Specs `import { test, expect } from '../fixtures'` and request only the
 // fixtures they need; unused ones are never built.
-import { test as base, expect } from '@playwright/test';
+import { test as base } from '@playwright/test';
+import { expect } from '../support/matchers';
 import { prisma, ADMIN_EMAIL, ADMIN_PASSWORD, type PrismaClient } from '@qa/db';
 import type { UserRole } from '@qa/contracts';
 import { ApiClient } from '../support/api-client';

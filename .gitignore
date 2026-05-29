@@ -17,6 +17,8 @@ playwright-report/
 test-results/
 blob-report/
 coverage/
+# Playwright storageState produced by the setup project — regenerated each run.
+tests/.auth/
 
 # agent-generated test drafts (review & promote, don't commit)
 tests/e2e/_generated/*.draft.spec.ts

@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type ReporterDescription } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,32 +14,97 @@ const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:3001';
 const WEB_BASE = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
 const isCI = !!process.env.CI;
 
+const USER_STATE = path.resolve(__dirname, '.auth/user.json');
+const ADMIN_STATE = path.resolve(__dirname, '.auth/admin.json');
+
+const reporter: ReporterDescription[] = [
+  ['html', { open: 'never', outputFolder: 'playwright-report' }],
+  ['list'],
+  ['junit', { outputFile: 'test-results/junit.xml' }],
+];
+if (isCI) reporter.push(['github']);
+
 export default defineConfig({
   testDir: '.',
-  testMatch: ['**/*.spec.ts'],
-  // Phase 7: agent-authored drafts live under `e2e/_generated/` and are
-  // excluded from every run. Drafts also use `*.draft.spec.ts` and
-  // `test.describe.skip` for defence-in-depth — see e2e/_generated/README.md.
+  testMatch: ['**/*.spec.ts', 'setup/**/*.setup.ts'],
+  // Agent-authored drafts under `e2e/_generated/` are excluded from every
+  // run — see e2e/_generated/README.md.
   testIgnore: ['**/_generated/**', '**/*.draft.spec.ts'],
-  // Tags drive selective runs: `pnpm test:smoke` → @smoke, full suite on main.
-  // Wire greps via CLI rather than config so individual specs stay portable.
   timeout: 30_000,
-  expect: { timeout: 5_000 },
+  expect: {
+    timeout: 5_000,
+    // Visual regression: tolerate sub-pixel anti-aliasing without flakes.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' },
+  },
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   workers: isCI ? '50%' : undefined,
-  reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter,
   use: {
     baseURL: WEB_BASE,
+    actionTimeout: 10_000,
+    navigationTimeout: 30_000,
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+
+  projects: [
+    // 1. Setup project — runs once, produces storageState files for the
+    //    "shared demo user" + admin. Downstream projects depend on it.
+    {
+      name: 'setup',
+      testMatch: /setup\/.*\.setup\.ts/,
+    },
+
+    // 2. Default desktop chromium — full suite. Per-test fixtures keep
+    //    using their own auth path; specs that opt into the shared
+    //    storageState set `test.use({ storageState })` locally.
+    {
+      name: 'chromium-desktop',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      testIgnore: ['**/*.visual.spec.ts'],
+    },
+
+    // 3. Mobile viewport — only @smoke + @mobile-tagged specs. Uses the
+    //    per-test fixture auth path (not storageState) so the existing
+    //    specs run unchanged.
+    {
+      name: 'chromium-mobile',
+      use: { ...devices['Pixel 5'] },
+      dependencies: ['setup'],
+      grep: /@smoke|@mobile/,
+      testIgnore: ['**/*.visual.spec.ts'],
+    },
+
+    // 4. Cross-browser smoke — webkit @smoke only, keeps CI minutes sane.
+    //    Also uses the per-test fixture auth path.
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'],
+      grep: /@smoke/,
+      testIgnore: ['**/*.visual.spec.ts'],
+    },
+
+    // 5. Visual regression — separate project so screenshots don't run
+    //    in every shard. *Uses* storageState so visual specs land on a
+    //    deterministic logged-in page without spinning up a per-test user.
+    //    Trace + screenshot are forced on for diff debugging.
+    {
+      name: 'visual',
+      testMatch: /.*\.visual\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: USER_STATE,
+        trace: 'on',
+        screenshot: 'on',
+      },
+      dependencies: ['setup'],
+    },
+  ],
 
   // Boot API + web automatically. When something is already listening
   // (local dev), reuse it; CI always spawns fresh.
@@ -63,4 +128,12 @@ export default defineConfig({
       timeout: 90_000,
     },
   ],
+
+  // Provide a placeholder export of the auth file paths so other modules
+  // can import without duplicating the constant.
 });
+
+export const STORAGE_STATE_PATHS = {
+  user: USER_STATE,
+  admin: ADMIN_STATE,
+} as const;
