@@ -10,7 +10,9 @@ import { test, expect } from '../fixtures';
 // ratios in some auth/empty/checkout states (light-tinted labels, brand
 // accents on white). Acceptable for this direction — flag separately if
 // we ship a high-contrast theme.
-const PLAYFUL_PALETTE = { disableRules: ['color-contrast'] } as const;
+const PLAYFUL_PALETTE: { disableRules: string[] } = {
+  disableRules: ['color-contrast'],
+};
 
 test.describe('a11y scans', () => {
   test('@a11y @regression storefront has no serious violations', async ({
