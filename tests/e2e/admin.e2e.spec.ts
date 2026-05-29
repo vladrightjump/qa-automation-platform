@@ -1,5 +1,4 @@
 import { test, expect } from '../fixtures';
-import { AdminProductsPage } from '../pages/admin.page';
 import { AdminProductFactory } from '../factories/admin-product.factory';
 import { API_BASE } from '../support/api-client';
 
@@ -8,12 +7,12 @@ test.describe('admin/products UI', () => {
     adminPage,
     api,
     adminUser,
+    adminProducts,
   }) => {
     await adminPage.goto('/');
     await expect(adminPage.getByTestId('nav-admin')).toBeVisible();
 
-    const admin = new AdminProductsPage(adminPage);
-    await admin.goto();
+    await adminProducts.goto();
 
     const input = AdminProductFactory.build({
       id: `prod_aaa_${Date.now()}`,
@@ -21,8 +20,8 @@ test.describe('admin/products UI', () => {
       priceCents: 1234,
       stock: 7,
     });
-    await admin.openCreate();
-    await admin.fillForm({
+    await adminProducts.openCreate();
+    await adminProducts.fillForm({
       id: input.id,
       name: input.name,
       description: input.description,
@@ -31,7 +30,7 @@ test.describe('admin/products UI', () => {
       category: input.category,
       tags: 'e2e, new',
     });
-    await admin.submit();
+    await adminProducts.submit();
 
     // Ground truth: the API confirms the product exists. The row may sit on
     // a later page once the catalog accumulates factory products across
@@ -53,6 +52,7 @@ test.describe('admin/products UI', () => {
     adminPage,
     api,
     adminUser,
+    adminProducts,
   }) => {
     const input = AdminProductFactory.build({
       id: `prod_aaa_edit_${Date.now()}`,
@@ -65,8 +65,7 @@ test.describe('admin/products UI', () => {
     // Drive the edit flow via the UI's exposed row+modal; even if the row
     // sits off-page, openEdit will fail-fast — so we open the modal by
     // direct testid, which works regardless of pagination.
-    const admin = new AdminProductsPage(adminPage);
-    await admin.goto();
+    await adminProducts.goto();
     const editBtn = adminPage.getByTestId(`admin-edit-${input.id}`);
     if ((await editBtn.count()) === 0) {
       // Row off-page — exercise edit via the API as a backstop.
@@ -75,9 +74,9 @@ test.describe('admin/products UI', () => {
         stock: 42,
       });
     } else {
-      await admin.openEdit(input.id);
-      await admin.fillForm({ priceCents: 999, stock: 42 });
-      await admin.submit();
+      await adminProducts.openEdit(input.id);
+      await adminProducts.fillForm({ priceCents: 999, stock: 42 });
+      await adminProducts.submit();
     }
     const fresh = await api.getProduct(input.id);
     expect(fresh.priceCents).toBe(999);
@@ -110,14 +109,14 @@ test.describe('admin/products UI', () => {
     adminPage,
     api,
     adminUser,
+    adminProducts,
   }) => {
     const input = AdminProductFactory.build({
       id: `prod_aaa_esc_${Date.now()}`,
     });
     await api.adminCreateProduct(adminUser.token, input);
 
-    const admin = new AdminProductsPage(adminPage);
-    await admin.goto();
+    await adminProducts.goto();
     const deleteBtn = adminPage.getByTestId(`admin-delete-${input.id}`);
     // Row may be off-page when many factory products have accumulated;
     // exercise the modal interaction on the first available row if so.
@@ -128,7 +127,7 @@ test.describe('admin/products UI', () => {
             .locator('[data-testid^="admin-delete-"]')
             .first()
             .getAttribute('data-testid'))!.replace(/^admin-delete-/, '');
-    await admin.openDelete(target);
+    await adminProducts.openDelete(target);
     await adminPage.keyboard.press('Escape');
     await expect(adminPage.getByTestId('admin-delete-modal')).toHaveCount(0);
     // Ground truth: the targeted product still exists in the API.

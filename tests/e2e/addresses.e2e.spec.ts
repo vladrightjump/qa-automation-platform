@@ -1,12 +1,11 @@
 import { test, expect } from '../fixtures';
-import { AddressesPage } from '../pages/addresses.page';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('addresses (UI)', () => {
   test('@smoke create, edit, and delete an address via modals', async ({
     authedPage,
+    addresses,
   }) => {
-    const addresses = new AddressesPage(authedPage);
     await addresses.goto();
     await expect(authedPage.getByTestId('addresses-page')).toBeVisible();
 
@@ -44,6 +43,7 @@ test.describe('addresses (UI)', () => {
     authedPage,
     api,
     testUser,
+    addresses,
   }) => {
     const a = await api.createAddress(
       testUser.token,
@@ -54,7 +54,6 @@ test.describe('addresses (UI)', () => {
       AddressFactory.build({ isDefault: false }),
     );
 
-    const addresses = new AddressesPage(authedPage);
     await addresses.goto();
     await expect(addresses.defaultBadge(a.id)).toBeVisible();
     await expect(addresses.defaultBadge(b.id)).toHaveCount(0);

@@ -1,9 +1,10 @@
 import { test, expect } from '../fixtures';
-import { StorefrontPage } from '../pages/storefront.page';
 
 test.describe('browse', () => {
-  test('@smoke product list shows seeded products', async ({ authedPage }) => {
-    const storefront = new StorefrontPage(authedPage);
+  test('@smoke product list shows seeded products', async ({
+    authedPage,
+    storefront,
+  }) => {
     await storefront.goto();
     // Page 1 of the catalog shows a chunk of products — assert the grid
     // populated and the result counter reflects the full seed.

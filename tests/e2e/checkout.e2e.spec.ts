@@ -3,9 +3,6 @@
 import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
-import { StorefrontPage } from '../pages/storefront.page';
-import { CartPage } from '../pages/cart.page';
-import { CheckoutPage } from '../pages/checkout.page';
 
 test.describe('checkout (UI)', () => {
   test('@smoke complete flow: browse → cart → checkout wizard → confirmation + DB row', async ({
@@ -13,6 +10,9 @@ test.describe('checkout (UI)', () => {
     api,
     db,
     testUser,
+    storefront,
+    cart,
+    checkout,
   }) => {
     // Pre-create a default address so the wizard can advance from step 1
     // without typing a brand-new address each run. (The new-address path
@@ -25,10 +25,6 @@ test.describe('checkout (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 1200, name: 'Test Widget' }),
     });
-
-    const storefront = new StorefrontPage(authedPage);
-    const cart = new CartPage(authedPage);
-    const checkout = new CheckoutPage(authedPage);
 
     // The home grid paginates by name, so factory products with random
     // names may not land on page 1. Navigate to the detail page to add.
@@ -76,6 +72,7 @@ test.describe('checkout (UI)', () => {
     api,
     db,
     testUser,
+    cart,
   }) => {
     const a = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
@@ -86,7 +83,6 @@ test.describe('checkout (UI)', () => {
     await api.addToCart(testUser.token, a.id, 1);
     await api.addToCart(testUser.token, b.id, 1);
 
-    const cart = new CartPage(authedPage);
     await cart.goto();
     await expect(cart.item(a.id)).toBeVisible();
     await expect(cart.item(b.id)).toBeVisible();

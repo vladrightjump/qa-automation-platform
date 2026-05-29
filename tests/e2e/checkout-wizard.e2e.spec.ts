@@ -1,8 +1,6 @@
 import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
-import { CheckoutPage } from '../pages/checkout.page';
-import { CartPage } from '../pages/cart.page';
 
 test.describe('checkout wizard (UI)', () => {
   test('@smoke applying WELCOME10 in the review step lowers the displayed total', async ({
@@ -10,6 +8,8 @@ test.describe('checkout wizard (UI)', () => {
     api,
     db,
     testUser,
+    cart,
+    checkout,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 10_000 }),
@@ -19,9 +19,6 @@ test.describe('checkout wizard (UI)', () => {
       AddressFactory.build({ isDefault: true }),
     );
     await api.addToCart(testUser.token, product.id, 1);
-
-    const cart = new CartPage(authedPage);
-    const checkout = new CheckoutPage(authedPage);
 
     await cart.goto();
     await cart.proceedToCheckout();
@@ -45,6 +42,7 @@ test.describe('checkout wizard (UI)', () => {
     api,
     db,
     testUser,
+    checkout,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 2, priceCents: 2000 }),
@@ -55,7 +53,6 @@ test.describe('checkout wizard (UI)', () => {
     );
     await api.addToCart(testUser.token, product.id, 1);
 
-    const checkout = new CheckoutPage(authedPage);
     await checkout.goto();
     await checkout.waitForAddressReady();
     await checkout.next();
@@ -71,12 +68,12 @@ test.describe('checkout wizard (UI)', () => {
     authedPage,
     api,
     testUser,
+    checkout,
   }) => {
     await api.createAddress(
       testUser.token,
       AddressFactory.build({ isDefault: true }),
     );
-    const checkout = new CheckoutPage(authedPage);
     await checkout.goto();
     await checkout.waitForAddressReady();
     await checkout.next();
@@ -89,12 +86,12 @@ test.describe('checkout wizard (UI)', () => {
     authedPage,
     api,
     testUser,
+    checkout,
   }) => {
     // Force the "use new address" form: delete any saved addresses first.
     const list = await api.listAddresses(testUser.token);
     for (const a of list) await api.deleteAddress(testUser.token, a.id);
 
-    const checkout = new CheckoutPage(authedPage);
     await checkout.goto();
     // No saved addresses → the new-address form renders inline. Wait
     // for the form to appear before clicking Next.

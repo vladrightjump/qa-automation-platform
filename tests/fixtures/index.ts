@@ -1,9 +1,21 @@
-// Composable Playwright fixtures. The four building blocks:
-//   - `db`         worker-scoped Prisma client (the SAME singleton the API uses)
-//   - `api`        test-scoped, Zod-validating HTTP wrapper
-//   - `testUser`   per-test fresh user (unique email via faker, created via API)
-//   - `authedPage` browser page with the testUser's token pre-injected into
-//                  `localStorage`, so specs skip the login UI walk.
+// Composable Playwright fixtures.
+//
+// Building blocks:
+//   - `db`           worker-scoped Prisma client (the SAME singleton the API uses)
+//   - `api`          test-scoped, Zod-validating HTTP wrapper
+//   - `testUser`     per-test fresh user (unique email via faker, created via API)
+//   - `adminUser`    logs in as the deterministic seeded admin
+//   - `authedPage`   browser page with the testUser's token pre-injected into
+//                    `localStorage`, so specs skip the login UI walk
+//   - `adminPage`    same, for the admin user
+//
+// Page Objects:
+//   - `storefront`, `cart`, `checkout`, `addresses`, `adminProducts`
+//     each takes `page` and surfaces intent-revealing helpers.
+//
+// Auth is orthogonal to POs: a spec opts into auth by *also* destructuring
+// `authedPage` / `adminPage` (they mutate the shared `page` with an init
+// script before navigation). Public-flow specs simply destructure the PO.
 //
 // Specs `import { test, expect } from '../fixtures'` and request only the
 // fixtures they need; unused ones are never built.
@@ -13,6 +25,11 @@ import type { UserRole } from '@qa/contracts';
 import { ApiClient } from '../support/api-client';
 import { TOKEN_KEY, USER_KEY } from '../support/keys';
 import { UserFactory } from '../factories/user.factory';
+import { StorefrontPage } from '../pages/storefront.page';
+import { CartPage } from '../pages/cart.page';
+import { CheckoutPage } from '../pages/checkout.page';
+import { AddressesPage } from '../pages/addresses.page';
+import { AdminProductsPage } from '../pages/admin.page';
 
 interface AuthedTestUser {
   id: string;
@@ -28,6 +45,11 @@ interface Fixtures {
   adminUser: AuthedTestUser;
   authedPage: import('@playwright/test').Page;
   adminPage: import('@playwright/test').Page;
+  storefront: StorefrontPage;
+  cart: CartPage;
+  checkout: CheckoutPage;
+  addresses: AddressesPage;
+  adminProducts: AdminProductsPage;
 }
 
 interface WorkerFixtures {
@@ -82,6 +104,25 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
   adminPage: async ({ page, adminUser }, use) => {
     await injectAuth(page, adminUser);
     await use(page);
+  },
+
+  // Page Object fixtures. Each depends on `page` only — auth is opted into
+  // by also requesting `authedPage` / `adminPage`, which mutate the shared
+  // page before navigation.
+  storefront: async ({ page }, use) => {
+    await use(new StorefrontPage(page));
+  },
+  cart: async ({ page }, use) => {
+    await use(new CartPage(page));
+  },
+  checkout: async ({ page }, use) => {
+    await use(new CheckoutPage(page));
+  },
+  addresses: async ({ page }, use) => {
+    await use(new AddressesPage(page));
+  },
+  adminProducts: async ({ page }, use) => {
+    await use(new AdminProductsPage(page));
   },
 });
 

@@ -1,11 +1,10 @@
 import { test, expect } from '../fixtures';
-import { StorefrontPage } from '../pages/storefront.page';
 
 test.describe('catalog filters', () => {
   test('@smoke search filters products by name (debounced) and persists in URL', async ({
     page,
+    storefront,
   }) => {
-    const storefront = new StorefrontPage(page);
     await storefront.goto();
     // "Thingamajig" is a unique seed name (no factory products collide).
     await storefront.search('Thingamajig');
@@ -22,8 +21,8 @@ test.describe('catalog filters', () => {
 
   test('@regression category filter narrows results and writes ?category=', async ({
     page,
+    storefront,
   }) => {
-    const storefront = new StorefrontPage(page);
     await storefront.goto();
     await storefront.toggleCategory('apparel');
     await page.waitForURL(/category=apparel/);
@@ -34,8 +33,8 @@ test.describe('catalog filters', () => {
 
   test('@regression sort=price_asc shows cheapest first in a filtered set', async ({
     page,
+    storefront,
   }) => {
-    const storefront = new StorefrontPage(page);
     await storefront.goto();
     // Scope to office so parallel admin-API tests creating random products
     // can't interfere with the assertion about which item is cheapest.
@@ -54,8 +53,8 @@ test.describe('catalog filters', () => {
 
   test('@regression empty state appears when no products match', async ({
     page,
+    storefront,
   }) => {
-    const storefront = new StorefrontPage(page);
     await storefront.goto();
     await storefront.search('definitelydoesnotexist');
     await page.waitForURL(/q=definitelydoesnotexist/);
@@ -70,8 +69,8 @@ test.describe('catalog filters', () => {
 
   test('@regression pagination advances pages and result count is stable', async ({
     page,
+    storefront,
   }) => {
-    const storefront = new StorefrontPage(page);
     await storefront.goto();
 
     await expect(storefront.paginationInfo()).toContainText('Page 1');

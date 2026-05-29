@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
-import { CartPage } from '../pages/cart.page';
 
 test.describe('cart quantity + remove modal (UI)', () => {
   test('@smoke quantity stepper updates the line subtotal', async ({
@@ -8,13 +7,13 @@ test.describe('cart quantity + remove modal (UI)', () => {
     api,
     db,
     testUser,
+    cart,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 10, priceCents: 1000 }),
     });
     await api.addToCart(testUser.token, product.id, 1);
 
-    const cart = new CartPage(authedPage);
     await cart.goto();
     await expect(
       authedPage.getByTestId(`cart-line-subtotal-${product.id}`),
@@ -42,13 +41,13 @@ test.describe('cart quantity + remove modal (UI)', () => {
     api,
     db,
     testUser,
+    cart,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 500 }),
     });
     await api.addToCart(testUser.token, product.id, 1);
 
-    const cart = new CartPage(authedPage);
     await cart.goto();
     await authedPage.getByTestId(`cart-remove-${product.id}`).click();
     await expect(
@@ -69,13 +68,13 @@ test.describe('cart quantity + remove modal (UI)', () => {
     api,
     db,
     testUser,
+    cart,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 500 }),
     });
     await api.addToCart(testUser.token, product.id, 1);
 
-    const cart = new CartPage(authedPage);
     await cart.goto();
     await authedPage.getByTestId(`cart-remove-${product.id}`).click();
     await authedPage.getByTestId('cart-remove-confirm').click();
@@ -89,13 +88,13 @@ test.describe('cart quantity + remove modal (UI)', () => {
     api,
     db,
     testUser,
+    cart,
   }) => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 2, priceCents: 100 }),
     });
     await api.addToCart(testUser.token, product.id, 1);
 
-    const cart = new CartPage(authedPage);
     await cart.goto();
     const input = authedPage.getByTestId(`cart-qty-input-${product.id}`);
     await input.fill('99');
