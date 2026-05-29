@@ -37,3 +37,17 @@ export class OrdersController {
     return this.orders.cancel(user.id, id);
   }
 }
+
+// Public promo discovery — no auth so the storefront can show available
+// deals to signed-out visitors. Kept separate from the guarded controller
+// above so the class-level AuthGuard does not apply.
+@ApiTags('promo-codes')
+@Controller('promo-codes')
+export class PromoController {
+  constructor(private readonly orders: OrdersService) {}
+
+  @Get()
+  list() {
+    return this.orders.listPromoCodes();
+  }
+}

@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures';
 
 test.describe('wishlist (UI)', () => {
-  test('@smoke heart icon toggles optimistically and persists across navigation', async ({
+  test('heart icon toggles optimistically and persists across navigation', {
+    tag: ['@smoke', '@wishlist', '@sanity'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/products/prod_widget');
@@ -18,7 +20,9 @@ test.describe('wishlist (UI)', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('@regression /wishlist lists added items and move-to-cart removes them', async ({
+  test('/wishlist lists added items and move-to-cart removes them', {
+    tag: ['@regression', '@wishlist'],
+  }, async ({
     authedPage,
     api,
     testUser,
@@ -44,7 +48,9 @@ test.describe('wishlist (UI)', () => {
     expect(cart?.items.find((i) => i.productId === 'prod_gizmo')).toBeDefined();
   });
 
-  test('@regression empty state renders when wishlist is empty', async ({
+  test('empty state renders when wishlist is empty', {
+    tag: ['@regression', '@wishlist'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/wishlist');

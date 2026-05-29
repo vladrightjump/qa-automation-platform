@@ -9,6 +9,7 @@ import {
   type AddressInput,
   type Cart,
   type PaymentMethod,
+  type PromoCode,
   type PromoPreview,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -74,6 +75,7 @@ export default function CheckoutPage() {
   const [promoInput, setPromoInput] = useState('');
   const [promo, setPromo] = useState<PromoPreview | null>(null);
   const [promoErr, setPromoErr] = useState<string | null>(null);
+  const [deals, setDeals] = useState<PromoCode[] | null>(null);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -88,6 +90,7 @@ export default function CheckoutPage() {
       else setUseNewAddress(true);
     });
     void api.getCart(token).then(setCart);
+    void api.listPromoCodes().then(setDeals);
   }, [isHydrated, token, router]);
 
   const subtotalCents =
@@ -95,11 +98,13 @@ export default function CheckoutPage() {
   const discountCents = promo?.discountCents ?? 0;
   const totalCents = Math.max(0, subtotalCents - discountCents);
 
-  async function applyPromo() {
+  async function applyPromo(code?: string) {
     if (!token) return;
+    const codeToApply = (code ?? promoInput).trim();
+    if (!codeToApply) return;
     setPromoErr(null);
     try {
-      const preview = await api.applyPromo(token, promoInput.trim());
+      const preview = await api.applyPromo(token, codeToApply);
       setPromo(preview);
       toast.push({
         variant: 'success',
@@ -437,6 +442,49 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {!promo && deals && deals.length > 0 && (
+            <div
+              className="border rounded p-3 bg-amber-50"
+              data-testid="promo-deals"
+            >
+              <p className="text-sm font-medium">🎁 Available deals</p>
+              <ul className="mt-2 space-y-2">
+                {deals.map((d) => {
+                  const locked = subtotalCents < d.minSpendCents;
+                  return (
+                    <li
+                      key={d.code}
+                      data-testid={`promo-deal-${d.code}`}
+                      className="flex items-center justify-between gap-2 text-sm"
+                    >
+                      <span>
+                        <span className="font-mono font-medium">{d.code}</span>
+                        {d.description ? ` — ${d.description}` : ''}
+                      </span>
+                      {locked ? (
+                        <span
+                          data-testid={`promo-deal-locked-${d.code}`}
+                          className="text-xs text-gray-500"
+                        >
+                          Spend ${(d.minSpendCents / 100).toFixed(2)} to unlock
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void applyPromo(d.code)}
+                          data-testid={`promo-deal-apply-${d.code}`}
+                          className="px-2 py-0.5 border rounded text-xs hover:bg-amber-100"
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
 
           <div className="border rounded p-3 bg-gray-50">

@@ -3,7 +3,9 @@ import { ProductFactory } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('checkout wizard (UI)', () => {
-  test('@smoke applying WELCOME10 in the review step lowers the displayed total', async ({
+  test('applying WELCOME10 in the review step lowers the displayed total', {
+    tag: ['@smoke', '@checkout', '@promo'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -37,7 +39,9 @@ test.describe('checkout wizard (UI)', () => {
     await expect(checkout.summaryTotal()).toHaveText(/\$100\.00/);
   });
 
-  test('@regression invalid promo shows an inline error and does not apply', async ({
+  test('invalid promo shows an inline error and does not apply', {
+    tag: ['@regression', '@checkout', '@promo'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -64,7 +68,9 @@ test.describe('checkout wizard (UI)', () => {
     await expect(checkout.summaryDiscount()).toHaveText(/-\$0\.00/);
   });
 
-  test('@regression payment step COD hides card fields', async ({
+  test('payment step COD hides card fields', {
+    tag: ['@regression', '@checkout'],
+  }, async ({
     authedPage,
     api,
     testUser,
@@ -82,7 +88,9 @@ test.describe('checkout wizard (UI)', () => {
     await expect(authedPage.getByTestId('checkout-card-fields')).toHaveCount(0);
   });
 
-  test('@regression validation blocks Next on the new-address step when required fields are empty', async ({
+  test('validation blocks Next on the new-address step when required fields are empty', {
+    tag: ['@regression', '@checkout'],
+  }, async ({
     authedPage,
     api,
     testUser,
@@ -93,9 +101,9 @@ test.describe('checkout wizard (UI)', () => {
     for (const a of list) await api.deleteAddress(testUser.token, a.id);
 
     await checkout.goto();
-    // No saved addresses → the new-address form renders inline. Wait
-    // for the form to appear before clicking Next.
-    await authedPage.getByTestId('checkout-new-line1').waitFor();
+    // No saved addresses → the new-address form renders inline. Assert
+    // it is visible (web-first) before clicking Next.
+    await expect(authedPage.getByTestId('checkout-new-line1')).toBeVisible();
     await checkout.next();
     await expect(
       authedPage.getByTestId('checkout-new-name-error'),

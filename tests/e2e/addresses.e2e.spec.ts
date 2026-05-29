@@ -2,7 +2,9 @@ import { test, expect } from '../fixtures';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('addresses (UI)', () => {
-  test('@smoke create, edit, and delete an address via modals', async ({
+  test('create, edit, and delete an address via modals', {
+    tag: ['@smoke', '@addresses', '@sanity'],
+  }, async ({
     authedPage,
     addresses,
   }) => {
@@ -39,7 +41,9 @@ test.describe('addresses (UI)', () => {
     await expect(addresses.card(addressId)).toHaveCount(0);
   });
 
-  test('@regression marking an address default un-flags the previous default', async ({
+  test('marking an address default un-flags the previous default', {
+    tag: ['@regression', '@addresses'],
+  }, async ({
     authedPage,
     api,
     testUser,

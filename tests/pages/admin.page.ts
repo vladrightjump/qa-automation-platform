@@ -20,6 +20,27 @@ export class AdminProductsPage {
     return this.page.getByTestId(`admin-row-${productId}`);
   }
 
+  /**
+   * Page through the admin table until the given row is visible, then
+   * return its locator. Keeps the UI path deterministic even when many
+   * factory products have accumulated across parallel specs and pushed
+   * the row onto a later page. Asserts the row is reachable via the UI.
+   */
+  async revealRow(productId: string): Promise<Locator> {
+    const row = this.row(productId);
+    const next = this.page.getByTestId('admin-pagination-next');
+    // Bounded by the page count; the loop exits as soon as the row shows.
+    for (;;) {
+      if (await row.isVisible()) return row;
+      const hasNext = (await next.count()) > 0 && (await next.isEnabled());
+      if (!hasNext) break;
+      await next.click();
+      await this.page.getByTestId('admin-pagination-info').waitFor();
+    }
+    await row.waitFor(); // fail-fast with a clear locator error if absent
+    return row;
+  }
+
   private modal(): Locator {
     return this.page.getByTestId('admin-product-modal');
   }

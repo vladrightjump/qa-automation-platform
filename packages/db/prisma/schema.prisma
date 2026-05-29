@@ -124,8 +124,13 @@ model Address {
 model PromoCode {
   id              String    @id @default(cuid())
   code            String    @unique
+  description     String? // shown on the storefront "available deals" surface
   percentOff      Int? // 0..100; mutually exclusive with flatOffCents
   flatOffCents    Int?
+  minSpendCents   Int       @default(0) // cart subtotal required before the code applies
+  featured        Boolean   @default(false) // discoverable via GET /promo-codes
+  maxRedemptions  Int? // null = unlimited
+  timesRedeemed   Int       @default(0)
   active          Boolean   @default(true)
   expiresAt       DateTime?
   createdAt       DateTime  @default(now())

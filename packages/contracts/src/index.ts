@@ -86,6 +86,18 @@ export const PromoPreviewSchema = z.object({
   promoCodeId: z.string(),
 });
 
+// Public-facing promo code as surfaced by GET /promo-codes (discovery).
+// Never exposes internal fields like timesRedeemed/maxRedemptions.
+export const PromoCodeSchema = z.object({
+  code: z.string(),
+  description: z.string().nullable(),
+  percentOff: z.number().int().nullable(),
+  flatOffCents: z.number().int().nullable(),
+  minSpendCents: z.number().int().nonnegative(),
+});
+
+export const PromoCodeListSchema = z.array(PromoCodeSchema);
+
 export const WishlistItemSchema = z.object({
   id: z.string(),
   wishlistId: z.string(),
@@ -165,6 +177,7 @@ export type PagedProducts = z.infer<typeof PagedProductsSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;
+export type PromoCode = z.infer<typeof PromoCodeSchema>;
 export type Wishlist = z.infer<typeof WishlistSchema>;
 export type WishlistItem = z.infer<typeof WishlistItemSchema>;
 export type Review = z.infer<typeof ReviewSchema>;

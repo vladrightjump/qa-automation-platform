@@ -16,9 +16,37 @@ export interface PromoApplyResult {
 @Injectable()
 export class OrdersService {
   /**
+   * Discoverable promo codes for the storefront "available deals" panel.
+   * Only featured + active + unexpired + not-exhausted codes are returned,
+   * and internal fields (timesRedeemed/maxRedemptions) are never exposed.
+   */
+  async listPromoCodes() {
+    const now = new Date();
+    const promos = await prisma.promoCode.findMany({
+      where: {
+        featured: true,
+        active: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      },
+      orderBy: { code: 'asc' },
+    });
+    return promos
+      .filter((p) => p.maxRedemptions == null || p.timesRedeemed < p.maxRedemptions)
+      .map((p) => ({
+        code: p.code,
+        description: p.description,
+        percentOff: p.percentOff,
+        flatOffCents: p.flatOffCents,
+        minSpendCents: p.minSpendCents,
+      }));
+  }
+
+  /**
    * Validate a promo code against the user's current cart total.
    * Pure — does not mutate state. Returns the computed discount in
-   * cents. Throws 400/404 on invalid/expired/inactive codes.
+   * cents. Throws 400/404 on invalid/expired/inactive codes, when the
+   * cart subtotal is below the code's minimum spend, or when the code's
+   * redemption limit is exhausted.
    */
   async previewPromo(userId: string, rawCode: string): Promise<PromoApplyResult> {
     const code = rawCode.trim().toUpperCase();
@@ -32,6 +60,9 @@ export class OrdersService {
     if (promo.expiresAt && promo.expiresAt < new Date()) {
       throw new BadRequestException(`Promo code ${code} has expired`);
     }
+    if (promo.maxRedemptions != null && promo.timesRedeemed >= promo.maxRedemptions) {
+      throw new BadRequestException(`Promo code ${code} has been fully redeemed`);
+    }
 
     const cart = await prisma.cart.findUnique({
       where: { userId },
@@ -44,6 +75,11 @@ export class OrdersService {
       (sum, i) => sum + i.product.priceCents * i.quantity,
       0,
     );
+    if (total < promo.minSpendCents) {
+      throw new BadRequestException(
+        `Promo code ${code} requires a minimum spend of ${promo.minSpendCents} cents`,
+      );
+    }
     const discountCents = this.computeDiscount(promo, total);
     return { code: promo.code, discountCents, promoCodeId: promo.id };
   }
@@ -158,6 +194,28 @@ export class OrdersService {
           } as Prisma.InputJsonValue,
         },
       });
+
+      // Count the redemption and leave a ground-truth audit row so tests
+      // can assert the side-effect without trusting the order payload.
+      if (promoResult) {
+        await tx.promoCode.update({
+          where: { id: promoResult.promoCodeId },
+          data: { timesRedeemed: { increment: 1 } },
+        });
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: 'PROMO_REDEEMED',
+            entity: 'PromoCode',
+            entityId: promoResult.promoCodeId,
+            metadata: {
+              code: promoResult.code,
+              discountCents: promoResult.discountCents,
+              orderId: order.id,
+            } as Prisma.InputJsonValue,
+          },
+        });
+      }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 

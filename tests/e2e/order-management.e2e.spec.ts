@@ -3,7 +3,9 @@ import { AddressFactory } from '../factories/address.factory';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('orders list filter + cancel (UI)', () => {
-  test('@smoke status filter tabs narrow the orders list', async ({
+  test('status filter tabs narrow the orders list', {
+    tag: ['@smoke', '@orders', '@sanity'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -38,7 +40,9 @@ test.describe('orders list filter + cancel (UI)', () => {
     ).toBeVisible();
   });
 
-  test('@regression cancel button on a PAID order transitions to CANCELLED via modal', async ({
+  test('cancel button on a PAID order transitions to CANCELLED via modal', {
+    tag: ['@regression', '@orders'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -69,7 +73,9 @@ test.describe('orders list filter + cancel (UI)', () => {
     await expect(authedPage.getByTestId('order-cancel')).toHaveCount(0);
   });
 
-  test('@regression order id search narrows the list to a single row', async ({
+  test('order id search narrows the list to a single row', {
+    tag: ['@regression', '@orders'],
+  }, async ({
     authedPage,
     api,
     db,

@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 
 test.describe('browse', () => {
-  test('@smoke product list shows seeded products', async ({
+  test('product list shows seeded products', { tag: ['@smoke', '@catalog'] }, async ({
     authedPage,
     storefront,
   }) => {
@@ -13,7 +13,7 @@ test.describe('browse', () => {
     await expect(storefront.paginationInfo()).toContainText('Page 1');
   });
 
-  test('@regression product detail page loads via card link', async ({
+  test('product detail page loads via card link', { tag: ['@regression', '@catalog'] }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/products/prod_widget');

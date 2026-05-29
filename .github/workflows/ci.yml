@@ -78,6 +78,78 @@ jobs:
             !apps/web/.next/cache
 
   # ─────────────────────────────────────────────────────────────────────────
+  # Sanity gate: one critical happy-path test per feature (@sanity tag).
+  # Fast, broad, and deterministic — runs before the heavier sharded suite
+  # so an obvious cross-feature regression fails the run in ~1 shard's time.
+  # ─────────────────────────────────────────────────────────────────────────
+  sanity:
+    name: Sanity (@sanity gate)
+    needs: [build]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: qa
+          POSTGRES_DB: qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Prepare .env (dotenv-cli wrappers expect it)
+        run: cp .env.example .env
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright (full)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium webkit
+
+      - name: Install Playwright system deps only (cache hit)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @qa/tests exec playwright install-deps chromium webkit
+
+      - name: Migrate + seed
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+
+      - name: Run @sanity suite
+        run: |
+          pnpm --filter @qa/tests exec playwright test \
+            --project=chromium-desktop \
+            --grep @sanity \
+            --reporter=list
+
+  # ─────────────────────────────────────────────────────────────────────────
   # Parallel test shards. Each shard:
   #   - downloads the build artifact
   #   - runs migrate + seed against the Postgres service container
@@ -85,10 +157,11 @@ jobs:
   #   - runs `--shard=N/M` of the suite
   #   - emits a blob report for the merge-reports job
   # PRs run @smoke only; pushes to main run the full suite.
+  # Gated on the @sanity job so a broad regression fails fast.
   # ─────────────────────────────────────────────────────────────────────────
   test:
     name: Test (shard ${{ matrix.shard }}/${{ matrix.total }})
-    needs: [build]
+    needs: [build, sanity]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

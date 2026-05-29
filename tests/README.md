@@ -4,6 +4,9 @@
 
 The suite drives the SUT (NestJS API + Next.js storefront in this repo) through three distinct layers — API, DB, and UI — and demonstrates the breadth of Playwright + modern test-engineering patterns. It does this without sacrificing speed or readability.
 
+> **Conventions rulebook:** for the assertion rules, the tag taxonomy, and the
+> `@sanity` suite definition, see [`TESTING.md`](./TESTING.md).
+
 ---
 
 ## Table of contents

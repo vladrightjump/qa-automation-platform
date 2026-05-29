@@ -2,13 +2,17 @@
 import { test, expect } from '../fixtures';
 
 test.describe('negative paths (UI)', () => {
-  test('@regression unauthenticated /cart redirects to /login', async ({ page }) => {
+  test('unauthenticated /cart redirects to /login', {
+    tag: ['@regression', '@auth'],
+  }, async ({ page }) => {
     await page.goto('/cart');
     await expect(page).toHaveURL(/\/login(\?.*)?$/);
     await expect(page.getByTestId('auth-email')).toBeVisible();
   });
 
-  test('@regression out-of-stock product shows disabled "Out of stock" button', async ({
+  test('out-of-stock product shows disabled "Out of stock" button', {
+    tag: ['@regression', '@catalog'],
+  }, async ({
     authedPage,
   }) => {
     // Navigate directly to the OOS sample's detail page — the home grid
@@ -21,7 +25,9 @@ test.describe('negative paths (UI)', () => {
     await expect(btn).toHaveText(/Out of stock/i);
   });
 
-  test('@regression login form rejects invalid credentials with a toast', async ({
+  test('login form rejects invalid credentials with a toast', {
+    tag: ['@regression', '@auth'],
+  }, async ({
     page,
   }) => {
     await page.goto('/login');

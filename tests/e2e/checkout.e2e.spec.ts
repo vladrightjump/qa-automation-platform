@@ -12,7 +12,9 @@ import { ProductFactory } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('checkout (UI)', () => {
-  test('@smoke complete flow: browse → cart → checkout wizard → confirmation + DB row', async ({
+  test('complete flow: browse → cart → checkout wizard → confirmation + DB row', {
+    tag: ['@smoke', '@checkout', '@sanity'],
+  }, async ({
     authedPage,
     api,
     db,
@@ -77,7 +79,9 @@ test.describe('checkout (UI)', () => {
     });
   });
 
-  test('@regression remove-from-cart updates subtotal and DB', async ({
+  test('remove-from-cart updates subtotal and DB', {
+    tag: ['@regression', '@cart'],
+  }, async ({
     authedPage,
     api,
     db,

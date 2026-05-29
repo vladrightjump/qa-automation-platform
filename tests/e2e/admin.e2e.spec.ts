@@ -3,7 +3,9 @@ import { AdminProductFactory } from '../factories/admin-product.factory';
 import { API_BASE } from '../support/api-client';
 
 test.describe('admin/products UI', () => {
-  test('@smoke admin sees the Admin link and can create + delete a product', async ({
+  test('admin sees the Admin link and can create + delete a product', {
+    tag: ['@smoke', '@admin', '@sanity'],
+  }, async ({
     adminPage,
     api,
     adminUser,
@@ -48,8 +50,9 @@ test.describe('admin/products UI', () => {
     expect(after.status()).toBe(404);
   });
 
-  test('@regression admin can edit a product price + stock in a modal', async ({
-    adminPage,
+  test('admin can edit a product price + stock in a modal', {
+    tag: ['@regression', '@admin'],
+  }, async ({
     api,
     adminUser,
     adminProducts,
@@ -62,22 +65,15 @@ test.describe('admin/products UI', () => {
     });
     await api.adminCreateProduct(adminUser.token, input);
 
-    // Drive the edit flow via the UI's exposed row+modal; even if the row
-    // sits off-page, openEdit will fail-fast — so we open the modal by
-    // direct testid, which works regardless of pagination.
+    // Drive the edit flow entirely through the UI. revealRow pages to the
+    // row deterministically even when parallel specs have pushed it past
+    // page 1, so the modal path is always exercised (no API backstop).
     await adminProducts.goto();
-    const editBtn = adminPage.getByTestId(`admin-edit-${input.id}`);
-    if ((await editBtn.count()) === 0) {
-      // Row off-page — exercise edit via the API as a backstop.
-      await api.adminUpdateProduct(adminUser.token, input.id, {
-        priceCents: 999,
-        stock: 42,
-      });
-    } else {
-      await adminProducts.openEdit(input.id);
-      await adminProducts.fillForm({ priceCents: 999, stock: 42 });
-      await adminProducts.submit();
-    }
+    await adminProducts.revealRow(input.id);
+    await adminProducts.openEdit(input.id);
+    await adminProducts.fillForm({ priceCents: 999, stock: 42 });
+    await adminProducts.submit();
+
     const fresh = await api.getProduct(input.id);
     expect(fresh.priceCents).toBe(999);
     expect(fresh.stock).toBe(42);
@@ -86,7 +82,9 @@ test.describe('admin/products UI', () => {
     await api.adminDeleteProduct(adminUser.token, input.id);
   });
 
-  test('@regression non-admin user is redirected away from /admin/products', async ({
+  test('non-admin user is redirected away from /admin/products', {
+    tag: ['@regression', '@admin'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/admin/products');
@@ -98,14 +96,18 @@ test.describe('admin/products UI', () => {
     await expect(authedPage.getByTestId('admin-products')).toHaveCount(0);
   });
 
-  test('@regression non-admin user does not see the Admin link', async ({
+  test('non-admin user does not see the Admin link', {
+    tag: ['@regression', '@admin'],
+  }, async ({
     authedPage,
   }) => {
     await authedPage.goto('/');
     await expect(authedPage.getByTestId('nav-admin')).toHaveCount(0);
   });
 
-  test('@regression delete modal can be cancelled (ESC) without removing row', async ({
+  test('delete modal can be cancelled (ESC) without removing row', {
+    tag: ['@regression', '@admin'],
+  }, async ({
     adminPage,
     api,
     adminUser,
@@ -116,23 +118,15 @@ test.describe('admin/products UI', () => {
     });
     await api.adminCreateProduct(adminUser.token, input);
 
+    // Page to our own row deterministically, then exercise the cancel flow.
     await adminProducts.goto();
-    const deleteBtn = adminPage.getByTestId(`admin-delete-${input.id}`);
-    // Row may be off-page when many factory products have accumulated;
-    // exercise the modal interaction on the first available row if so.
-    const target =
-      (await deleteBtn.count()) > 0
-        ? input.id
-        : (await adminPage
-            .locator('[data-testid^="admin-delete-"]')
-            .first()
-            .getAttribute('data-testid'))!.replace(/^admin-delete-/, '');
-    await adminProducts.openDelete(target);
+    await adminProducts.revealRow(input.id);
+    await adminProducts.openDelete(input.id);
     await adminPage.keyboard.press('Escape');
     await expect(adminPage.getByTestId('admin-delete-modal')).toHaveCount(0);
     // Ground truth: the targeted product still exists in the API.
-    const still = await api.getProduct(target);
-    expect(still.id).toBe(target);
+    const still = await api.getProduct(input.id);
+    expect(still.id).toBe(input.id);
 
     await api.adminDeleteProduct(adminUser.token, input.id);
   });
