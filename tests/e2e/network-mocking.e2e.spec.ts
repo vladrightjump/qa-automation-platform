@@ -56,13 +56,14 @@ test.describe('network mocking (UI)', () => {
     storefront,
   }) => {
     await page.route(PRODUCTS_GLOB, async (route) => {
-      await new Promise((r) => setTimeout(r, 1200));
+      await new Promise((r) => setTimeout(r, 1500));
       await route.continue();
     });
 
     await storefront.goto();
-    // The loading paragraph renders before the data arrives.
-    await expect(page.getByText('Loading…').first()).toBeVisible();
+    // The skeleton grid renders before the data arrives. The shimmer
+    // utility class is set on every Skeleton instance.
+    await expect(page.locator('.skeleton').first()).toBeVisible();
   });
 
   test('@regression @network contract drift is caught by toMatchContract', async ({

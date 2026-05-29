@@ -69,7 +69,7 @@ export default function Modal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
     >
       <div
         ref={dialogRef}
@@ -77,7 +77,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={`${testId}-title`}
         data-testid={testId}
-        className="bg-white rounded-lg shadow-lg w-full max-w-md p-5"
+        className="animate-scale-in bg-white rounded-2xl shadow-pop w-full max-w-md p-5 border border-gray-100"
       >
         <div className="flex items-center justify-between mb-3">
           <h2
@@ -90,7 +90,7 @@ export default function Modal({
             onClick={onClose}
             data-testid={`${testId}-close`}
             aria-label="Close dialog"
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center text-xl leading-none transition-colors"
           >
             &times;
           </button>

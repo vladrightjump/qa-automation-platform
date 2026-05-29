@@ -15,7 +15,11 @@ import Toast from '@/components/Toast';
 import Tabs from '@/components/ui/Tabs';
 import StarRating from '@/components/ui/StarRating';
 import Select from '@/components/ui/Select';
+import Skeleton from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastQueue';
+import RecentlyViewed from '@/components/RecentlyViewed';
+import RelatedProducts from '@/components/RelatedProducts';
+import { pushRecent } from '@/lib/recently-viewed';
 
 const SORT_OPTIONS: { value: ReviewSort; label: string }[] = [
   { value: 'newest', label: 'Newest' },
@@ -34,12 +38,29 @@ export default function ProductDetailPage() {
     if (!productId) return;
     api
       .getProduct(productId)
-      .then(setProduct)
+      .then((p) => {
+        setProduct(p);
+        pushRecent(p.id);
+      })
       .catch((e: Error) => setErr(e.message));
   }, [productId]);
 
   if (err) return <Toast message={err} />;
-  if (!product) return <p className="text-gray-500">Loading…</p>;
+  if (!product) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card">
+          <Skeleton variant="block" className="h-36 rounded-none" />
+          <div className="p-4 space-y-3">
+            <Skeleton variant="line" width="60%" />
+            <Skeleton variant="line" width="40%" />
+            <Skeleton variant="line" width="80%" />
+          </div>
+        </div>
+        <Skeleton variant="block" className="h-32" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -81,6 +102,8 @@ export default function ProductDetailPage() {
         onChange={setActiveTab}
         testId="product-tabs"
       />
+      <RelatedProducts productId={product.id} category={product.category} />
+      <RecentlyViewed excludeId={product.id} />
     </div>
   );
 }

@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { api, type Order, type OrderStatus } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import OrderSummary from '@/components/OrderSummary';
 import Modal from '@/components/ui/Modal';
+import Skeleton from '@/components/ui/Skeleton';
+import Confetti from '@/components/Confetti';
 import Toast from '@/components/Toast';
 
 const TIMELINE: { id: OrderStatus; label: string }[] = [
@@ -22,13 +25,30 @@ function stepReached(current: OrderStatus, step: OrderStatus): boolean {
 }
 
 export default function OrderDetailPage() {
+  return (
+    <Suspense fallback={<Skeleton variant="block" className="h-40" />}>
+      <OrderDetailInner />
+    </Suspense>
+  );
+}
+
+function OrderDetailInner() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const justPlaced = searchParams.get('just') === '1';
   const toast = useToast();
   const { token, isHydrated } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(justPlaced);
+
+  useEffect(() => {
+    if (!justPlaced) return;
+    const handle = setTimeout(() => setShowConfetti(false), 2800);
+    return () => clearTimeout(handle);
+  }, [justPlaced]);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -56,19 +76,65 @@ export default function OrderDetailPage() {
   }
 
   if (err) return <Toast message={err} />;
-  if (!order) return <p className="text-gray-500">Loading…</p>;
+  if (!order) {
+    return (
+      <div className="space-y-4">
+        <Skeleton variant="block" className="h-32" />
+        <Skeleton variant="block" className="h-24" />
+      </div>
+    );
+  }
 
   const cancellable = order.status === 'PENDING' || order.status === 'PAID';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {justPlaced && showConfetti && <Confetti />}
+
+      {justPlaced && (
+        <section
+          data-testid="order-confirmation-hero"
+          className="animate-fade-in border border-green-100 bg-gradient-to-br from-green-50 via-white to-brand-50 rounded-2xl p-6 text-center shadow-card"
+        >
+          <div className="mx-auto w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center text-3xl shadow-pop animate-check-pop">
+            ✓
+          </div>
+          <h1
+            data-testid="order-confirmation-title"
+            className="mt-3 text-2xl font-bold tracking-tight text-gray-900"
+          >
+            Order confirmed!
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Order{' '}
+            <span className="font-mono text-gray-800">{order.id}</span> is on
+            its way. A receipt is below.
+          </p>
+          <div className="flex items-center justify-center gap-2 pt-4">
+            <Link
+              href="/"
+              data-testid="order-confirmation-continue"
+              className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+            >
+              Continue shopping <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              href="/orders"
+              className="px-4 py-2 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-sm rounded-full transition-colors"
+            >
+              View all orders
+            </Link>
+          </div>
+        </section>
+      )}
+
       <OrderSummary order={order} />
 
       <div
         data-testid="order-timeline"
-        className="border rounded p-3 bg-white"
+        className="border border-gray-100 rounded-2xl p-4 bg-white shadow-card"
       >
-        <p className="text-sm font-medium mb-2">Status</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">Status</p>
         <ol className="flex items-center gap-2">
           {TIMELINE.map((step, idx) => {
             const reached = stepReached(order.status, step.id);
@@ -80,18 +146,16 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2"
               >
                 <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
                     reached
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
+                      ? 'bg-brand-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {idx + 1}
                 </span>
                 <span
-                  className={
-                    reached ? 'text-gray-900' : 'text-gray-500'
-                  }
+                  className={`text-sm ${reached ? 'text-gray-900 font-medium' : 'text-gray-500'}`}
                 >
                   {step.label}
                 </span>
@@ -104,7 +168,7 @@ export default function OrderDetailPage() {
           {order.status === 'CANCELLED' && (
             <li
               data-testid="order-timeline-cancelled"
-              className="ml-3 text-red-600 text-sm"
+              className="ml-3 text-red-600 text-sm font-medium"
             >
               Cancelled
             </li>
@@ -117,7 +181,7 @@ export default function OrderDetailPage() {
           type="button"
           onClick={() => setConfirmCancel(true)}
           data-testid="order-cancel"
-          className="px-3 py-1.5 border border-red-600 text-red-600 rounded text-sm"
+          className="px-4 py-1.5 border border-red-300 hover:border-red-500 hover:bg-red-50 text-red-600 rounded-full text-sm font-medium transition-colors"
         >
           Cancel order
         </button>
@@ -129,21 +193,21 @@ export default function OrderDetailPage() {
         title="Cancel this order?"
         testId="order-cancel-modal"
       >
-        <p className="text-sm mb-3">
+        <p className="text-sm mb-3 text-gray-700">
           Cancelled orders cannot be reinstated.
         </p>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setConfirmCancel(false)}
             data-testid="order-cancel-cancel"
-            className="px-3 py-1.5 border rounded text-sm"
+            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
           >
             Keep order
           </button>
           <button
             onClick={() => void cancel()}
             data-testid="order-cancel-confirm"
-            className="px-3 py-1.5 bg-red-600 text-white rounded text-sm"
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors"
           >
             Cancel order
           </button>

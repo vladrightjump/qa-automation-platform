@@ -164,7 +164,9 @@ export default function CheckoutPage() {
         promoCode: promo?.code,
       });
       await refreshCartCount();
-      router.push(`/orders/${order.id}`);
+      // Pass ?just=1 so the order detail page renders the celebratory
+      // confirmation treatment (confetti + check-pop).
+      router.push(`/orders/${order.id}?just=1`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -173,9 +175,13 @@ export default function CheckoutPage() {
   }
 
   return (
-    <section className="max-w-2xl space-y-4">
-      <h1 className="text-2xl font-semibold">Checkout</h1>
+    <section className="space-y-5">
+      <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+        Checkout
+      </h1>
 
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
+      <div className="space-y-4 min-w-0">
       <ol
         data-testid="checkout-steps"
         className="flex items-center gap-2 text-sm"
@@ -185,10 +191,10 @@ export default function CheckoutPage() {
             key={s.id}
             data-testid={`checkout-step-${s.id}`}
             data-active={s.id === step}
-            className={`px-3 py-1 rounded ${
+            className={`px-3 py-1 rounded-full transition-all duration-150 ${
               s.id === step
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600'
+                ? 'bg-brand-600 text-white shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-600'
             }`}
           >
             {s.label}
@@ -481,29 +487,6 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <dl
-            data-testid="checkout-summary"
-            className="border rounded p-3 text-sm bg-white space-y-1"
-          >
-            <div className="flex justify-between">
-              <dt>Subtotal</dt>
-              <dd data-testid="checkout-summary-subtotal" className="font-mono">
-                ${(subtotalCents / 100).toFixed(2)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt>Discount</dt>
-              <dd data-testid="checkout-summary-discount" className="font-mono">
-                -${(discountCents / 100).toFixed(2)}
-              </dd>
-            </div>
-            <div className="flex justify-between font-medium border-t pt-1">
-              <dt>Total</dt>
-              <dd data-testid="checkout-summary-total" className="font-mono">
-                ${(totalCents / 100).toFixed(2)}
-              </dd>
-            </div>
-          </dl>
           {err && <Toast message={err} />}
         </div>
       )}
@@ -514,18 +497,18 @@ export default function CheckoutPage() {
           onClick={back}
           disabled={step === 'address'}
           data-testid="checkout-back"
-          className="px-3 py-1.5 border rounded text-sm disabled:opacity-40"
+          className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors disabled:opacity-40"
         >
-          Back
+          ← Back
         </button>
         {step !== 'review' ? (
           <button
             type="button"
             onClick={() => void next()}
             data-testid="checkout-next"
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
           >
-            Next
+            Next <span aria-hidden="true">→</span>
           </button>
         ) : (
           <button
@@ -533,11 +516,71 @@ export default function CheckoutPage() {
             onClick={() => void placeOrder()}
             disabled={busy}
             data-testid="checkout-submit"
-            className="px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-300"
+            className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-medium text-sm transition-all duration-150 active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
           >
             {busy ? 'Placing…' : 'Place order'}
           </button>
         )}
+      </div>
+      </div>
+
+      {/* Sticky order summary — visible on every step on md+ screens. */}
+      <aside className="lg:sticky lg:top-20 self-start">
+        <section
+          data-testid="checkout-summary"
+          aria-label="Order summary"
+          className="border border-gray-100 bg-white rounded-2xl p-4 shadow-card text-sm space-y-3"
+        >
+          <div className="flex items-center justify-between border-b pb-2">
+            <span className="font-semibold text-gray-900">Order summary</span>
+            <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
+              Step {STEPS.findIndex((s) => s.id === step) + 1}/{STEPS.length}
+            </span>
+          </div>
+          {cart && cart.items.length > 0 && (
+            <ul className="space-y-1.5">
+              {cart.items.map((i) => (
+                <li
+                  key={i.id}
+                  className="flex justify-between text-xs text-gray-700"
+                >
+                  <span className="truncate pr-2">
+                    {i.product.name} × {i.quantity}
+                  </span>
+                  <span className="font-mono shrink-0">
+                    ${((i.product.priceCents * i.quantity) / 100).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t pt-2 text-gray-600">
+            <dt>Subtotal</dt>
+            <dd
+              data-testid="checkout-summary-subtotal"
+              className="font-mono text-right"
+            >
+              ${(subtotalCents / 100).toFixed(2)}
+            </dd>
+            <dt>Discount</dt>
+            <dd
+              data-testid="checkout-summary-discount"
+              className="font-mono text-right"
+            >
+              -${(discountCents / 100).toFixed(2)}
+            </dd>
+            <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-gray-900">
+              Total
+            </dt>
+            <dd
+              data-testid="checkout-summary-total"
+              className="col-start-2 border-t pt-1.5 mt-1 font-mono font-semibold text-gray-900 text-right"
+            >
+              ${(totalCents / 100).toFixed(2)}
+            </dd>
+          </dl>
+        </section>
+      </aside>
       </div>
     </section>
   );

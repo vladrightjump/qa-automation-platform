@@ -68,10 +68,10 @@ export default function Tabs({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(t.id)}
               onKeyDown={onKey}
-              className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
+              className={`px-3 py-2 text-sm border-b-2 -mb-px transition-all duration-150 ${
                 selected
-                  ? 'border-blue-600 text-blue-700 font-medium'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'border-brand-600 text-brand-700 font-medium'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
               {t.label}

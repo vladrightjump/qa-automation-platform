@@ -11,9 +11,16 @@ import {
 } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Toast from '@/components/Toast';
+import Hero from '@/components/Hero';
+import QuickViewModal from '@/components/QuickViewModal';
+import RecentlyViewed from '@/components/RecentlyViewed';
 import Pagination from '@/components/ui/Pagination';
 import PriceRangeSlider from '@/components/ui/PriceRangeSlider';
 import Select from '@/components/ui/Select';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
+import EmptySearch from '@/components/illustrations/EmptySearch';
+import type { Product } from '@/lib/api';
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: 'gadgets', label: 'Gadgets' },
@@ -105,6 +112,7 @@ function HomePageInner() {
   const [result, setResult] = useState<PagedProducts | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(filters.q);
+  const [quickView, setQuickView] = useState<Product | null>(null);
   const reqRef = useRef(0);
 
   useEffect(() => {
@@ -182,14 +190,15 @@ function HomePageInner() {
     filters.sort !== 'name_asc';
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Products</h1>
+    <section className="space-y-8">
+      <Hero />
+      <RecentlyViewed excludeId={null} />
       {err && <Toast message={err} />}
 
-      <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-        <aside className="space-y-4">
+      <div id="catalog" className="grid gap-6 md:grid-cols-[240px_1fr]">
+        <aside className="space-y-5 md:sticky md:top-20 self-start">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Search
             </label>
             <input
@@ -198,7 +207,7 @@ function HomePageInner() {
               onChange={(e) => setSearchInput(e.target.value)}
               data-testid="catalog-search"
               placeholder="Find products…"
-              className="w-full border rounded px-2 py-1 text-sm"
+              className="w-full border border-gray-200 rounded-full px-3 py-2 text-sm bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-shadow outline-none"
             />
           </div>
 
@@ -240,7 +249,7 @@ function HomePageInner() {
               type="button"
               onClick={clearFilters}
               data-testid="catalog-clear"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-brand-600 hover:text-brand-700 hover:underline transition-colors"
             >
               Clear filters
             </button>
@@ -264,26 +273,52 @@ function HomePageInner() {
             />
           </div>
 
-          {!result && !err && <p className="text-gray-500">Loading…</p>}
-          {result && items.length === 0 && (
-            <div
-              data-testid="catalog-empty"
-              className="border rounded-md p-6 bg-white text-center text-gray-600"
-            >
-              <p className="mb-2">No products match these filters.</p>
-              <button
-                onClick={clearFilters}
-                data-testid="catalog-empty-clear"
-                className="text-blue-600 hover:underline"
-              >
-                Clear filters
-              </button>
+          {!result && !err && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card"
+                >
+                  <Skeleton variant="block" className="h-32 sm:h-36 rounded-none" />
+                  <div className="p-4 space-y-2">
+                    <Skeleton variant="line" width="70%" />
+                    <Skeleton variant="line" width="40%" />
+                    <Skeleton
+                      variant="line"
+                      width="90%"
+                      className="h-7 mt-4"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
+          )}
+          {result && items.length === 0 && (
+            <EmptyState
+              testId="catalog-empty"
+              icon={<EmptySearch />}
+              title="No products match these filters"
+              description="Try a broader search or remove a filter to see more results."
+              action={
+                <button
+                  onClick={clearFilters}
+                  data-testid="catalog-empty-clear"
+                  className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+                >
+                  Clear filters
+                </button>
+              }
+            />
           )}
           {items.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onQuickView={setQuickView}
+                />
               ))}
             </div>
           )}
@@ -298,6 +333,8 @@ function HomePageInner() {
           )}
         </div>
       </div>
+
+      <QuickViewModal product={quickView} onClose={() => setQuickView(null)} />
     </section>
   );
 }

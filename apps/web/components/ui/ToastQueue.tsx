@@ -26,10 +26,16 @@ const ToastContext = createContext<ToastValue | null>(null);
 
 const DEFAULT_DURATION_MS = 4000;
 const VARIANT_CLASSES: Record<ToastVariant, string> = {
-  success: 'bg-green-50 border-green-200 text-green-800',
-  error: 'bg-red-50 border-red-200 text-red-800',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-  info: 'bg-blue-50 border-blue-200 text-blue-800',
+  success: 'bg-green-50 border-green-200 text-green-800 border-l-4 border-l-green-500',
+  error: 'bg-red-50 border-red-200 text-red-800 border-l-4 border-l-red-500',
+  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 border-l-4 border-l-yellow-500',
+  info: 'bg-blue-50 border-blue-200 text-blue-800 border-l-4 border-l-blue-500',
+};
+const VARIANT_GLYPH: Record<ToastVariant, string> = {
+  success: '✓',
+  error: '✕',
+  warning: '!',
+  info: 'i',
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -65,14 +71,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             data-testid={`toast-${t.variant}`}
             role="status"
-            className={`border rounded-md px-3 py-2 text-sm shadow-sm flex items-center gap-3 ${VARIANT_CLASSES[t.variant]}`}
+            className={`animate-slide-up border rounded-lg pl-2 pr-3 py-2 text-sm shadow-md flex items-center gap-2 min-w-[16rem] ${VARIANT_CLASSES[t.variant]}`}
           >
-            <span>{t.message}</span>
+            <span
+              aria-hidden="true"
+              className="w-5 h-5 rounded-full bg-white/60 flex items-center justify-center text-xs font-bold"
+            >
+              {VARIANT_GLYPH[t.variant]}
+            </span>
+            <span className="flex-1">{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
               data-testid={`toast-dismiss-${t.id}`}
               aria-label="Dismiss"
-              className="text-current opacity-60 hover:opacity-100"
+              className="text-current opacity-60 hover:opacity-100 transition-opacity"
             >
               &times;
             </button>
