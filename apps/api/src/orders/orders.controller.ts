@@ -45,6 +45,11 @@ export class OrdersController {
   ) {
     return this.orders.requestReturn(user.id, id, dto.reason);
   }
+
+  @Get('loyalty')
+  loyalty(@CurrentUser() user: AuthedUser) {
+    return this.orders.getLoyalty(user.id);
+  }
 }
 
 // Public promo discovery — no auth so the storefront can show available

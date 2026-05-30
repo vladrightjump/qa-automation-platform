@@ -162,6 +162,23 @@ export interface CheckoutInput {
   addressId?: string;
   paymentMethod?: PaymentMethod;
   promoCode?: string;
+  redeemPoints?: number;
+}
+
+export type LoyaltyType = 'EARN' | 'REDEEM';
+
+export interface LoyaltyTransaction {
+  id: string;
+  userId: string;
+  orderId: string | null;
+  points: number;
+  type: LoyaltyType;
+  createdAt: string;
+}
+
+export interface LoyaltyBalance {
+  balancePoints: number;
+  transactions: LoyaltyTransaction[];
 }
 
 export interface WishlistItem {
@@ -328,6 +345,9 @@ export const api = {
       { method: 'POST', body: JSON.stringify(input) },
       token,
     ),
+
+  getLoyalty: (token: string) =>
+    request<LoyaltyBalance>('/loyalty', {}, token),
 
   applyPromo: (token: string, code: string) =>
     request<PromoPreview>(

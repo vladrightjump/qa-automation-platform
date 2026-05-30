@@ -1,11 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export type PaymentMethod = 'CARD' | 'PAYPAL' | 'COD';
 const PAYMENT_METHODS: PaymentMethod[] = ['CARD', 'PAYPAL', 'COD'];
@@ -25,6 +28,15 @@ export class CheckoutDto {
   @IsOptional()
   @IsString()
   promoCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Loyalty points to redeem (1 point = 1¢ store credit).',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  redeemPoints?: number;
 }
 
 export class ApplyPromoDto {

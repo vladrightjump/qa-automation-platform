@@ -8,6 +8,7 @@ import {
   AddressSchema,
   AuthResultSchema,
   CartSchema,
+  LoyaltyBalanceSchema,
   OrderListSchema,
   OrderSchema,
   PagedOrdersSchema,
@@ -205,6 +206,7 @@ export class ApiClient {
       addressId?: string;
       paymentMethod?: PaymentMethod;
       promoCode?: string;
+      redeemPoints?: number;
     } = {},
   ): Promise<Order> {
     const res = await this.request.post(`${API_BASE}/orders`, {
@@ -527,6 +529,17 @@ export class ApiClient {
       throw new Error(`listStockAlerts: ${res.status()} ${await res.text()}`);
     }
     return StockAlertListSchema.parse(await res.json());
+  }
+
+  // --- loyalty ---
+  async getLoyalty(token: string) {
+    const res = await this.request.get(`${API_BASE}/loyalty`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) {
+      throw new Error(`getLoyalty: ${res.status()} ${await res.text()}`);
+    }
+    return LoyaltyBalanceSchema.parse(await res.json());
   }
 
   // --- test seam (env-guarded on the API side) ---
