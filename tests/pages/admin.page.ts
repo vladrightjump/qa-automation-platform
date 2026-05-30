@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Page Object for /admin/products — the admin product table + modal forms.
@@ -28,16 +28,29 @@ export class AdminProductsPage {
    */
   async revealRow(productId: string): Promise<Locator> {
     const row = this.row(productId);
+    const info = this.page.getByTestId('admin-pagination-info');
     const next = this.page.getByTestId('admin-pagination-next');
-    // Bounded by the page count; the loop exits as soon as the row shows.
-    for (;;) {
-      if (await row.isVisible()) return row;
+
+    // Wait for the first page of data to actually render before deciding
+    // anything — otherwise we'd race the async fetch and conclude the row
+    // is absent while the table is still empty.
+    await this.page.locator('[data-testid^="admin-row-"]').first().waitFor();
+
+    // Page forward until the row appears. The loop is bounded by the page
+    // count; each Next click waits for the page indicator to actually change
+    // so we never check a row against a half-rendered page.
+    for (let guard = 0; guard < 100; guard++) {
+      if ((await row.count()) > 0) {
+        await expect(row).toBeVisible();
+        return row;
+      }
       const hasNext = (await next.count()) > 0 && (await next.isEnabled());
       if (!hasNext) break;
+      const before = (await info.textContent())?.trim() ?? '';
       await next.click();
-      await this.page.getByTestId('admin-pagination-info').waitFor();
+      await expect(info).not.toHaveText(before);
     }
-    await row.waitFor(); // fail-fast with a clear locator error if absent
+    await expect(row).toBeVisible(); // clear failure if genuinely absent
     return row;
   }
 
