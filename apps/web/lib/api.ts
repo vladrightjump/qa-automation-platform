@@ -76,6 +76,19 @@ export interface OrderItem {
 
 export type PaymentMethod = 'CARD' | 'PAYPAL' | 'COD';
 
+export type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'REFUNDED';
+
+export interface OrderReturn {
+  id: string;
+  orderId: string;
+  userId: string;
+  reason: string;
+  status: ReturnStatus;
+  refundCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -87,6 +100,7 @@ export interface Order {
   promoCodeId?: string | null;
   createdAt: string;
   items: OrderItem[];
+  returns?: OrderReturn[];
 }
 
 export interface Address {
@@ -270,6 +284,12 @@ export const api = {
     ),
   cancelOrder: (token: string, id: string) =>
     request<Order>(`/orders/${id}/cancel`, { method: 'POST' }, token),
+  requestReturn: (token: string, id: string, reason: string) =>
+    request<OrderReturn>(
+      `/orders/${id}/return`,
+      { method: 'POST', body: JSON.stringify({ reason }) },
+      token,
+    ),
 
   checkout: (token: string, input: CheckoutInput = {}) =>
     request<Order>(

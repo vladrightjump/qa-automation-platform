@@ -15,6 +15,7 @@ import {
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
+  ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
   WishlistSchema,
@@ -31,6 +32,7 @@ import {
   type ProductSort,
   type PromoCode,
   type PromoPreview,
+  type Return,
   type Review,
   type ReviewSummary,
   type Wishlist,
@@ -174,6 +176,21 @@ export class ApiClient {
       throw new Error(`cancelOrder: ${res.status()} ${await res.text()}`);
     }
     return OrderSchema.parse(await res.json());
+  }
+
+  async requestReturn(
+    token: string,
+    id: string,
+    reason: string,
+  ): Promise<Return> {
+    const res = await this.request.post(`${API_BASE}/orders/${id}/return`, {
+      headers: authHeader(token),
+      data: { reason },
+    });
+    if (!res.ok()) {
+      throw new Error(`requestReturn: ${res.status()} ${await res.text()}`);
+    }
+    return ReturnSchema.parse(await res.json());
   }
 
   // --- orders / checkout ---

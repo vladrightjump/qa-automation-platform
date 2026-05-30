@@ -42,6 +42,8 @@ function OrderDetailInner() {
   const [order, setOrder] = useState<Order | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
   const [showConfetti, setShowConfetti] = useState(justPlaced);
 
   useEffect(() => {
@@ -75,6 +77,20 @@ function OrderDetailInner() {
     }
   }
 
+  async function submitReturn() {
+    if (!token || !order) return;
+    try {
+      await api.requestReturn(token, order.id, returnReason.trim());
+      const refreshed = await api.getOrder(token, order.id);
+      setOrder(refreshed);
+      setReturnOpen(false);
+      setReturnReason('');
+      toast.push({ variant: 'success', message: 'Return requested' });
+    } catch (e) {
+      toast.push({ variant: 'error', message: (e as Error).message });
+    }
+  }
+
   if (err) return <Toast message={err} />;
   if (!order) {
     return (
@@ -86,6 +102,13 @@ function OrderDetailInner() {
   }
 
   const cancellable = order.status === 'PENDING' || order.status === 'PAID';
+  const latestReturn = order.returns?.[0] ?? null;
+  const hasOpenReturn = (order.returns ?? []).some(
+    (r) => r.status !== 'REJECTED',
+  );
+  const returnable =
+    (order.status === 'PAID' || order.status === 'FULFILLED') &&
+    !hasOpenReturn;
 
   return (
     <div className="space-y-5">
@@ -176,16 +199,40 @@ function OrderDetailInner() {
         </ol>
       </div>
 
-      {cancellable && (
-        <button
-          type="button"
-          onClick={() => setConfirmCancel(true)}
-          data-testid="order-cancel"
-          className="px-4 py-1.5 border border-red-300 hover:border-red-500 hover:bg-red-50 text-red-600 rounded-full text-sm font-medium transition-colors"
+      {latestReturn && (
+        <div
+          data-testid="order-return-status"
+          data-status={latestReturn.status}
+          className="border border-amber-100 bg-amber-50 rounded-2xl px-4 py-3 text-sm"
         >
-          Cancel order
-        </button>
+          <span className="font-semibold text-amber-800">Return</span>{' '}
+          <span className="text-amber-700">{latestReturn.status}</span>
+          <span className="text-gray-600"> — {latestReturn.reason}</span>
+        </div>
       )}
+
+      <div className="flex items-center gap-2">
+        {cancellable && (
+          <button
+            type="button"
+            onClick={() => setConfirmCancel(true)}
+            data-testid="order-cancel"
+            className="px-4 py-1.5 border border-red-300 hover:border-red-500 hover:bg-red-50 text-red-600 rounded-full text-sm font-medium transition-colors"
+          >
+            Cancel order
+          </button>
+        )}
+        {returnable && (
+          <button
+            type="button"
+            onClick={() => setReturnOpen(true)}
+            data-testid="order-return"
+            className="px-4 py-1.5 border border-amber-300 hover:border-amber-500 hover:bg-amber-50 text-amber-700 rounded-full text-sm font-medium transition-colors"
+          >
+            Request return
+          </button>
+        )}
+      </div>
 
       <Modal
         open={confirmCancel}
@@ -210,6 +257,47 @@ function OrderDetailInner() {
             className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors"
           >
             Cancel order
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={returnOpen}
+        onClose={() => setReturnOpen(false)}
+        title="Request a return"
+        testId="order-return-modal"
+      >
+        <p className="text-sm mb-3 text-gray-700">
+          Tell us why you’re returning this order. An admin will review the
+          request.
+        </p>
+        <label htmlFor="return-reason" className="sr-only">
+          Return reason
+        </label>
+        <textarea
+          id="return-reason"
+          value={returnReason}
+          onChange={(e) => setReturnReason(e.target.value)}
+          placeholder="Reason for return…"
+          data-testid="order-return-reason"
+          rows={3}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-shadow"
+        />
+        <div className="flex justify-end gap-2 mt-3">
+          <button
+            onClick={() => setReturnOpen(false)}
+            data-testid="order-return-cancel"
+            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => void submitReturn()}
+            disabled={returnReason.trim().length < 3}
+            data-testid="order-return-submit"
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
+          >
+            Submit request
           </button>
         </div>
       </Modal>

@@ -146,6 +146,24 @@ export const OrderItemSchema = z.object({
   unitPriceCents: z.number().int().nonnegative(),
 });
 
+export const ReturnStatusSchema = z.enum([
+  'REQUESTED',
+  'APPROVED',
+  'REJECTED',
+  'REFUNDED',
+]);
+
+export const ReturnSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  userId: z.string(),
+  reason: z.string(),
+  status: ReturnStatusSchema,
+  refundCents: z.number().int().nonnegative(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const OrderSchema = z.object({
   id: z.string(),
   userId: z.string(),
@@ -158,6 +176,8 @@ export const OrderSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   items: z.array(OrderItemSchema),
+  // Present on GET /orders/:id; absent on checkout/list responses.
+  returns: z.array(ReturnSchema).optional().default([]),
 });
 
 export const AuthResultSchema = z.object({
@@ -188,6 +208,8 @@ export type Cart = z.infer<typeof CartSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 export type Order = z.infer<typeof OrderSchema>;
+export type ReturnStatus = z.infer<typeof ReturnStatusSchema>;
+export type Return = z.infer<typeof ReturnSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 
 export { z };
