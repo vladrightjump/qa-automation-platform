@@ -22,6 +22,13 @@ enum UserRole {
   ADMIN
 }
 
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
 enum PaymentMethod {
   CARD
   PAYPAL
@@ -41,6 +48,7 @@ model User {
   addresses Address[]
   wishlist  Wishlist?
   reviews   Review[]
+  returns   Return[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
@@ -100,6 +108,27 @@ model Order {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   items             OrderItem[]
+  returns           Return[]
+}
+
+// Return / RMA request against an order. Lifecycle: REQUESTED → APPROVED |
+// REJECTED, and APPROVED → REFUNDED (driven by admins). Status + audit only:
+// no payment integration, no stock restock. At most one open (non-REJECTED)
+// return per order is enforced in the service layer.
+model Return {
+  id          String       @id @default(cuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  reason      String
+  status      ReturnStatus @default(REQUESTED)
+  refundCents Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([orderId])
+  @@index([status, createdAt])
 }
 
 model Address {

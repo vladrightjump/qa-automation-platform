@@ -10,11 +10,13 @@ import {
   CartSchema,
   OrderListSchema,
   OrderSchema,
+  PagedOrdersSchema,
   PagedProductsSchema,
   PagedReviewsSchema,
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
+  ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
   WishlistSchema,
@@ -26,11 +28,13 @@ import {
   type PagedProducts,
   type PagedReviews,
   type PaymentMethod,
+  type OrderStatus,
   type Product,
   type ProductCategory,
   type ProductSort,
   type PromoCode,
   type PromoPreview,
+  type Return,
   type Review,
   type ReviewSummary,
   type Wishlist,
@@ -174,6 +178,21 @@ export class ApiClient {
       throw new Error(`cancelOrder: ${res.status()} ${await res.text()}`);
     }
     return OrderSchema.parse(await res.json());
+  }
+
+  async requestReturn(
+    token: string,
+    id: string,
+    reason: string,
+  ): Promise<Return> {
+    const res = await this.request.post(`${API_BASE}/orders/${id}/return`, {
+      headers: authHeader(token),
+      data: { reason },
+    });
+    if (!res.ok()) {
+      throw new Error(`requestReturn: ${res.status()} ${await res.text()}`);
+    }
+    return ReturnSchema.parse(await res.json());
   }
 
   // --- orders / checkout ---
@@ -416,6 +435,56 @@ export class ApiClient {
     if (!res.ok()) {
       throw new Error(`adminDeleteProduct: ${res.status()} ${await res.text()}`);
     }
+  }
+
+  // --- admin/orders ---
+  async adminListOrders(
+    token: string,
+    status?: OrderStatus,
+    page = 1,
+    pageSize = 20,
+  ) {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (status) params.set('status', status);
+    const res = await this.request.get(
+      `${API_BASE}/admin/orders?${params.toString()}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`adminListOrders: ${res.status()} ${await res.text()}`);
+    }
+    return PagedOrdersSchema.parse(await res.json());
+  }
+
+  async adminFulfillOrder(token: string, id: string): Promise<Order> {
+    const res = await this.request.post(
+      `${API_BASE}/admin/orders/${id}/fulfill`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`adminFulfillOrder: ${res.status()} ${await res.text()}`);
+    }
+    return OrderSchema.parse(await res.json());
+  }
+
+  async adminDecideReturn(
+    token: string,
+    id: string,
+    decision: 'approve' | 'reject' | 'refund',
+  ): Promise<Return> {
+    const res = await this.request.post(
+      `${API_BASE}/admin/returns/${id}/${decision}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `adminDecideReturn(${decision}): ${res.status()} ${await res.text()}`,
+      );
+    }
+    return ReturnSchema.parse(await res.json());
   }
 
   // --- test seam (env-guarded on the API side) ---

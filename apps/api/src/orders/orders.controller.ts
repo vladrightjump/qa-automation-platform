@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, type AuthedUser } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { OrdersService } from './orders.service';
-import { ApplyPromoDto, CheckoutDto } from './dto';
+import { ApplyPromoDto, CheckoutDto, RequestReturnDto } from './dto';
 
 @ApiTags('orders')
 @ApiBearerAuth()
@@ -35,6 +35,15 @@ export class OrdersController {
   @Post('orders/:id/cancel')
   cancel(@CurrentUser() user: AuthedUser, @Param('id') id: string) {
     return this.orders.cancel(user.id, id);
+  }
+
+  @Post('orders/:id/return')
+  requestReturn(
+    @CurrentUser() user: AuthedUser,
+    @Param('id') id: string,
+    @Body() dto: RequestReturnDto,
+  ) {
+    return this.orders.requestReturn(user.id, id, dto.reason);
   }
 }
 

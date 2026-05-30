@@ -76,6 +76,19 @@ export interface OrderItem {
 
 export type PaymentMethod = 'CARD' | 'PAYPAL' | 'COD';
 
+export type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'REFUNDED';
+
+export interface OrderReturn {
+  id: string;
+  orderId: string;
+  userId: string;
+  reason: string;
+  status: ReturnStatus;
+  refundCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -87,6 +100,14 @@ export interface Order {
   promoCodeId?: string | null;
   createdAt: string;
   items: OrderItem[];
+  returns?: OrderReturn[];
+}
+
+export interface PagedOrders {
+  items: Order[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export interface Address {
@@ -270,6 +291,12 @@ export const api = {
     ),
   cancelOrder: (token: string, id: string) =>
     request<Order>(`/orders/${id}/cancel`, { method: 'POST' }, token),
+  requestReturn: (token: string, id: string, reason: string) =>
+    request<OrderReturn>(
+      `/orders/${id}/return`,
+      { method: 'POST', body: JSON.stringify({ reason }) },
+      token,
+    ),
 
   checkout: (token: string, input: CheckoutInput = {}) =>
     request<Order>(
@@ -376,4 +403,22 @@ export const api = {
     ),
   adminDeleteProduct: (token: string, id: string) =>
     request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' }, token),
+
+  // ---- admin / orders ----
+  adminListOrders: (token: string, status?: OrderStatus, page = 1, pageSize = 20) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (status) params.set('status', status);
+    return request<PagedOrders>(`/admin/orders?${params.toString()}`, {}, token);
+  },
+  adminFulfillOrder: (token: string, id: string) =>
+    request<Order>(`/admin/orders/${id}/fulfill`, { method: 'POST' }, token),
+  adminApproveReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/approve`, { method: 'POST' }, token),
+  adminRejectReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/reject`, { method: 'POST' }, token),
+  adminRefundReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/refund`, { method: 'POST' }, token),
 };

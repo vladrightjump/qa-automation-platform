@@ -74,7 +74,9 @@ per feature also carries `@sanity`.
 | `@wishlist` | Wishlist |
 | `@addresses` | Saved addresses |
 | `@admin` | Admin product CRUD |
+| `@admin-orders` | Admin order management: fulfilment + return decisions |
 | `@promo` | Promo codes + discovery |
+| `@returns` | Order returns / RMA request flow |
 
 > **Note:** the 13 `tests/api/*.spec.ts` specs still use the older title-based
 > `@smoke`/`@regression` tags (still greppable). Migrating them to native tags +
@@ -96,7 +98,8 @@ Rules:
   the heavier sharded suite (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 
 Current `@sanity` set (one per feature): `@auth`, `@catalog`, `@cart`,
-`@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`.
+`@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`,
+`@returns`, `@admin-orders`.
 
 ---
 
