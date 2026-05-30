@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `labeled`/`unlabeled` re-trigger the run so changing a `test:*` label
+    # on an open PR re-evaluates which suite the `decide` job selects.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 # Stop in-flight runs on the same ref when a new commit lands.
 concurrency:
@@ -76,6 +79,60 @@ jobs:
             apps/api/dist
             apps/web/.next
             !apps/web/.next/cache
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Decide which suite the sharded `test` job runs, based on PR labels.
+  #   - Push to main           → empty grep  → full suite
+  #   - PR with no test:* label → @smoke     → fast default gate
+  #   - PR with test:smoke/sanity/regression → additive regex OR
+  #   - PR with test:full       → empty grep  → full suite
+  # Exposes `grep` as a job output consumed by the `test` job.
+  # ─────────────────────────────────────────────────────────────────────────
+  decide:
+    name: Decide suite
+    runs-on: ubuntu-latest
+    outputs:
+      grep: ${{ steps.pick.outputs.grep }}
+    steps:
+      - name: Pick grep from event + labels
+        id: pick
+        env:
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+          HAS_SMOKE: ${{ contains(github.event.pull_request.labels.*.name, 'test:smoke') }}
+          HAS_SANITY: ${{ contains(github.event.pull_request.labels.*.name, 'test:sanity') }}
+          HAS_REGRESSION: ${{ contains(github.event.pull_request.labels.*.name, 'test:regression') }}
+          HAS_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'test:full') }}
+        run: |
+          set -euo pipefail
+
+          # Non-PR events (push to main) run everything.
+          if [ "$IS_PR" != "true" ]; then
+            echo "push event → full suite"
+            echo "grep=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # test:full short-circuits to the whole suite.
+          if [ "$HAS_FULL" = "true" ]; then
+            echo "test:full label → full suite"
+            echo "grep=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Build an additive regex OR from the present test:* labels.
+          tags=()
+          [ "$HAS_SMOKE" = "true" ]      && tags+=("@smoke")
+          [ "$HAS_SANITY" = "true" ]     && tags+=("@sanity")
+          [ "$HAS_REGRESSION" = "true" ] && tags+=("@regression")
+
+          if [ ${#tags[@]} -eq 0 ]; then
+            grep="@smoke"
+            echo "no test:* label → default @smoke gate"
+          else
+            grep=$(IFS='|'; echo "${tags[*]}")
+            echo "labels → --grep $grep"
+          fi
+          echo "grep=$grep" >> "$GITHUB_OUTPUT"
 
   # ─────────────────────────────────────────────────────────────────────────
   # Sanity gate: one critical happy-path test per feature (@sanity tag).
@@ -156,12 +213,13 @@ jobs:
   #   - launches api + web via Playwright's webServer
   #   - runs `--shard=N/M` of the suite
   #   - emits a blob report for the merge-reports job
-  # PRs run @smoke only; pushes to main run the full suite.
+  # Suite is chosen by the `decide` job: PRs honor `test:*` labels (default
+  # @smoke), pushes to main run the full suite.
   # Gated on the @sanity job so a broad regression fails fast.
   # ─────────────────────────────────────────────────────────────────────────
   test:
     name: Test (shard ${{ matrix.shard }}/${{ matrix.total }})
-    needs: [build, sanity]
+    needs: [build, sanity, decide]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -225,13 +283,16 @@ jobs:
           pnpm db:seed
 
       - name: Run tests
+        env:
+          # Suite filter resolved by the `decide` job (empty = full suite).
+          GREP: ${{ needs.decide.outputs.grep }}
         run: |
           GREP_ARGS=""
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            GREP_ARGS="--grep @smoke"
-            echo "PR run → @smoke only"
+          if [ -n "$GREP" ]; then
+            GREP_ARGS="--grep $GREP"
+            echo "running --grep $GREP"
           else
-            echo "main run → full suite"
+            echo "running full suite (no grep)"
           fi
           # Restrict to the default chromium-desktop project in CI; the
           # visual/mobile/webkit projects are dev-targeted and run via the
