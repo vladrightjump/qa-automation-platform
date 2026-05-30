@@ -103,6 +103,13 @@ export interface Order {
   returns?: OrderReturn[];
 }
 
+export interface PagedOrders {
+  items: Order[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface Address {
   id: string;
   userId: string;
@@ -396,4 +403,22 @@ export const api = {
     ),
   adminDeleteProduct: (token: string, id: string) =>
     request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' }, token),
+
+  // ---- admin / orders ----
+  adminListOrders: (token: string, status?: OrderStatus, page = 1, pageSize = 20) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (status) params.set('status', status);
+    return request<PagedOrders>(`/admin/orders?${params.toString()}`, {}, token);
+  },
+  adminFulfillOrder: (token: string, id: string) =>
+    request<Order>(`/admin/orders/${id}/fulfill`, { method: 'POST' }, token),
+  adminApproveReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/approve`, { method: 'POST' }, token),
+  adminRejectReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/reject`, { method: 'POST' }, token),
+  adminRefundReturn: (token: string, id: string) =>
+    request<OrderReturn>(`/admin/returns/${id}/refund`, { method: 'POST' }, token),
 };

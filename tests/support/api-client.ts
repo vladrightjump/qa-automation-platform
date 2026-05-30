@@ -10,6 +10,7 @@ import {
   CartSchema,
   OrderListSchema,
   OrderSchema,
+  PagedOrdersSchema,
   PagedProductsSchema,
   PagedReviewsSchema,
   ProductSchema,
@@ -27,6 +28,7 @@ import {
   type PagedProducts,
   type PagedReviews,
   type PaymentMethod,
+  type OrderStatus,
   type Product,
   type ProductCategory,
   type ProductSort,
@@ -433,6 +435,56 @@ export class ApiClient {
     if (!res.ok()) {
       throw new Error(`adminDeleteProduct: ${res.status()} ${await res.text()}`);
     }
+  }
+
+  // --- admin/orders ---
+  async adminListOrders(
+    token: string,
+    status?: OrderStatus,
+    page = 1,
+    pageSize = 20,
+  ) {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (status) params.set('status', status);
+    const res = await this.request.get(
+      `${API_BASE}/admin/orders?${params.toString()}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`adminListOrders: ${res.status()} ${await res.text()}`);
+    }
+    return PagedOrdersSchema.parse(await res.json());
+  }
+
+  async adminFulfillOrder(token: string, id: string): Promise<Order> {
+    const res = await this.request.post(
+      `${API_BASE}/admin/orders/${id}/fulfill`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(`adminFulfillOrder: ${res.status()} ${await res.text()}`);
+    }
+    return OrderSchema.parse(await res.json());
+  }
+
+  async adminDecideReturn(
+    token: string,
+    id: string,
+    decision: 'approve' | 'reject' | 'refund',
+  ): Promise<Return> {
+    const res = await this.request.post(
+      `${API_BASE}/admin/returns/${id}/${decision}`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `adminDecideReturn(${decision}): ${res.status()} ${await res.text()}`,
+      );
+    }
+    return ReturnSchema.parse(await res.json());
   }
 
   // --- test seam (env-guarded on the API side) ---

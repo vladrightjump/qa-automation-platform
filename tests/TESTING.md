@@ -74,6 +74,7 @@ per feature also carries `@sanity`.
 | `@wishlist` | Wishlist |
 | `@addresses` | Saved addresses |
 | `@admin` | Admin product CRUD |
+| `@admin-orders` | Admin order management: fulfilment + return decisions |
 | `@promo` | Promo codes + discovery |
 | `@returns` | Order returns / RMA request flow |
 
@@ -98,7 +99,7 @@ Rules:
 
 Current `@sanity` set (one per feature): `@auth`, `@catalog`, `@cart`,
 `@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`,
-`@returns`.
+`@returns`, `@admin-orders`.
 
 ---
 

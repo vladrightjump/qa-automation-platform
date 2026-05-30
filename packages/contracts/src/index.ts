@@ -188,6 +188,13 @@ export const AuthResultSchema = z.object({
 export const ProductListSchema = z.array(ProductSchema);
 export const OrderListSchema = z.array(OrderSchema);
 
+export const PagedOrdersSchema = z.object({
+  items: z.array(OrderSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type UserRole = z.infer<typeof UserRoleSchema>;
 export type Product = z.infer<typeof ProductSchema>;
@@ -210,6 +217,7 @@ export type OrderItem = z.infer<typeof OrderItemSchema>;
 export type Order = z.infer<typeof OrderSchema>;
 export type ReturnStatus = z.infer<typeof ReturnStatusSchema>;
 export type Return = z.infer<typeof ReturnSchema>;
+export type PagedOrders = z.infer<typeof PagedOrdersSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 
 export { z };
