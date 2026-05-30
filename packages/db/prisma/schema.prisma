@@ -49,6 +49,7 @@ model User {
   wishlist  Wishlist?
   reviews   Review[]
   returns   Return[]
+  stockAlerts StockAlert[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
@@ -67,9 +68,26 @@ model Product {
   orderItems    OrderItem[]
   wishlistItems WishlistItem[]
   reviews       Review[]
+  stockAlerts   StockAlert[]
 
   @@index([category])
   @@index([name])
+}
+
+// "Notify me when back in stock" subscription. Created only while a product
+// is out of stock; flipped to notified=true (with a STOCK_ALERT_NOTIFIED
+// audit row) when an admin restocks the product from 0 → >0.
+model StockAlert {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId, notified])
 }
 
 model Cart {

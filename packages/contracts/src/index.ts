@@ -180,6 +180,16 @@ export const OrderSchema = z.object({
   returns: z.array(ReturnSchema).optional().default([]),
 });
 
+export const StockAlertSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  productId: z.string(),
+  notified: z.boolean(),
+  createdAt: z.string(),
+});
+
+export const StockAlertListSchema = z.array(StockAlertSchema);
+
 export const AuthResultSchema = z.object({
   token: z.string().min(1),
   user: UserSchema,
@@ -218,6 +228,7 @@ export type Order = z.infer<typeof OrderSchema>;
 export type ReturnStatus = z.infer<typeof ReturnStatusSchema>;
 export type Return = z.infer<typeof ReturnSchema>;
 export type PagedOrders = z.infer<typeof PagedOrdersSchema>;
+export type StockAlert = z.infer<typeof StockAlertSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 
 export { z };

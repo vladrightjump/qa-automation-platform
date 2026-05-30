@@ -65,6 +65,7 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-2xl space-y-4">
       <ProductCard product={product} />
+      {product.stock === 0 && <StockAlertButton productId={product.id} />}
       <Tabs
         tabs={[
           {
@@ -104,6 +105,74 @@ export default function ProductDetailPage() {
       />
       <RelatedProducts productId={product.id} category={product.category} />
       <RecentlyViewed excludeId={product.id} />
+    </div>
+  );
+}
+
+function StockAlertButton({ productId }: { productId: string }) {
+  const { token } = useAuth();
+  const toast = useToast();
+  const [subscribed, setSubscribed] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    void api
+      .listStockAlerts(token)
+      .then((alerts) =>
+        setSubscribed(alerts.some((a) => a.productId === productId)),
+      )
+      .catch(() => {
+        /* non-fatal: leave unsubscribed */
+      });
+  }, [token, productId]);
+
+  async function toggle() {
+    if (!token) {
+      toast.push({ variant: 'warning', message: 'Sign in to get notified.' });
+      return;
+    }
+    setBusy(true);
+    try {
+      if (subscribed) {
+        await api.unsubscribeStockAlert(token, productId);
+        setSubscribed(false);
+        toast.push({ variant: 'success', message: 'Alert removed' });
+      } else {
+        await api.subscribeStockAlert(token, productId);
+        setSubscribed(true);
+        toast.push({
+          variant: 'success',
+          message: 'We’ll email you when it’s back',
+        });
+      }
+    } catch (e) {
+      toast.push({ variant: 'error', message: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      data-testid="stock-alert"
+      className="border border-amber-100 bg-amber-50 rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+    >
+      <p className="text-sm text-amber-800">
+        {subscribed
+          ? 'You’ll be notified when this item is back in stock.'
+          : 'Out of stock — get notified when it returns.'}
+      </p>
+      <button
+        type="button"
+        onClick={() => void toggle()}
+        disabled={busy}
+        data-testid="stock-alert-toggle"
+        data-subscribed={subscribed}
+        className="shrink-0 px-3 py-1.5 border border-amber-400 hover:bg-amber-100 disabled:opacity-50 text-amber-800 rounded-full text-sm font-medium transition-colors"
+      >
+        {subscribed ? 'Cancel alert' : 'Notify me'}
+      </button>
     </div>
   );
 }

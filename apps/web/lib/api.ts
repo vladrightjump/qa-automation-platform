@@ -39,6 +39,14 @@ export interface ListProductsQuery {
   pageSize?: number;
 }
 
+export interface StockAlert {
+  id: string;
+  userId: string;
+  productId: string;
+  notified: boolean;
+  createdAt: string;
+}
+
 export type UserRole = 'USER' | 'ADMIN';
 
 export interface User {
@@ -256,6 +264,22 @@ export const api = {
   listProducts: (query: ListProductsQuery = {}) =>
     request<PagedProducts>(`/products${buildProductsQuery(query)}`),
   getProduct: (id: string) => request<Product>(`/products/${id}`),
+
+  // ---- back-in-stock alerts ----
+  subscribeStockAlert: (token: string, productId: string) =>
+    request<StockAlert>(
+      `/products/${productId}/stock-alert`,
+      { method: 'POST' },
+      token,
+    ),
+  unsubscribeStockAlert: (token: string, productId: string) =>
+    request<{ ok: true }>(
+      `/products/${productId}/stock-alert`,
+      { method: 'DELETE' },
+      token,
+    ),
+  listStockAlerts: (token: string) =>
+    request<StockAlert[]>('/stock-alerts', {}, token),
 
   register: (email: string, password: string) =>
     request<AuthResult>('/auth/register', {

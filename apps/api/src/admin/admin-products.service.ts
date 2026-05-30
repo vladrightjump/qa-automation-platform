@@ -46,19 +46,47 @@ export class AdminProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    await this.ensureExists(id);
-    return prisma.product.update({
-      where: { id },
-      data: {
-        ...(dto.name !== undefined ? { name: dto.name } : {}),
-        ...(dto.description !== undefined
-          ? { description: dto.description }
-          : {}),
-        ...(dto.priceCents !== undefined ? { priceCents: dto.priceCents } : {}),
-        ...(dto.stock !== undefined ? { stock: dto.stock } : {}),
-        ...(dto.category !== undefined ? { category: dto.category } : {}),
-        ...(dto.tags !== undefined ? { tags: dto.tags } : {}),
-      },
+    const existing = await this.ensureExists(id);
+    const data: Prisma.ProductUpdateInput = {
+      ...(dto.name !== undefined ? { name: dto.name } : {}),
+      ...(dto.description !== undefined ? { description: dto.description } : {}),
+      ...(dto.priceCents !== undefined ? { priceCents: dto.priceCents } : {}),
+      ...(dto.stock !== undefined ? { stock: dto.stock } : {}),
+      ...(dto.category !== undefined ? { category: dto.category } : {}),
+      ...(dto.tags !== undefined ? { tags: dto.tags } : {}),
+    };
+
+    // Back-in-stock transition: restocking a product from 0 → >0 fulfils any
+    // pending alerts. The "notification" is a ground-truth audit row (no email
+    // infra), and each alert is flipped to notified so it fires only once.
+    const restocked =
+      existing.stock === 0 && dto.stock !== undefined && dto.stock > 0;
+
+    if (!restocked) {
+      return prisma.product.update({ where: { id }, data });
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.product.update({ where: { id }, data });
+      const pending = await tx.stockAlert.findMany({
+        where: { productId: id, notified: false },
+      });
+      if (pending.length > 0) {
+        await tx.stockAlert.updateMany({
+          where: { productId: id, notified: false },
+          data: { notified: true },
+        });
+        await tx.auditLog.createMany({
+          data: pending.map((alert) => ({
+            userId: alert.userId,
+            action: 'STOCK_ALERT_NOTIFIED',
+            entity: 'StockAlert',
+            entityId: alert.id,
+            metadata: { productId: id } as Prisma.InputJsonValue,
+          })),
+        });
+      }
+      return updated;
     });
   }
 
@@ -78,8 +106,9 @@ export class AdminProductsService {
     return { ok: true };
   }
 
-  private async ensureExists(id: string): Promise<void> {
+  private async ensureExists(id: string) {
     const found = await prisma.product.findUnique({ where: { id } });
     if (!found) throw new NotFoundException(`Product ${id} not found`);
+    return found;
   }
 }
