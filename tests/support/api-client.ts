@@ -19,6 +19,8 @@ import {
   ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
+  StockAlertListSchema,
+  StockAlertSchema,
   WishlistSchema,
   z,
   type Address,
@@ -37,6 +39,7 @@ import {
   type Return,
   type Review,
   type ReviewSummary,
+  type StockAlert,
   type Wishlist,
 } from '@qa/contracts';
 
@@ -485,6 +488,45 @@ export class ApiClient {
       );
     }
     return ReturnSchema.parse(await res.json());
+  }
+
+  // --- back-in-stock alerts ---
+  async subscribeStockAlert(
+    token: string,
+    productId: string,
+  ): Promise<StockAlert> {
+    const res = await this.request.post(
+      `${API_BASE}/products/${productId}/stock-alert`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `subscribeStockAlert: ${res.status()} ${await res.text()}`,
+      );
+    }
+    return StockAlertSchema.parse(await res.json());
+  }
+
+  async unsubscribeStockAlert(token: string, productId: string): Promise<void> {
+    const res = await this.request.delete(
+      `${API_BASE}/products/${productId}/stock-alert`,
+      { headers: authHeader(token) },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `unsubscribeStockAlert: ${res.status()} ${await res.text()}`,
+      );
+    }
+  }
+
+  async listStockAlerts(token: string): Promise<StockAlert[]> {
+    const res = await this.request.get(`${API_BASE}/stock-alerts`, {
+      headers: authHeader(token),
+    });
+    if (!res.ok()) {
+      throw new Error(`listStockAlerts: ${res.status()} ${await res.text()}`);
+    }
+    return StockAlertListSchema.parse(await res.json());
   }
 
   // --- test seam (env-guarded on the API side) ---

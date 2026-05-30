@@ -77,6 +77,7 @@ per feature also carries `@sanity`.
 | `@admin-orders` | Admin order management: fulfilment + return decisions |
 | `@promo` | Promo codes + discovery |
 | `@returns` | Order returns / RMA request flow |
+| `@stock-alert` | Back-in-stock "notify me" subscriptions |
 
 > **Note:** the 13 `tests/api/*.spec.ts` specs still use the older title-based
 > `@smoke`/`@regression` tags (still greppable). Migrating them to native tags +
@@ -99,7 +100,7 @@ Rules:
 
 Current `@sanity` set (one per feature): `@auth`, `@catalog`, `@cart`,
 `@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`,
-`@returns`, `@admin-orders`.
+`@returns`, `@admin-orders`, `@stock-alert`.
 
 ---
 
