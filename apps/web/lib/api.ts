@@ -1,33 +1,74 @@
-// Typed fetch wrapper for the SUT API. Types are kept inline for now —
-// Phase 4 will replace them with the shared Zod schemas in @qa/contracts.
+// Typed fetch wrapper for the SUT API. Entity types are imported from
+// @qa/contracts — the single Zod-defined source of truth that the test client
+// also consumes — so the web app and the API contract can never silently drift.
+// Only genuinely web-local request shapes are declared in this file.
+import type {
+  Address,
+  AuthResult,
+  Cart,
+  CartItem,
+  LoyaltyBalance,
+  LoyaltyTransaction,
+  LoyaltyType,
+  Order,
+  OrderItem,
+  OrderStatus,
+  PagedOrders,
+  PagedProducts,
+  PagedReviews,
+  PaymentMethod,
+  Product,
+  ProductCategory,
+  ProductSort,
+  PromoCode,
+  PromoPreview,
+  Return as OrderReturn,
+  ReturnStatus,
+  Review,
+  ReviewSummary,
+  StockAlert,
+  User,
+  UserRole,
+  Wishlist,
+  WishlistItem,
+} from '@qa/contracts';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-export type ProductCategory = 'gadgets' | 'apparel' | 'home' | 'office';
+// Re-export the contract types so existing `@/lib/api` imports across web
+// modules keep resolving from here — no call-site churn.
+export type {
+  Address,
+  AuthResult,
+  Cart,
+  CartItem,
+  LoyaltyBalance,
+  LoyaltyTransaction,
+  LoyaltyType,
+  Order,
+  OrderItem,
+  OrderStatus,
+  OrderReturn,
+  PagedOrders,
+  PagedProducts,
+  PagedReviews,
+  PaymentMethod,
+  Product,
+  ProductCategory,
+  ProductSort,
+  PromoCode,
+  PromoPreview,
+  ReturnStatus,
+  Review,
+  ReviewSummary,
+  StockAlert,
+  User,
+  UserRole,
+  Wishlist,
+  WishlistItem,
+};
 
-export type ProductSort =
-  | 'name_asc'
-  | 'name_desc'
-  | 'price_asc'
-  | 'price_desc'
-  | 'newest';
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  priceCents: number;
-  stock: number;
-  category: ProductCategory;
-  tags: string[];
-}
-
-export interface PagedProducts {
-  items: Product[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
+// ---- web-local request shapes (not part of the response contract) ----
 
 export interface ListProductsQuery {
   q?: string;
@@ -37,100 +78,6 @@ export interface ListProductsQuery {
   sort?: ProductSort;
   page?: number;
   pageSize?: number;
-}
-
-export interface StockAlert {
-  id: string;
-  userId: string;
-  productId: string;
-  notified: boolean;
-  createdAt: string;
-}
-
-export type UserRole = 'USER' | 'ADMIN';
-
-export interface User {
-  id: string;
-  email: string;
-  role: UserRole;
-}
-
-export interface AuthResult {
-  token: string;
-  user: User;
-}
-
-export interface CartItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  product: Product;
-}
-
-export interface Cart {
-  id: string;
-  userId: string;
-  items: CartItem[];
-}
-
-export type OrderStatus = 'PENDING' | 'PAID' | 'FULFILLED' | 'CANCELLED';
-
-export interface OrderItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  unitPriceCents: number;
-}
-
-export type PaymentMethod = 'CARD' | 'PAYPAL' | 'COD';
-
-export type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'REFUNDED';
-
-export interface OrderReturn {
-  id: string;
-  orderId: string;
-  userId: string;
-  reason: string;
-  status: ReturnStatus;
-  refundCents: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Order {
-  id: string;
-  userId: string;
-  status: OrderStatus;
-  totalCents: number;
-  discountCents?: number;
-  paymentMethod?: PaymentMethod | null;
-  shippingAddressId?: string | null;
-  promoCodeId?: string | null;
-  createdAt: string;
-  items: OrderItem[];
-  returns?: OrderReturn[];
-}
-
-export interface PagedOrders {
-  items: Order[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-export interface Address {
-  id: string;
-  userId: string;
-  label: string;
-  name: string;
-  line1: string;
-  line2: string | null;
-  city: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface AddressInput {
@@ -144,20 +91,6 @@ export interface AddressInput {
   isDefault?: boolean;
 }
 
-export interface PromoPreview {
-  code: string;
-  discountCents: number;
-  promoCodeId: string;
-}
-
-export interface PromoCode {
-  code: string;
-  description: string | null;
-  percentOff: number | null;
-  flatOffCents: number | null;
-  minSpendCents: number;
-}
-
 export interface CheckoutInput {
   addressId?: string;
   paymentMethod?: PaymentMethod;
@@ -165,60 +98,17 @@ export interface CheckoutInput {
   redeemPoints?: number;
 }
 
-export type LoyaltyType = 'EARN' | 'REDEEM';
-
-export interface LoyaltyTransaction {
-  id: string;
-  userId: string;
-  orderId: string | null;
-  points: number;
-  type: LoyaltyType;
-  createdAt: string;
-}
-
-export interface LoyaltyBalance {
-  balancePoints: number;
-  transactions: LoyaltyTransaction[];
-}
-
-export interface WishlistItem {
-  id: string;
-  wishlistId: string;
-  productId: string;
-  product: Product;
-  createdAt: string;
-}
-
-export interface Wishlist {
-  id: string;
-  userId: string;
-  items: WishlistItem[];
-}
-
-export interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  title: string;
-  body: string;
-  createdAt: string;
-}
-
-export interface PagedReviews {
-  items: Review[];
-  total: number;
-  page: number;
-  pageSize: number;
-  averageRating: number;
-}
-
-export interface ReviewSummary {
-  reviewCount: number;
-  averageRating: number;
-}
-
 export type ReviewSort = 'newest' | 'highest' | 'lowest';
+
+export interface AdminProductInput {
+  id?: string;
+  name: string;
+  description?: string | null;
+  priceCents: number;
+  stock: number;
+  category: ProductCategory;
+  tags?: string[];
+}
 
 export class ApiError extends Error {
   constructor(
@@ -252,16 +142,6 @@ async function request<T>(
     throw new ApiError(Array.isArray(msg) ? msg.join(', ') : String(msg), res.status);
   }
   return data as T;
-}
-
-export interface AdminProductInput {
-  id?: string;
-  name: string;
-  description?: string | null;
-  priceCents: number;
-  stock: number;
-  category: ProductCategory;
-  tags?: string[];
 }
 
 function buildProductsQuery(query: ListProductsQuery): string {

@@ -17,6 +17,11 @@ This plan is split into focused files. **Reference** files hold the standing con
 | 6 — CI/CD | 🟡 Workflow authored + YAML-validated; **green-run DoD needs a push to GitHub** |
 | 7 — Agentic + MCP (optional) | ✅ Done (uncommitted — Explorer→stubs path; `_generated/` excluded from CI) |
 | 8 — Docs & polish | ✅ Done (uncommitted — portfolio README + `ARCHITECTURE.md`) |
+| 9 — Promo discovery | ✅ Done (`feat/promo-discovery-and-sanity-suite`) |
+| 10 — Refactor: contracts as source of truth | ✅ Done (uncommitted — web `import type`s from `@qa/contracts`; 33 dupes deleted) |
+| 11 — Refactor: web UI primitives + hooks | 📝 TODO (spec written) |
+| 12 — Refactor: decompose OrdersService | 📝 TODO (spec written) |
+| 13 — Refactor: test ergonomics + tag convention | 📝 TODO (spec written) |
 
 **Environment notes (this machine):** Node 20.19.6 (repo pinned to Node 20, not 22) · pnpm 9.15.4 via Corepack · Docker not installed — instead **Postgres 16 installed natively via Homebrew** (`brew services start postgresql@16`), role `qa`/db `qa`. CI will still use the `docker-compose.yml` service.
 
@@ -36,3 +41,10 @@ This plan is split into focused files. **Reference** files hold the standing con
 - 🟡 [phase-6-ci-cd.md](./phase-6-ci-cd.md) — GitHub Actions pipeline (authored, awaits push)
 - ✅ [phase-7-agentic-mcp.md](./phase-7-agentic-mcp.md) — agentic testing layer + Playwright MCP (optional)
 - ✅ [phase-8-documentation.md](./phase-8-documentation.md) — docs & portfolio polish
+- ✅ [phase-9-promo-discovery.md](./phase-9-promo-discovery.md) — promo discovery (coupons under test)
+
+## Refactoring track (behaviour-preserving — execute in order; suite is the safety net)
+- ✅ [phase-10-refactor-contracts-sot.md](./phase-10-refactor-contracts-sot.md) — web consumes `@qa/contracts` types (kill 33 duplicates)
+- 📝 [phase-11-refactor-web-ui-primitives.md](./phase-11-refactor-web-ui-primitives.md) — `Button`/visual/auth-guard primitives
+- 📝 [phase-12-refactor-api-services.md](./phase-12-refactor-api-services.md) — split `OrdersService` (promo/loyalty/returns)
+- 📝 [phase-13-refactor-test-ergonomics.md](./phase-13-refactor-test-ergonomics.md) — seeding helpers, client split, native tags
