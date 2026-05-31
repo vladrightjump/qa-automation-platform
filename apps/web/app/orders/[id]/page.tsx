@@ -119,31 +119,31 @@ function OrderDetailInner() {
           data-testid="order-confirmation-hero"
           className="animate-fade-in border border-green-100 bg-gradient-to-br from-green-50 via-white to-brand-50 rounded-2xl p-6 text-center shadow-card"
         >
-          <div className="mx-auto w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center text-3xl shadow-pop animate-check-pop">
+          <div className="mx-auto w-16 h-16 rounded-full bg-green-500 text-card flex items-center justify-center text-3xl shadow-pop animate-check-pop">
             ✓
           </div>
           <h1
             data-testid="order-confirmation-title"
-            className="mt-3 text-2xl font-bold tracking-tight text-gray-900"
+            className="mt-3 text-2xl font-bold tracking-tight text-ink"
           >
             Order confirmed!
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-ink-soft mt-1">
             Order{' '}
-            <span className="font-mono text-gray-800">{order.id}</span> is on
+            <span className="font-mono text-ink">{order.id}</span> is on
             its way. A receipt is below.
           </p>
           <div className="flex items-center justify-center gap-2 pt-4">
             <Link
               href="/"
               data-testid="order-confirmation-continue"
-              className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+              className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
             >
               Continue shopping <span aria-hidden="true">→</span>
             </Link>
             <Link
               href="/orders"
-              className="px-4 py-2 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-sm rounded-full transition-colors"
+              className="px-4 py-2 border border-line hover:border-line-strong hover:bg-paper-deep text-sm rounded-full transition-colors"
             >
               View all orders
             </Link>
@@ -155,9 +155,9 @@ function OrderDetailInner() {
 
       <div
         data-testid="order-timeline"
-        className="border border-gray-100 rounded-2xl p-4 bg-white shadow-card"
+        className="border border-line rounded-2xl p-4 bg-card shadow-card"
       >
-        <p className="text-sm font-semibold text-gray-700 mb-3">Status</p>
+        <p className="text-sm font-semibold text-ink-soft mb-3">Status</p>
         <ol className="flex items-center gap-2">
           {TIMELINE.map((step, idx) => {
             const reached = stepReached(order.status, step.id);
@@ -171,19 +171,19 @@ function OrderDetailInner() {
                 <span
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
                     reached
-                      ? 'bg-brand-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-500'
+                      ? 'bg-brand-600 text-card shadow-sm'
+                      : 'bg-paper-deep text-ink-faint'
                   }`}
                 >
                   {idx + 1}
                 </span>
                 <span
-                  className={`text-sm ${reached ? 'text-gray-900 font-medium' : 'text-gray-500'}`}
+                  className={`text-sm ${reached ? 'text-ink font-medium' : 'text-ink-faint'}`}
                 >
                   {step.label}
                 </span>
                 {idx < TIMELINE.length - 1 && (
-                  <span className="text-gray-300">→</span>
+                  <span className="text-line-strong">→</span>
                 )}
               </li>
             );
@@ -207,7 +207,7 @@ function OrderDetailInner() {
         >
           <span className="font-semibold text-amber-800">Return</span>{' '}
           <span className="text-amber-700">{latestReturn.status}</span>
-          <span className="text-gray-600"> — {latestReturn.reason}</span>
+          <span className="text-ink-soft"> — {latestReturn.reason}</span>
         </div>
       )}
 
@@ -240,21 +240,21 @@ function OrderDetailInner() {
         title="Cancel this order?"
         testId="order-cancel-modal"
       >
-        <p className="text-sm mb-3 text-gray-700">
+        <p className="text-sm mb-3 text-ink-soft">
           Cancelled orders cannot be reinstated.
         </p>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setConfirmCancel(false)}
             data-testid="order-cancel-cancel"
-            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
+            className="px-3 py-1.5 border border-line hover:bg-paper-deep rounded-full text-sm transition-colors"
           >
             Keep order
           </button>
           <button
             onClick={() => void cancel()}
             data-testid="order-cancel-confirm"
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors"
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-card rounded-full text-sm font-medium transition-colors"
           >
             Cancel order
           </button>
@@ -267,7 +267,7 @@ function OrderDetailInner() {
         title="Request a return"
         testId="order-return-modal"
       >
-        <p className="text-sm mb-3 text-gray-700">
+        <p className="text-sm mb-3 text-ink-soft">
           Tell us why you’re returning this order. An admin will review the
           request.
         </p>
@@ -281,13 +281,13 @@ function OrderDetailInner() {
           placeholder="Reason for return…"
           data-testid="order-return-reason"
           rows={3}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-shadow"
+          className="w-full border border-line rounded-xl px-3 py-2 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-shadow"
         />
         <div className="flex justify-end gap-2 mt-3">
           <button
             onClick={() => setReturnOpen(false)}
             data-testid="order-return-cancel"
-            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
+            className="px-3 py-1.5 border border-line hover:bg-paper-deep rounded-full text-sm transition-colors"
           >
             Cancel
           </button>
@@ -295,7 +295,7 @@ function OrderDetailInner() {
             onClick={() => void submitReturn()}
             disabled={returnReason.trim().length < 3}
             data-testid="order-return-submit"
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-card rounded-full text-sm font-medium transition-colors"
           >
             Submit request
           </button>

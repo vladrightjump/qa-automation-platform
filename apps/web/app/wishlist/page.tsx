@@ -58,17 +58,17 @@ export default function WishlistPage() {
     }
   }
 
-  if (!isHydrated || !token) return <p className="text-gray-500">Loading…</p>;
+  if (!isHydrated || !token) return <p className="text-ink-faint">Loading…</p>;
 
   return (
     <section className="space-y-6" data-testid="wishlist-page">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900">Wishlist</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-ink">Wishlist</h1>
       {!wishlist && (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl border border-gray-100 shadow-card p-4"
+              className="bg-card rounded-2xl border border-line shadow-card p-4"
             >
               <Skeleton variant="line" width="60%" />
               <Skeleton variant="line" width="30%" className="mt-2" />
@@ -85,7 +85,7 @@ export default function WishlistPage() {
           action={
             <Link
               href="/"
-              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
             >
               Browse products
             </Link>
@@ -98,16 +98,16 @@ export default function WishlistPage() {
             <li
               key={i.id}
               data-testid={`wishlist-item-${i.productId}`}
-              className="animate-fade-in border border-gray-100 rounded-2xl p-4 bg-white shadow-card flex items-center justify-between gap-4 hover:shadow-pop transition-shadow"
+              className="animate-fade-in border border-line rounded-2xl p-4 bg-card shadow-card flex items-center justify-between gap-4 hover:shadow-pop transition-shadow"
             >
               <div className="min-w-0">
                 <Link
                   href={`/products/${i.productId}`}
-                  className="font-medium text-gray-900 hover:text-brand-700 transition-colors"
+                  className="font-medium text-ink hover:text-brand-700 transition-colors"
                 >
                   {i.product.name}
                 </Link>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-ink-soft">
                   ${(i.product.priceCents / 100).toFixed(2)} · Stock{' '}
                   {i.product.stock}
                 </p>
@@ -117,14 +117,14 @@ export default function WishlistPage() {
                   onClick={() => void moveToCart(i.productId)}
                   disabled={i.product.stock === 0}
                   data-testid={`wishlist-move-${i.productId}`}
-                  className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-full transition-all duration-150 active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
+                  className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium rounded-full transition-all duration-150 active:scale-95 disabled:bg-line-strong disabled:active:scale-100"
                 >
                   Move to cart
                 </button>
                 <button
                   onClick={() => void remove(i.productId)}
                   data-testid={`wishlist-remove-${i.productId}`}
-                  className="px-3 py-1.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-sm rounded-full transition-colors"
+                  className="px-3 py-1.5 border border-line hover:border-line-strong hover:bg-paper-deep text-sm rounded-full transition-colors"
                 >
                   Remove
                 </button>

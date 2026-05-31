@@ -9,10 +9,10 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/ui/ToastQueue';
 
 const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-violet-400 to-fuchsia-400',
-  apparel: 'from-pink-400 to-rose-400',
-  home: 'from-amber-300 to-orange-400',
-  office: 'from-sky-400 to-blue-500',
+  gadgets: 'from-[#e3c0aa] to-[#b25c3c]',
+  apparel: 'from-[#e8c8bf] to-[#b56a59]',
+  home: 'from-[#d9dcc4] to-[#6e7256]',
+  office: 'from-[#e9d7a6] to-[#b8862f]',
 };
 
 function initials(name: string): string {
@@ -61,7 +61,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
   }
 
   const gradient = product
-    ? (CATEGORY_HUE[product.category] ?? 'from-gray-300 to-gray-400')
+    ? (CATEGORY_HUE[product.category] ?? 'from-clay-200 to-clay-500')
     : '';
   const oos = (product?.stock ?? 0) === 0;
 
@@ -75,28 +75,28 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
       {product && (
         <div className="space-y-4">
           <div
-            className={`relative h-32 -mx-5 -mt-2 bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-3xl font-bold tracking-wide`}
+            className={`relative h-32 -mx-5 -mt-2 bg-gradient-to-br ${gradient} flex items-center justify-center text-card text-3xl font-bold tracking-wide`}
           >
             <span aria-hidden="true">{initials(product.name)}</span>
-            <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider bg-white/90 text-brand-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider bg-card/90 text-brand-700 px-2 py-0.5 rounded-full font-semibold">
               {product.category}
             </span>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-ink">
               {product.name}
             </h3>
             {product.description && (
-              <p className="text-sm text-gray-600 mt-1">{product.description}</p>
+              <p className="text-sm text-ink-soft mt-1">{product.description}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-ink">
               ${(product.priceCents / 100).toFixed(2)}
             </p>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-ink-faint">
               {oos ? 'Sold out' : `${product.stock} in stock`}
             </span>
           </div>
@@ -106,7 +106,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
               {product.tags.map((t) => (
                 <span
                   key={t}
-                  className="text-[11px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full"
+                  className="text-[11px] text-ink-soft bg-paper-deep px-2 py-0.5 rounded-full"
                 >
                   #{t}
                 </span>
@@ -119,7 +119,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
               onClick={add}
               disabled={busy || oos}
               data-testid="quick-view-add"
-              className="flex-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-sm font-medium rounded-full transition-all disabled:bg-gray-300"
+              className="flex-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:scale-95 text-card text-sm font-medium rounded-full transition-all disabled:bg-line-strong"
             >
               {oos ? 'Out of stock' : busy ? 'Adding…' : 'Add to cart'}
             </button>
@@ -127,7 +127,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
               href={`/products/${product.id}`}
               onClick={onClose}
               data-testid="quick-view-detail"
-              className="px-4 py-2 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 text-sm font-medium text-gray-700 rounded-full transition-colors"
+              className="px-4 py-2 border border-line hover:border-brand-300 hover:bg-brand-50 text-sm font-medium text-ink-soft rounded-full transition-colors"
             >
               View details
             </Link>

@@ -193,7 +193,7 @@ export default function CheckoutPage() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+      <h1 className="text-2xl font-bold tracking-tight text-ink">
         Checkout
       </h1>
 
@@ -210,8 +210,8 @@ export default function CheckoutPage() {
             data-active={s.id === step}
             className={`px-3 py-1 rounded-full transition-all duration-150 ${
               s.id === step
-                ? 'bg-brand-600 text-white shadow-sm'
-                : 'bg-white border border-gray-200 text-gray-600'
+                ? 'bg-brand-600 text-card shadow-sm'
+                : 'bg-card border border-line text-ink-soft'
             }`}
           >
             {s.label}
@@ -226,18 +226,18 @@ export default function CheckoutPage() {
             <Link
               href="/account/addresses"
               data-testid="checkout-manage-addresses"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-clay-600 hover:underline"
             >
               Manage addresses
             </Link>
           </div>
-          {addresses === null && <p className="text-gray-500">Loading…</p>}
+          {addresses === null && <p className="text-ink-faint">Loading…</p>}
           {addresses !== null && addresses.length > 0 && !useNewAddress && (
             <div className="space-y-2">
               {addresses.map((a) => (
                 <label
                   key={a.id}
-                  className="flex items-start gap-3 border rounded p-3 cursor-pointer hover:bg-gray-50"
+                  className="flex items-start gap-3 border rounded p-3 cursor-pointer hover:bg-paper-deep"
                   data-testid={`checkout-address-${a.id}`}
                 >
                   <input
@@ -251,13 +251,13 @@ export default function CheckoutPage() {
                     <div className="font-medium">
                       {a.label}
                       {a.isDefault && (
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="ml-2 text-xs text-ink-faint">
                           (default)
                         </span>
                       )}
                     </div>
                     <div>{a.name}</div>
-                    <div className="text-gray-600">
+                    <div className="text-ink-soft">
                       {a.line1}
                       {a.line2 ? `, ${a.line2}` : ''}, {a.city} {a.postalCode}{' '}
                       {a.country}
@@ -269,7 +269,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setUseNewAddress(true)}
                 data-testid="checkout-add-new-address"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-clay-600 hover:underline"
               >
                 + Use a new address
               </button>
@@ -277,11 +277,11 @@ export default function CheckoutPage() {
           )}
 
           {(useNewAddress || (addresses !== null && addresses.length === 0)) && (
-            <form className="space-y-2 border rounded p-3 bg-gray-50">
+            <form className="space-y-2 border rounded p-3 bg-paper-deep">
               <h3 className="text-sm font-medium">New address</h3>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-sm">
-                  <span className="text-gray-700">Label</span>
+                  <span className="text-ink-soft">Label</span>
                   <input
                     value={newAddress.label}
                     onChange={(e) =>
@@ -292,7 +292,7 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="text-gray-700">Full name</span>
+                  <span className="text-ink-soft">Full name</span>
                   <input
                     value={newAddress.name}
                     onChange={(e) =>
@@ -312,7 +312,7 @@ export default function CheckoutPage() {
                 </label>
               </div>
               <label className="block text-sm">
-                <span className="text-gray-700">Line 1</span>
+                <span className="text-ink-soft">Line 1</span>
                 <input
                   value={newAddress.line1}
                   onChange={(e) =>
@@ -332,7 +332,7 @@ export default function CheckoutPage() {
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <label className="block text-sm col-span-2">
-                  <span className="text-gray-700">City</span>
+                  <span className="text-ink-soft">City</span>
                   <input
                     value={newAddress.city}
                     onChange={(e) =>
@@ -351,7 +351,7 @@ export default function CheckoutPage() {
                   )}
                 </label>
                 <label className="block text-sm">
-                  <span className="text-gray-700">Postal code</span>
+                  <span className="text-ink-soft">Postal code</span>
                   <input
                     value={newAddress.postalCode}
                     onChange={(e) =>
@@ -378,7 +378,7 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={() => setUseNewAddress(false)}
                   data-testid="checkout-cancel-new-address"
-                  className="text-xs text-blue-600 hover:underline"
+                  className="text-xs text-clay-600 hover:underline"
                 >
                   Cancel — pick saved
                 </button>
@@ -409,9 +409,9 @@ export default function CheckoutPage() {
           {paymentMethod === 'CARD' && (
             <div
               data-testid="checkout-card-fields"
-              className="border rounded p-3 bg-gray-50 text-sm space-y-2"
+              className="border rounded p-3 bg-paper-deep text-sm space-y-2"
             >
-              <p className="text-gray-500">Card details (not stored)</p>
+              <p className="text-ink-faint">Card details (not stored)</p>
               <input
                 placeholder="Card number"
                 data-testid="checkout-card-number"
@@ -438,7 +438,7 @@ export default function CheckoutPage() {
         <div className="space-y-3" data-testid="checkout-step-review-panel">
           <h2 className="font-medium">Review &amp; place order</h2>
           {cart && (
-            <ul className="border rounded divide-y bg-white">
+            <ul className="border rounded divide-y bg-card">
               {cart.items.map((i) => (
                 <li
                   key={i.id}
@@ -478,7 +478,7 @@ export default function CheckoutPage() {
                       {locked ? (
                         <span
                           data-testid={`promo-deal-locked-${d.code}`}
-                          className="text-xs text-gray-500"
+                          className="text-xs text-ink-faint"
                         >
                           Spend ${(d.minSpendCents / 100).toFixed(2)} to unlock
                         </span>
@@ -499,7 +499,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="border rounded p-3 bg-gray-50">
+          <div className="border rounded p-3 bg-paper-deep">
             <label className="text-sm font-medium">Promo code</label>
             {promo ? (
               <div className="mt-1 flex items-center gap-2 text-sm">
@@ -513,7 +513,7 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={removePromo}
                   data-testid="checkout-promo-remove"
-                  className="text-blue-600 hover:underline"
+                  className="text-clay-600 hover:underline"
                 >
                   remove
                 </button>
@@ -557,7 +557,7 @@ export default function CheckoutPage() {
           onClick={back}
           disabled={step === 'address'}
           data-testid="checkout-back"
-          className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors disabled:opacity-40"
+          className="px-4 py-1.5 border border-line hover:bg-paper-deep rounded-full text-sm transition-colors disabled:opacity-40"
         >
           ← Back
         </button>
@@ -566,7 +566,7 @@ export default function CheckoutPage() {
             type="button"
             onClick={() => void next()}
             data-testid="checkout-next"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
           >
             Next <span aria-hidden="true">→</span>
           </button>
@@ -576,7 +576,7 @@ export default function CheckoutPage() {
             onClick={() => void placeOrder()}
             disabled={busy}
             data-testid="checkout-submit"
-            className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-medium text-sm transition-all duration-150 active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
+            className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-card rounded-full font-medium text-sm transition-all duration-150 active:scale-95 disabled:bg-line-strong disabled:active:scale-100"
           >
             {busy ? 'Placing…' : 'Place order'}
           </button>
@@ -589,10 +589,10 @@ export default function CheckoutPage() {
         <section
           data-testid="checkout-summary"
           aria-label="Order summary"
-          className="border border-gray-100 bg-white rounded-2xl p-4 shadow-card text-sm space-y-3"
+          className="border border-line bg-card rounded-2xl p-4 shadow-card text-sm space-y-3"
         >
           <div className="flex items-center justify-between border-b pb-2">
-            <span className="font-semibold text-gray-900">Order summary</span>
+            <span className="font-semibold text-ink">Order summary</span>
             <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
               Step {STEPS.findIndex((s) => s.id === step) + 1}/{STEPS.length}
             </span>
@@ -602,7 +602,7 @@ export default function CheckoutPage() {
               {cart.items.map((i) => (
                 <li
                   key={i.id}
-                  className="flex justify-between text-xs text-gray-700"
+                  className="flex justify-between text-xs text-ink-soft"
                 >
                   <span className="truncate pr-2">
                     {i.product.name} × {i.quantity}
@@ -614,7 +614,7 @@ export default function CheckoutPage() {
               ))}
             </ul>
           )}
-          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t pt-2 text-gray-600">
+          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t pt-2 text-ink-soft">
             <dt>Subtotal</dt>
             <dd
               data-testid="checkout-summary-subtotal"
@@ -640,12 +640,12 @@ export default function CheckoutPage() {
                 </dd>
               </>
             )}
-            <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-gray-900">
+            <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-ink">
               Total
             </dt>
             <dd
               data-testid="checkout-summary-total"
-              className="col-start-2 border-t pt-1.5 mt-1 font-mono font-semibold text-gray-900 text-right"
+              className="col-start-2 border-t pt-1.5 mt-1 font-mono font-semibold text-ink text-right"
             >
               ${(totalCents / 100).toFixed(2)}
             </dd>
@@ -654,14 +654,14 @@ export default function CheckoutPage() {
           {loyaltyBalance > 0 && (
             <label
               data-testid="checkout-loyalty"
-              className="flex items-center gap-2 border-t pt-3 text-sm text-gray-700 cursor-pointer"
+              className="flex items-center gap-2 border-t pt-3 text-sm text-ink-soft cursor-pointer"
             >
               <input
                 type="checkbox"
                 checked={applyLoyalty}
                 onChange={(e) => setApplyLoyalty(e.target.checked)}
                 data-testid="checkout-loyalty-apply"
-                className="rounded border-gray-300"
+                className="rounded border-line-strong"
               />
               <span>
                 Apply store credit{' '}

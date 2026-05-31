@@ -23,7 +23,7 @@ export default function Select<T extends string = string>({
   testId,
 }: SelectProps<T>) {
   return (
-    <label className="flex items-center gap-2 text-sm text-gray-700">
+    <label className="flex items-center gap-2 text-sm text-ink-soft">
       {label && <span>{label}</span>}
       <select
         value={value}
@@ -31,7 +31,7 @@ export default function Select<T extends string = string>({
           onChange(e.target.value as T)
         }
         data-testid={testId}
-        className="border rounded px-2 py-1 bg-white"
+        className="border border-line rounded-full px-3 py-1.5 bg-card text-ink focus:border-clay-400 focus:ring-2 focus:ring-clay-100 outline-none transition-shadow"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

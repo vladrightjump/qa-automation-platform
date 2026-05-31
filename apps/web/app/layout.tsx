@@ -1,22 +1,47 @@
 import './globals.css';
 import type { ReactNode } from 'react';
+import { Fraunces, Hanken_Grotesk } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth';
 import { ToastProvider } from '@/components/ui/ToastQueue';
 import Navbar from '@/components/Navbar';
 
+// Display: Fraunces — a soft, characterful serif with an optical/soft axis.
+// Body: Hanken Grotesk — a warm humanist sans that sits well beneath it.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-fraunces',
+  display: 'swap',
+});
+
+const hanken = Hanken_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-hanken',
+  display: 'swap',
+});
+
 export const metadata = {
-  title: 'QA Storefront',
+  title: 'Maison — QA Storefront',
   description: 'System under test for the QA Automation Platform',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${hanken.variable}`}
+    >
+      <body className="bg-paper text-ink antialiased">
+        {/* Fine paper grain over the warm wash, beneath all content. */}
+        <div className="grain-overlay" aria-hidden="true" />
         <ToastProvider>
           <AuthProvider>
             <Navbar />
-            <main className="max-w-5xl mx-auto p-6">{children}</main>
+            <main className="relative z-10 max-w-5xl mx-auto px-6 py-10">
+              {children}
+            </main>
           </AuthProvider>
         </ToastProvider>
       </body>

@@ -52,7 +52,7 @@ export default function Tabs({
       <div
         ref={listRef}
         role="tablist"
-        className="flex border-b border-gray-200 gap-1"
+        className="flex border-b border-line gap-1"
       >
         {tabs.map((t) => {
           const selected = t.id === activeId;
@@ -68,10 +68,10 @@ export default function Tabs({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(t.id)}
               onKeyDown={onKey}
-              className={`px-3 py-2 text-sm border-b-2 -mb-px transition-all duration-150 ${
+              className={`px-3.5 py-2 text-sm border-b-2 -mb-px transition-all duration-200 ${
                 selected
-                  ? 'border-brand-600 text-brand-700 font-medium'
-                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-clay-500 text-clay-700 font-medium'
+                  : 'border-transparent text-ink-soft hover:text-ink hover:border-line-strong'
               }`}
             >
               {t.label}

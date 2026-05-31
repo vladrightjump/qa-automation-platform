@@ -95,7 +95,7 @@ function toQuery(f: Filters): ListProductsQuery {
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<p className="text-gray-500">Loading…</p>}>
+    <Suspense fallback={<p className="text-ink-faint">Loading…</p>}>
       <HomePageInner />
     </Suspense>
   );
@@ -198,7 +198,7 @@ function HomePageInner() {
       <div id="catalog" className="grid gap-6 md:grid-cols-[240px_1fr]">
         <aside className="space-y-5 md:sticky md:top-20 self-start">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-ink-soft mb-1.5">
               Search
             </label>
             <input
@@ -207,19 +207,19 @@ function HomePageInner() {
               onChange={(e) => setSearchInput(e.target.value)}
               data-testid="catalog-search"
               placeholder="Find products…"
-              className="w-full border border-gray-200 rounded-full px-3 py-2 text-sm bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-shadow outline-none"
+              className="w-full border border-line rounded-full px-3 py-2 text-sm bg-card focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-shadow outline-none"
             />
           </div>
 
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-1">
+            <legend className="text-sm font-medium text-ink-soft mb-1">
               Category
             </legend>
             <div className="space-y-1">
               {CATEGORIES.map((c) => (
                 <label
                   key={c.value}
-                  className="flex items-center gap-2 text-sm text-gray-700"
+                  className="flex items-center gap-2 text-sm text-ink-soft"
                 >
                   <input
                     type="checkbox"
@@ -234,7 +234,7 @@ function HomePageInner() {
           </fieldset>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-1">Price</p>
+            <p className="text-sm font-medium text-ink-soft mb-1">Price</p>
             <PriceRangeSlider
               min={PRICE_MIN}
               max={PRICE_MAX}
@@ -260,7 +260,7 @@ function HomePageInner() {
           <div className="flex items-center justify-between">
             <span
               data-testid="catalog-result-count"
-              className="text-sm text-gray-600"
+              className="text-sm text-ink-soft"
             >
               {total} result{total === 1 ? '' : 's'}
             </span>
@@ -278,7 +278,7 @@ function HomePageInner() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card"
+                  className="bg-card rounded-2xl overflow-hidden border border-line shadow-card"
                 >
                   <Skeleton variant="block" className="h-32 sm:h-36 rounded-none" />
                   <div className="p-4 space-y-2">
@@ -304,7 +304,7 @@ function HomePageInner() {
                 <button
                   onClick={clearFilters}
                   data-testid="catalog-empty-clear"
-                  className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+                  className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
                 >
                   Clear filters
                 </button>

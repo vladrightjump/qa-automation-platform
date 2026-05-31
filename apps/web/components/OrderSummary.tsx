@@ -10,11 +10,11 @@ export default function OrderSummary({ order }: { order: Order }) {
         </h2>
         <OrderStatusBadge status={order.status} />
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-faint">
         {new Date(order.createdAt).toLocaleString()}
       </p>
       <table className="w-full text-sm">
-        <thead className="text-left text-gray-600 border-b">
+        <thead className="text-left text-ink-soft border-b">
           <tr>
             <th className="py-2">Item</th>
             <th className="py-2">Qty</th>

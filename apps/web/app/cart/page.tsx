@@ -32,10 +32,10 @@ export default function CartPage() {
   if (!cart) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">
           Your cart
         </h1>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-4 space-y-3">
+        <div className="bg-card rounded-2xl border border-line shadow-card p-4 space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4">
               <Skeleton variant="circle" width={48} height={48} />
@@ -55,7 +55,7 @@ export default function CartPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+      <h1 className="text-2xl font-bold tracking-tight text-ink">
         Your cart
       </h1>
       {isEmpty ? (
@@ -66,14 +66,14 @@ export default function CartPage() {
           action={
             <Link
               href="/"
-              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
             >
               Browse products
             </Link>
           }
         />
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-4">
+        <div className="bg-card rounded-2xl border border-line shadow-card p-4">
           <CartTable cart={cart} onChange={load} />
         </div>
       )}
@@ -81,7 +81,7 @@ export default function CartPage() {
         <Link
           href="/checkout"
           data-testid="cart-checkout"
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
         >
           Proceed to checkout
           <span aria-hidden="true">→</span>

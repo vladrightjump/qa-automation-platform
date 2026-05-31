@@ -49,7 +49,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="max-w-2xl space-y-4">
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card">
+        <div className="bg-card rounded-2xl border border-line overflow-hidden shadow-card">
           <Skeleton variant="block" className="h-36 rounded-none" />
           <div className="p-4 space-y-3">
             <Skeleton variant="line" width="60%" />
@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
             id: 'description',
             label: 'Description',
             content: (
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-ink-soft">
                 {product.description ?? 'No description.'}
               </p>
             ),
@@ -82,13 +82,13 @@ export default function ProductDetailPage() {
             label: 'Specs',
             content: (
               <dl className="text-sm grid grid-cols-2 gap-y-1">
-                <dt className="text-gray-500">ID</dt>
+                <dt className="text-ink-faint">ID</dt>
                 <dd className="font-mono">{product.id}</dd>
-                <dt className="text-gray-500">Category</dt>
+                <dt className="text-ink-faint">Category</dt>
                 <dd className="capitalize">{product.category}</dd>
-                <dt className="text-gray-500">Stock</dt>
+                <dt className="text-ink-faint">Stock</dt>
                 <dd>{product.stock}</dd>
-                <dt className="text-gray-500">Tags</dt>
+                <dt className="text-ink-faint">Tags</dt>
                 <dd>{product.tags.join(', ') || '—'}</dd>
               </dl>
             ),
@@ -227,7 +227,7 @@ function ReviewsTab({ productId }: { productId: string }) {
           size="md"
           testId="review-summary-stars"
         />
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-ink-soft">
           <span data-testid="review-summary-average">
             {(summary?.averageRating ?? 0).toFixed(1)}
           </span>{' '}
@@ -246,7 +246,7 @@ function ReviewsTab({ productId }: { productId: string }) {
             void submit();
           }}
           data-testid="review-form"
-          className="border rounded p-3 bg-white space-y-2"
+          className="border rounded p-3 bg-card space-y-2"
         >
           <p className="text-sm font-medium">Write a review</p>
           <StarRating
@@ -274,7 +274,7 @@ function ReviewsTab({ productId }: { productId: string }) {
             type="submit"
             disabled={submitting}
             data-testid="review-form-submit"
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded disabled:bg-gray-300"
+            className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded disabled:bg-line-strong"
           >
             {submitting ? 'Posting…' : 'Post review'}
           </button>
@@ -294,7 +294,7 @@ function ReviewsTab({ productId }: { productId: string }) {
       {data && data.items.length === 0 && (
         <p
           data-testid="reviews-empty"
-          className="text-sm text-gray-500"
+          className="text-sm text-ink-faint"
         >
           No reviews yet.
         </p>
@@ -304,7 +304,7 @@ function ReviewsTab({ productId }: { productId: string }) {
           <li
             key={r.id}
             data-testid={`review-${r.id}`}
-            className="border rounded p-3 bg-white"
+            className="border rounded p-3 bg-card"
           >
             <div className="flex items-center gap-2">
               <StarRating
@@ -315,7 +315,7 @@ function ReviewsTab({ productId }: { productId: string }) {
               />
               <span className="font-medium text-sm">{r.title}</span>
             </div>
-            <p className="text-sm text-gray-700 mt-1">{r.body}</p>
+            <p className="text-sm text-ink-soft mt-1">{r.body}</p>
             {user?.id === r.userId && (
               <button
                 type="button"
