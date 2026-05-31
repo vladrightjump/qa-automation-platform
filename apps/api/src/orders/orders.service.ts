@@ -4,8 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, ReturnStatus, prisma } from '@qa/db';
+import { LoyaltyType, OrderStatus, Prisma, ReturnStatus, prisma } from '@qa/db';
 import type { CheckoutDto, PaymentMethod } from './dto';
+
+// Loyalty: customers earn this fraction of the charged total back as store
+// credit (1 point = 1¢). Kept as a constant so tests can reason about it.
+const LOYALTY_EARN_RATE = 0.05;
 
 export interface PromoApplyResult {
   code: string;
@@ -142,7 +146,23 @@ export class OrdersService {
       0,
     );
     const discountCents = promoResult?.discountCents ?? 0;
-    const totalCents = Math.max(0, subtotalCents - discountCents);
+    const afterPromoCents = Math.max(0, subtotalCents - discountCents);
+
+    // Optional loyalty redemption — re-validated server-side against the
+    // ledger balance; we only ever redeem what the order actually needs.
+    let redeemCents = 0;
+    if (dto.redeemPoints && dto.redeemPoints > 0) {
+      const balance = await this.loyaltyBalance(userId);
+      if (dto.redeemPoints > balance) {
+        throw new BadRequestException(
+          `Cannot redeem ${dto.redeemPoints} points — balance is ${balance}`,
+        );
+      }
+      redeemCents = Math.min(dto.redeemPoints, afterPromoCents);
+    }
+
+    const totalCents = Math.max(0, afterPromoCents - redeemCents);
+    const earnedPoints = Math.floor(totalCents * LOYALTY_EARN_RATE);
     const paymentMethod: PaymentMethod = dto.paymentMethod ?? 'CARD';
 
     return prisma.$transaction(async (tx) => {
@@ -217,10 +237,72 @@ export class OrdersService {
         });
       }
 
+      // Loyalty redemption (store credit spent on this order).
+      if (redeemCents > 0) {
+        await tx.loyaltyTransaction.create({
+          data: {
+            userId,
+            orderId: order.id,
+            points: -redeemCents,
+            type: LoyaltyType.REDEEM,
+          },
+        });
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: 'LOYALTY_REDEEMED',
+            entity: 'Order',
+            entityId: order.id,
+            metadata: { redeemCents } as Prisma.InputJsonValue,
+          },
+        });
+      }
+
+      // Loyalty earn (store credit accrued from this order).
+      if (earnedPoints > 0) {
+        await tx.loyaltyTransaction.create({
+          data: {
+            userId,
+            orderId: order.id,
+            points: earnedPoints,
+            type: LoyaltyType.EARN,
+          },
+        });
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: 'LOYALTY_EARNED',
+            entity: 'Order',
+            entityId: order.id,
+            metadata: { earnedPoints } as Prisma.InputJsonValue,
+          },
+        });
+      }
+
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return order;
     });
+  }
+
+  /** Signed sum of the loyalty ledger (1 point = 1¢ of store credit). */
+  async loyaltyBalance(userId: string): Promise<number> {
+    const agg = await prisma.loyaltyTransaction.aggregate({
+      where: { userId },
+      _sum: { points: true },
+    });
+    return agg._sum.points ?? 0;
+  }
+
+  async getLoyalty(userId: string) {
+    const [balancePoints, transactions] = await Promise.all([
+      this.loyaltyBalance(userId),
+      prisma.loyaltyTransaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+    return { balancePoints, transactions };
   }
 
   list(userId: string) {

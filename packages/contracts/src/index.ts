@@ -190,6 +190,23 @@ export const StockAlertSchema = z.object({
 
 export const StockAlertListSchema = z.array(StockAlertSchema);
 
+export const LoyaltyTypeSchema = z.enum(['EARN', 'REDEEM']);
+
+export const LoyaltyTransactionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  orderId: z.string().nullable(),
+  points: z.number().int(),
+  type: LoyaltyTypeSchema,
+  createdAt: z.string(),
+});
+
+// GET /loyalty — balance is the signed sum of the ledger (1 point = 1¢).
+export const LoyaltyBalanceSchema = z.object({
+  balancePoints: z.number().int(),
+  transactions: z.array(LoyaltyTransactionSchema),
+});
+
 export const AuthResultSchema = z.object({
   token: z.string().min(1),
   user: UserSchema,
@@ -229,6 +246,9 @@ export type ReturnStatus = z.infer<typeof ReturnStatusSchema>;
 export type Return = z.infer<typeof ReturnSchema>;
 export type PagedOrders = z.infer<typeof PagedOrdersSchema>;
 export type StockAlert = z.infer<typeof StockAlertSchema>;
+export type LoyaltyType = z.infer<typeof LoyaltyTypeSchema>;
+export type LoyaltyTransaction = z.infer<typeof LoyaltyTransactionSchema>;
+export type LoyaltyBalance = z.infer<typeof LoyaltyBalanceSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 
 export { z };

@@ -29,6 +29,11 @@ enum ReturnStatus {
   REFUNDED
 }
 
+enum LoyaltyType {
+  EARN
+  REDEEM
+}
+
 enum PaymentMethod {
   CARD
   PAYPAL
@@ -50,6 +55,7 @@ model User {
   reviews   Review[]
   returns   Return[]
   stockAlerts StockAlert[]
+  loyaltyTransactions LoyaltyTransaction[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
@@ -127,6 +133,7 @@ model Order {
   updatedAt         DateTime       @updatedAt
   items             OrderItem[]
   returns           Return[]
+  loyaltyTransactions LoyaltyTransaction[]
 }
 
 // Return / RMA request against an order. Lifecycle: REQUESTED → APPROVED |
@@ -147,6 +154,23 @@ model Return {
 
   @@index([orderId])
   @@index([status, createdAt])
+}
+
+// Append-only loyalty / store-credit ledger. `points` is signed (+earn /
+// -redeem) and denominated 1 point = 1 cent of store credit. Balance is the
+// sum of points — never denormalised, so it can't drift. Earn/redeem each
+// also leave a LOYALTY_EARNED / LOYALTY_REDEEMED audit row.
+model LoyaltyTransaction {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?      @relation(fields: [orderId], references: [id])
+  points    Int
+  type      LoyaltyType
+  createdAt DateTime    @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Address {

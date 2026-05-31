@@ -77,6 +77,10 @@ export default function CheckoutPage() {
   const [promoErr, setPromoErr] = useState<string | null>(null);
   const [deals, setDeals] = useState<PromoCode[] | null>(null);
 
+  // Loyalty / store credit
+  const [loyaltyBalance, setLoyaltyBalance] = useState(0);
+  const [applyLoyalty, setApplyLoyalty] = useState(false);
+
   useEffect(() => {
     if (!isHydrated) return;
     if (!token) {
@@ -91,12 +95,19 @@ export default function CheckoutPage() {
     });
     void api.getCart(token).then(setCart);
     void api.listPromoCodes().then(setDeals);
+    void api.getLoyalty(token).then((l) => setLoyaltyBalance(l.balancePoints));
   }, [isHydrated, token, router]);
 
   const subtotalCents =
     cart?.items.reduce((s, i) => s + i.product.priceCents * i.quantity, 0) ?? 0;
   const discountCents = promo?.discountCents ?? 0;
-  const totalCents = Math.max(0, subtotalCents - discountCents);
+  const afterPromoCents = Math.max(0, subtotalCents - discountCents);
+  // Store credit redeems 1¢ per point, capped at the post-promo total.
+  const redeemCents =
+    applyLoyalty && loyaltyBalance > 0
+      ? Math.min(loyaltyBalance, afterPromoCents)
+      : 0;
+  const totalCents = Math.max(0, afterPromoCents - redeemCents);
 
   async function applyPromo(code?: string) {
     if (!token) return;
@@ -167,6 +178,7 @@ export default function CheckoutPage() {
         addressId: selectedAddressId,
         paymentMethod,
         promoCode: promo?.code,
+        redeemPoints: redeemCents > 0 ? redeemCents : undefined,
       });
       await refreshCartCount();
       // Pass ?just=1 so the order detail page renders the celebratory
@@ -617,6 +629,17 @@ export default function CheckoutPage() {
             >
               -${(discountCents / 100).toFixed(2)}
             </dd>
+            {redeemCents > 0 && (
+              <>
+                <dt>Store credit</dt>
+                <dd
+                  data-testid="checkout-summary-loyalty"
+                  className="font-mono text-right text-amber-700"
+                >
+                  -${(redeemCents / 100).toFixed(2)}
+                </dd>
+              </>
+            )}
             <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-gray-900">
               Total
             </dt>
@@ -627,6 +650,27 @@ export default function CheckoutPage() {
               ${(totalCents / 100).toFixed(2)}
             </dd>
           </dl>
+
+          {loyaltyBalance > 0 && (
+            <label
+              data-testid="checkout-loyalty"
+              className="flex items-center gap-2 border-t pt-3 text-sm text-gray-700 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={applyLoyalty}
+                onChange={(e) => setApplyLoyalty(e.target.checked)}
+                data-testid="checkout-loyalty-apply"
+                className="rounded border-gray-300"
+              />
+              <span>
+                Apply store credit{' '}
+                <span data-testid="checkout-loyalty-balance" className="font-mono">
+                  ${(loyaltyBalance / 100).toFixed(2)}
+                </span>
+              </span>
+            </label>
+          )}
         </section>
       </aside>
       </div>
