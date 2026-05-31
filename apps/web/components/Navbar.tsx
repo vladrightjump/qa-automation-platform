@@ -19,32 +19,36 @@ export default function Navbar() {
   }, [cartCount]);
 
   return (
-    <nav className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-      <div className="max-w-5xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+    <nav className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md">
+      <div className="max-w-5xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3.5">
         <Link
           href="/"
           data-testid="nav-products"
-          className="flex items-center gap-2 font-bold text-gray-900 text-base group"
+          className="group flex items-baseline gap-2 text-ink"
         >
-          <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent-500 text-white text-sm shadow-sm group-hover:scale-105 transition-transform">
-            Q
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent-400 ring-2 ring-white" />
+          <span className="font-display text-2xl leading-none tracking-tight">
+            Maison
           </span>
-          <span className="tracking-tight">QA Storefront</span>
+          <span
+            aria-hidden="true"
+            className="w-1.5 h-1.5 rounded-full bg-clay-500 translate-y-[-2px] group-hover:bg-clay-600 transition-colors"
+          />
+          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.25em] text-ink-faint">
+            est. 26
+          </span>
         </Link>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-sm">
+        <div className="flex items-center gap-0.5 sm:gap-1 text-sm">
           <Link
             href="/cart"
             data-testid="nav-cart"
-            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
             aria-label={`Cart with ${cartCount} item${cartCount === 1 ? '' : 's'}`}
           >
-            <span aria-hidden="true">🛒</span>
-            <span className="hidden sm:inline">Cart</span>
+            <span className="hidden sm:inline">Bag</span>
             <span
               data-testid="cart-count"
-              className={`inline-block min-w-5 text-center bg-brand-600 text-white text-xs rounded-full px-2 py-0.5 font-semibold transition-transform ${pulse ? 'animate-pulse-once' : ''}`}
+              className={`inline-block min-w-5 text-center bg-clay-500 text-card text-xs rounded-full px-2 py-0.5 font-semibold transition-transform ${pulse ? 'animate-pulse-once' : ''}`}
             >
               {cartCount}
             </span>
@@ -54,14 +58,14 @@ export default function Navbar() {
               <Link
                 href="/wishlist"
                 data-testid="nav-wishlist"
-                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
               >
                 Wishlist
               </Link>
               <Link
                 href="/orders"
                 data-testid="nav-orders"
-                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
               >
                 Orders
               </Link>
@@ -69,7 +73,7 @@ export default function Navbar() {
                 <Link
                   href="/admin/products"
                   data-testid="nav-admin"
-                  className="inline-flex items-center px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 font-medium hover:bg-brand-100 transition-colors"
+                  className="inline-flex items-center px-3 py-1.5 rounded-full bg-clay-50 text-clay-700 font-medium hover:bg-clay-100 transition-colors"
                 >
                   Admin
                 </Link>
@@ -78,12 +82,12 @@ export default function Navbar() {
                 onClick={clear}
                 data-testid="nav-signout"
                 title={user?.email}
-                className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full text-ink-soft hover:bg-paper-deep transition-colors"
               >
-                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-accent-400 text-white text-xs font-bold flex items-center justify-center">
+                <span className="w-7 h-7 rounded-full bg-clay-500 text-card text-xs font-semibold flex items-center justify-center ring-1 ring-clay-600/30">
                   {(user?.email?.[0] ?? '?').toUpperCase()}
                 </span>
-                <span className="hidden md:inline text-xs text-gray-500">
+                <span className="hidden md:inline text-xs text-ink-faint">
                   Sign out
                 </span>
               </button>
@@ -91,7 +95,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="inline-flex items-center px-3 py-1.5 rounded-full bg-brand-600 text-white font-medium hover:bg-brand-700 transition-colors active:scale-95"
+              className="inline-flex items-center px-4 py-1.5 rounded-full bg-clay-500 text-card font-medium hover:bg-clay-600 transition-colors active:scale-95"
             >
               Sign in
             </Link>

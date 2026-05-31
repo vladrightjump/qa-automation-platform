@@ -1,17 +1,17 @@
 import type { OrderStatus } from '@/lib/api';
 
 const COLORS: Record<OrderStatus, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PAID: 'bg-green-100 text-green-800',
-  FULFILLED: 'bg-blue-100 text-blue-800',
-  CANCELLED: 'bg-gray-200 text-gray-700',
+  PENDING: 'bg-[#f1e6cf] text-accent-500',
+  PAID: 'bg-sage-100 text-sage-600',
+  FULFILLED: 'bg-clay-100 text-clay-700',
+  CANCELLED: 'bg-paper-deep text-ink-faint',
 };
 
 export default function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return (
     <span
       data-testid="order-status"
-      className={`inline-block px-2 py-0.5 text-xs rounded font-medium ${COLORS[status]}`}
+      className={`inline-block px-2.5 py-0.5 text-[11px] uppercase tracking-[0.12em] rounded-full font-semibold ${COLORS[status]}`}
     >
       {status}
     </span>

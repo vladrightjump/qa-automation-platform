@@ -39,14 +39,14 @@ export default function AuthForm() {
         <button
           type="button"
           onClick={() => setMode('login')}
-          className={mode === 'login' ? 'font-semibold' : 'text-gray-500'}
+          className={mode === 'login' ? 'font-semibold' : 'text-ink-faint'}
         >
           Sign in
         </button>
         <button
           type="button"
           onClick={() => setMode('register')}
-          className={mode === 'register' ? 'font-semibold' : 'text-gray-500'}
+          className={mode === 'register' ? 'font-semibold' : 'text-ink-faint'}
         >
           Create account
         </button>
@@ -73,7 +73,7 @@ export default function AuthForm() {
       <button
         data-testid="auth-submit"
         disabled={busy}
-        className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-300"
+        className="px-4 py-2 bg-clay-500 text-card rounded disabled:bg-line-strong"
       >
         {busy ? '…' : mode === 'login' ? 'Sign in' : 'Register'}
       </button>

@@ -7,11 +7,13 @@ import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/ui/ToastQueue';
 
+// Warm duotone washes — each category gets a tone from the boutique family
+// (clay, rosewood, sage, ochre) rather than candy gradients.
 const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-violet-400 to-fuchsia-400',
-  apparel: 'from-pink-400 to-rose-400',
-  home: 'from-amber-300 to-orange-400',
-  office: 'from-sky-400 to-blue-500',
+  gadgets: 'from-[#e3c0aa] to-[#b25c3c]',
+  apparel: 'from-[#e8c8bf] to-[#b56a59]',
+  home: 'from-[#d9dcc4] to-[#6e7256]',
+  office: 'from-[#e9d7a6] to-[#b8862f]',
 };
 
 function initials(name: string): string {
@@ -105,27 +107,27 @@ export default function ProductCard({
 
   const oos = product.stock === 0;
   const lowStock = !oos && product.stock <= 5;
-  const gradient = CATEGORY_HUE[product.category] ?? 'from-gray-300 to-gray-400';
+  const gradient = CATEGORY_HUE[product.category] ?? 'from-clay-200 to-clay-500';
 
   return (
     <article
       data-testid={`product-card-${product.id}`}
-      className={`group relative bg-white border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-pop ${compact ? '' : ''}`}
+      className="group relative bg-card border border-line rounded-2xl overflow-hidden flex flex-col shadow-card transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-pop"
     >
       {/* Visual placeholder — gradient + initials. No real images yet. */}
       <Link
         href={`/products/${product.id}`}
         aria-label={`Open ${product.name}`}
-        className={`relative h-32 sm:h-36 bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-2xl font-bold tracking-wide select-none`}
+        className={`relative h-32 sm:h-40 bg-gradient-to-br ${gradient} flex items-center justify-center text-card/95 font-display text-3xl tracking-wide select-none`}
       >
         <span aria-hidden="true">{initials(product.name)}</span>
         {lowStock && (
-          <span className="absolute top-2 left-2 text-[10px] font-semibold uppercase tracking-wider bg-white/90 text-amber-700 px-2 py-0.5 rounded-full">
+          <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-accent-500 px-2 py-0.5 rounded-full">
             Low stock
           </span>
         )}
         {oos && (
-          <span className="absolute top-2 left-2 text-[10px] font-semibold uppercase tracking-wider bg-white/90 text-gray-700 px-2 py-0.5 rounded-full">
+          <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-ink px-2 py-0.5 rounded-full">
             Sold out
           </span>
         )}
@@ -140,9 +142,9 @@ export default function ProductCard({
               onQuickView(product);
             }}
             data-testid={`quick-view-${product.id}`}
-            className="absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-black/30 text-white text-sm font-medium flex items-center justify-center"
+            className="absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-ink/25 text-card text-sm font-medium flex items-center justify-center"
           >
-            <span className="bg-white/90 text-gray-900 px-3 py-1.5 rounded-full">
+            <span className="bg-paper/95 text-ink px-3.5 py-1.5 rounded-full tracking-wide">
               Quick view
             </span>
           </button>
@@ -156,33 +158,33 @@ export default function ProductCard({
         data-testid={`wishlist-toggle-${product.id}`}
         aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         aria-pressed={inWishlist}
-        className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-lg bg-white/90 backdrop-blur-sm shadow-sm transition-colors ${inWishlist ? 'text-accent-500' : 'text-gray-400 hover:text-accent-500'} ${pulse ? 'animate-pulse-once' : ''}`}
+        className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center text-lg bg-paper/90 backdrop-blur-sm shadow-sm transition-colors ${inWishlist ? 'text-clay-500' : 'text-ink-faint hover:text-clay-500'} ${pulse ? 'animate-pulse-once' : ''}`}
       >
         {inWishlist ? '♥' : '♡'}
       </button>
 
-      <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1">
+      <div className="p-4 sm:p-5 flex flex-col gap-2 flex-1">
         <Link
           href={`/products/${product.id}`}
-          className="text-gray-900 hover:text-brand-700 transition-colors"
+          className="text-ink hover:text-clay-700 transition-colors"
         >
-          <h3 className="font-semibold text-sm sm:text-base leading-snug line-clamp-2">
+          <h3 className="font-display text-base sm:text-lg leading-snug line-clamp-2">
             {product.name}
           </h3>
         </Link>
         {!compact && (
-          <p className="text-xs text-gray-500 line-clamp-2">
+          <p className="text-xs text-ink-soft line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         )}
 
         <div className="flex items-center justify-between mt-1">
-          <p className="font-bold text-base text-gray-900">
+          <p className="font-display text-lg text-ink tabular-nums">
             ${(product.priceCents / 100).toFixed(2)}
           </p>
           <span
             data-testid={`product-category-${product.id}`}
-            className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-medium"
+            className="text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full bg-paper-deep text-ink-soft font-medium"
           >
             {product.category}
           </span>
@@ -194,7 +196,7 @@ export default function ProductCard({
               <span
                 key={t}
                 data-testid={`product-tag-${product.id}-${t}`}
-                className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full"
+                className="text-[10px] text-ink-faint border border-line px-1.5 py-0.5 rounded-full"
               >
                 #{t}
               </span>
@@ -206,7 +208,7 @@ export default function ProductCard({
           onClick={handleAdd}
           disabled={busy || oos}
           data-testid={`add-to-cart-${product.id}`}
-          className="mt-auto px-3 py-2 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-sm font-medium rounded-full transition-all duration-150 disabled:bg-gray-300 disabled:active:scale-100"
+          className="mt-auto px-3 py-2 bg-clay-500 hover:bg-clay-600 active:scale-95 text-card text-sm font-medium rounded-full transition-all duration-200 disabled:bg-line disabled:text-ink-faint disabled:active:scale-100"
         >
           {oos ? 'Out of stock' : busy ? 'Adding…' : 'Add to cart'}
         </button>

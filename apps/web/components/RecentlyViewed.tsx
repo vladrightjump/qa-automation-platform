@@ -6,10 +6,10 @@ import { api, type Product } from '@/lib/api';
 import { getRecent } from '@/lib/recently-viewed';
 
 const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-violet-400 to-fuchsia-400',
-  apparel: 'from-pink-400 to-rose-400',
-  home: 'from-amber-300 to-orange-400',
-  office: 'from-sky-400 to-blue-500',
+  gadgets: 'from-[#e3c0aa] to-[#b25c3c]',
+  apparel: 'from-[#e8c8bf] to-[#b56a59]',
+  home: 'from-[#d9dcc4] to-[#6e7256]',
+  office: 'from-[#e9d7a6] to-[#b8862f]',
 };
 
 function initials(name: string): string {
@@ -55,30 +55,30 @@ export default function RecentlyViewed({ excludeId = null }: RecentlyViewedProps
       data-testid="recently-viewed"
       className="animate-fade-in space-y-3"
     >
-      <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wider">
+      <h2 className="text-sm font-medium text-ink-soft uppercase tracking-wider">
         Recently viewed
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
         {products.map((p) => {
           const gradient =
-            CATEGORY_HUE[p.category] ?? 'from-gray-300 to-gray-400';
+            CATEGORY_HUE[p.category] ?? 'from-clay-200 to-clay-500';
           return (
             <Link
               key={p.id}
               href={`/products/${p.id}`}
               data-testid={`recently-viewed-item-${p.id}`}
-              className="snap-start shrink-0 w-40 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
+              className="snap-start shrink-0 w-40 bg-card rounded-2xl overflow-hidden border border-line shadow-card hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
             >
               <div
-                className={`h-20 bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold`}
+                className={`h-20 bg-gradient-to-br ${gradient} flex items-center justify-center text-card font-bold`}
               >
                 {initials(p.name)}
               </div>
               <div className="p-2.5">
-                <p className="text-xs font-medium text-gray-900 truncate">
+                <p className="text-xs font-medium text-ink truncate">
                   {p.name}
                 </p>
-                <p className="text-xs text-gray-600 mt-0.5">
+                <p className="text-xs text-ink-soft mt-0.5">
                   ${(p.priceCents / 100).toFixed(2)}
                 </p>
               </div>

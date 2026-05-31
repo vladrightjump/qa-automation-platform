@@ -29,7 +29,7 @@ const VARIANT_CLASSES: Record<ToastVariant, string> = {
   success: 'bg-green-50 border-green-200 text-green-800 border-l-4 border-l-green-500',
   error: 'bg-red-50 border-red-200 text-red-800 border-l-4 border-l-red-500',
   warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 border-l-4 border-l-yellow-500',
-  info: 'bg-blue-50 border-blue-200 text-blue-800 border-l-4 border-l-blue-500',
+  info: 'bg-clay-50 border-clay-200 text-clay-700 border-l-4 border-l-clay-500',
 };
 const VARIANT_GLYPH: Record<ToastVariant, string> = {
   success: '✓',
@@ -75,7 +75,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           >
             <span
               aria-hidden="true"
-              className="w-5 h-5 rounded-full bg-white/60 flex items-center justify-center text-xs font-bold"
+              className="w-5 h-5 rounded-full bg-card/60 flex items-center justify-center text-xs font-bold"
             >
               {VARIANT_GLYPH[t.variant]}
             </span>
