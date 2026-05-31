@@ -8,7 +8,7 @@ import {
   type OrderStatus,
   type PagedOrders,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import OrderStatusBadge from '@/components/OrderStatusBadge';
 
@@ -22,21 +22,10 @@ const TABS: { id: Filter; label: string }[] = [
 ];
 
 export default function AdminOrdersPage() {
-  const { token, user, isHydrated } = useAuth();
+  const { token, user, isHydrated } = useRequireAuth({ requireAdmin: true });
   const toast = useToast();
   const [data, setData] = useState<PagedOrders | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      window.location.replace('/login');
-      return;
-    }
-    if (user && user.role !== 'ADMIN') {
-      window.location.replace('/');
-    }
-  }, [isHydrated, token, user]);
 
   const reload = useCallback(async () => {
     if (!token) return;

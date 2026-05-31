@@ -1,20 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, type Wishlist } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
+import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptyWishlist from '@/components/illustrations/EmptyWishlist';
 import RecentlyViewed from '@/components/RecentlyViewed';
 
 export default function WishlistPage() {
-  const router = useRouter();
   const toast = useToast();
-  const { token, isHydrated, refreshCartCount } = useAuth();
+  const { token, isHydrated, refreshCartCount } = useRequireAuth();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
 
   const reload = useCallback(async () => {
@@ -27,13 +26,9 @@ export default function WishlistPage() {
   }, [token, toast]);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
+    if (!isHydrated || !token) return;
     void reload();
-  }, [isHydrated, token, router, reload]);
+  }, [isHydrated, token, reload]);
 
   async function remove(productId: string) {
     if (!token) return;
@@ -113,21 +108,23 @@ export default function WishlistPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={() => void moveToCart(i.productId)}
                   disabled={i.product.stock === 0}
                   data-testid={`wishlist-move-${i.productId}`}
-                  className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-full transition-all duration-150 active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
                 >
                   Move to cart
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => void remove(i.productId)}
                   data-testid={`wishlist-remove-${i.productId}`}
-                  className="px-3 py-1.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-sm rounded-full transition-colors"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </li>
           ))}

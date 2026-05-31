@@ -1,12 +1,13 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, type Order, type OrderStatus } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import OrderSummary from '@/components/OrderSummary';
+import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import Confetti from '@/components/Confetti';
@@ -33,12 +34,11 @@ export default function OrderDetailPage() {
 }
 
 function OrderDetailInner() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const justPlaced = searchParams.get('just') === '1';
   const toast = useToast();
-  const { token, isHydrated } = useAuth();
+  const { token } = useRequireAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -53,17 +53,12 @@ function OrderDetailInner() {
   }, [justPlaced]);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    if (!params.id) return;
+    if (!token || !params.id) return;
     api
       .getOrder(token, params.id)
       .then(setOrder)
       .catch((e: Error) => setErr(e.message));
-  }, [isHydrated, token, params.id, router]);
+  }, [token, params.id]);
 
   async function cancel() {
     if (!token || !order) return;
@@ -244,20 +239,22 @@ function OrderDetailInner() {
           Cancelled orders cannot be reinstated.
         </p>
         <div className="flex justify-end gap-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setConfirmCancel(false)}
             data-testid="order-cancel-cancel"
-            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
           >
             Keep order
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
             onClick={() => void cancel()}
             data-testid="order-cancel-confirm"
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors"
           >
             Cancel order
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -284,13 +281,14 @@ function OrderDetailInner() {
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-shadow"
         />
         <div className="flex justify-end gap-2 mt-3">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setReturnOpen(false)}
             data-testid="order-return-cancel"
-            className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-full text-sm transition-colors"
           >
             Cancel
-          </button>
+          </Button>
           <button
             onClick={() => void submitReturn()}
             disabled={returnReason.trim().length < 3}

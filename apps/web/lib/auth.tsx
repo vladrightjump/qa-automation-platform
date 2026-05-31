@@ -16,7 +16,7 @@ interface AuthState {
   cartCount: number;
 }
 
-interface AuthValue extends AuthState {
+export interface AuthValue extends AuthState {
   // `isHydrated` becomes true once we've read localStorage. Protected pages
   // must wait for this before deciding to redirect to /login — otherwise the
   // first render (token still null) bounces signed-in users away before the

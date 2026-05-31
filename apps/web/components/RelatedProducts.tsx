@@ -3,22 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, type Product, type ProductCategory } from '@/lib/api';
-
-const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-violet-400 to-fuchsia-400',
-  apparel: 'from-pink-400 to-rose-400',
-  home: 'from-amber-300 to-orange-400',
-  office: 'from-sky-400 to-blue-500',
-};
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface RelatedProductsProps {
   productId: string;
@@ -54,8 +39,7 @@ export default function RelatedProducts({ productId, category }: RelatedProducts
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
         {items.map((p) => {
-          const gradient =
-            CATEGORY_HUE[p.category] ?? 'from-gray-300 to-gray-400';
+          const gradient = categoryGradient(p.category);
           return (
             <Link
               key={p.id}

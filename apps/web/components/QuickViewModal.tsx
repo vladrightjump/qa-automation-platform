@@ -7,22 +7,7 @@ import Modal from '@/components/ui/Modal';
 import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/ui/ToastQueue';
-
-const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-violet-400 to-fuchsia-400',
-  apparel: 'from-pink-400 to-rose-400',
-  home: 'from-amber-300 to-orange-400',
-  office: 'from-sky-400 to-blue-500',
-};
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -61,7 +46,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
   }
 
   const gradient = product
-    ? (CATEGORY_HUE[product.category] ?? 'from-gray-300 to-gray-400')
+    ? categoryGradient(product.category)
     : '';
   const oos = (product?.stock ?? 0) === 0;
 
