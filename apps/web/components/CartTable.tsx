@@ -82,13 +82,13 @@ export default function CartTable({
   }
 
   if (cart.items.length === 0) {
-    return <p className="text-gray-600">Your cart is empty.</p>;
+    return <p className="text-ink-soft">Your cart is empty.</p>;
   }
 
   return (
     <div className="space-y-3">
       <table className="w-full text-sm">
-        <thead className="border-b text-left text-gray-600">
+        <thead className="border-b text-left text-ink-soft">
           <tr>
             <th className="py-2" />
             <th className="py-2">Item</th>
@@ -108,7 +108,7 @@ export default function CartTable({
               onDrop={onDrop(i.productId)}
               className="border-b"
             >
-              <td className="py-2 text-gray-400 cursor-grab" data-testid={`cart-drag-${i.productId}`}>
+              <td className="py-2 text-ink-faint cursor-grab" data-testid={`cart-drag-${i.productId}`}>
                 ⠿
               </td>
               <td className="py-2">{i.product.name}</td>
@@ -191,7 +191,7 @@ export default function CartTable({
               setConfirmRemove(null);
             }}
             data-testid="cart-remove-confirm"
-            className="px-3 py-1.5 bg-red-600 text-white rounded text-sm"
+            className="px-3 py-1.5 bg-red-600 text-card rounded text-sm"
           >
             Remove
           </button>

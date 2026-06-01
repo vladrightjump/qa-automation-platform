@@ -32,7 +32,7 @@ export default function PriceRangeSlider({
 
   return (
     <div data-testid={testId} className="space-y-1">
-      <div className="flex items-center justify-between text-xs text-gray-600">
+      <div className="flex items-center justify-between text-xs text-ink-soft">
         <span data-testid={`${testId}-min-label`}>{fmt(value.min)}</span>
         <span data-testid={`${testId}-max-label`}>{fmt(value.max)}</span>
       </div>

@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
   }
 
   if (!isHydrated || !user || user.role !== 'ADMIN') {
-    return <p className="text-gray-500">Loading…</p>;
+    return <p className="text-ink-faint">Loading…</p>;
   }
 
   return (
@@ -141,17 +141,17 @@ export default function AdminProductsPage() {
         <button
           onClick={openCreate}
           data-testid="admin-new-product"
-          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded"
+          className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
         >
           New product
         </button>
       </div>
 
-      {!data && <p className="text-gray-500">Loading…</p>}
+      {!data && <p className="text-ink-faint">Loading…</p>}
       {data && (
         <>
-          <table className="w-full text-sm border bg-white rounded">
-            <thead className="bg-gray-50 text-left">
+          <table className="w-full text-sm border bg-card rounded">
+            <thead className="bg-paper-deep text-left">
               <tr>
                 <th className="p-2">ID</th>
                 <th className="p-2">Name</th>
@@ -179,7 +179,7 @@ export default function AdminProductsPage() {
                     <button
                       onClick={() => openEdit(p)}
                       data-testid={`admin-edit-${p.id}`}
-                      className="text-blue-600 hover:underline"
+                      className="text-clay-600 hover:underline"
                     >
                       Edit
                     </button>
@@ -223,7 +223,7 @@ export default function AdminProductsPage() {
         >
           {mode === 'create' && (
             <label className="block text-sm">
-              <span className="text-gray-700">ID</span>
+              <span className="text-ink-soft">ID</span>
               <input
                 required
                 pattern="prod_[a-z0-9_]+"
@@ -235,7 +235,7 @@ export default function AdminProductsPage() {
             </label>
           )}
           <label className="block text-sm">
-            <span className="text-gray-700">Name</span>
+            <span className="text-ink-soft">Name</span>
             <input
               required
               value={form.name}
@@ -245,7 +245,7 @@ export default function AdminProductsPage() {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-gray-700">Description</span>
+            <span className="text-ink-soft">Description</span>
             <textarea
               value={form.description}
               onChange={(e) =>
@@ -257,7 +257,7 @@ export default function AdminProductsPage() {
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="block text-sm">
-              <span className="text-gray-700">Price (cents)</span>
+              <span className="text-ink-soft">Price (cents)</span>
               <input
                 required
                 type="number"
@@ -271,7 +271,7 @@ export default function AdminProductsPage() {
               />
             </label>
             <label className="block text-sm">
-              <span className="text-gray-700">Stock</span>
+              <span className="text-ink-soft">Stock</span>
               <input
                 required
                 type="number"
@@ -286,14 +286,14 @@ export default function AdminProductsPage() {
             </label>
           </div>
           <label className="block text-sm">
-            <span className="text-gray-700">Category</span>
+            <span className="text-ink-soft">Category</span>
             <select
               value={form.category}
               onChange={(e) =>
                 setForm({ ...form, category: e.target.value as ProductCategory })
               }
               data-testid="admin-form-category"
-              className="mt-1 w-full border rounded px-2 py-1 bg-white"
+              className="mt-1 w-full border rounded px-2 py-1 bg-card"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -303,7 +303,7 @@ export default function AdminProductsPage() {
             </select>
           </label>
           <label className="block text-sm">
-            <span className="text-gray-700">Tags (comma-separated)</span>
+            <span className="text-ink-soft">Tags (comma-separated)</span>
             <input
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
@@ -323,7 +323,7 @@ export default function AdminProductsPage() {
             <button
               type="submit"
               data-testid="admin-form-submit"
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded"
+              className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
             >
               Save
             </button>
@@ -337,7 +337,7 @@ export default function AdminProductsPage() {
         title="Delete product?"
         testId="admin-delete-modal"
       >
-        <p className="text-sm text-gray-700 mb-4">
+        <p className="text-sm text-ink-soft mb-4">
           This will permanently delete{' '}
           <span className="font-mono">{deleteTarget?.id}</span>. This cannot be
           undone.
@@ -353,7 +353,7 @@ export default function AdminProductsPage() {
           <button
             onClick={() => void confirmDelete()}
             data-testid="admin-delete-confirm"
-            className="px-3 py-1.5 bg-red-600 text-white text-sm rounded"
+            className="px-3 py-1.5 bg-red-600 text-card text-sm rounded"
           >
             Delete
           </button>

@@ -64,7 +64,7 @@ export default function AdminOrdersPage() {
   }, [data]);
 
   if (!isHydrated || !user || user.role !== 'ADMIN') {
-    return <p className="text-gray-500">Loading…</p>;
+    return <p className="text-ink-faint">Loading…</p>;
   }
 
   return (
@@ -74,7 +74,7 @@ export default function AdminOrdersPage() {
       <div
         role="tablist"
         data-testid="admin-orders-filter"
-        className="flex gap-1 border border-gray-200 rounded-full p-0.5 bg-white w-fit"
+        className="flex gap-1 border border-line rounded-full p-0.5 bg-card w-fit"
       >
         {TABS.map((t) => (
           <button
@@ -86,8 +86,8 @@ export default function AdminOrdersPage() {
             data-testid={`admin-orders-filter-${t.id}`}
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
               filter === t.id
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-clay-500 text-card'
+                : 'text-ink-soft hover:bg-paper-deep'
             }`}
           >
             {t.label}
@@ -95,10 +95,10 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
-      {!data && <p className="text-gray-500">Loading…</p>}
+      {!data && <p className="text-ink-faint">Loading…</p>}
       {data && (
-        <table className="w-full text-sm border bg-white rounded">
-          <thead className="bg-gray-50 text-left">
+        <table className="w-full text-sm border bg-card rounded">
+          <thead className="bg-paper-deep text-left">
             <tr>
               <th className="p-2">Order</th>
               <th className="p-2">Status</th>
@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
                         )
                       }
                       data-testid={`admin-order-fulfill-${o.id}`}
-                      className="text-blue-600 hover:underline"
+                      className="text-clay-600 hover:underline"
                     >
                       Fulfill
                     </button>
@@ -144,8 +144,8 @@ export default function AdminOrdersPage() {
       {returns.length > 0 && (
         <div className="space-y-2" data-testid="admin-returns">
           <h2 className="text-lg font-semibold">Returns queue</h2>
-          <table className="w-full text-sm border bg-white rounded">
-            <thead className="bg-gray-50 text-left">
+          <table className="w-full text-sm border bg-card rounded">
+            <thead className="bg-paper-deep text-left">
               <tr>
                 <th className="p-2">Order</th>
                 <th className="p-2">Reason</th>
@@ -203,7 +203,7 @@ export default function AdminOrdersPage() {
                           )
                         }
                         data-testid={`admin-return-refund-${ret.id}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-clay-600 hover:underline"
                       >
                         Refund
                       </button>

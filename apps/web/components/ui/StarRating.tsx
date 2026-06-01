@@ -53,7 +53,7 @@ export default function StarRating({
       data-value={value}
       tabIndex={readOnly ? -1 : 0}
       onKeyDown={onKey}
-      className={`inline-flex gap-0.5 ${SIZE_CLASSES[size]} ${readOnly ? '' : 'cursor-pointer focus:outline focus:outline-2 focus:outline-blue-500 rounded'}`}
+      className={`inline-flex gap-0.5 ${SIZE_CLASSES[size]} ${readOnly ? '' : 'cursor-pointer focus:outline focus:outline-2 focus:outline-clay-400 rounded'}`}
     >
       {[1, 2, 3, 4, 5].map((i) => {
         const filled = i <= displayed;
@@ -66,7 +66,7 @@ export default function StarRating({
             onMouseEnter={() => !readOnly && setHover(i)}
             onMouseLeave={() => !readOnly && setHover(null)}
             onClick={() => set(i)}
-            className={filled ? 'text-yellow-500' : 'text-gray-300'}
+            className={filled ? 'text-accent-500' : 'text-line-strong'}
           >
             ★
           </span>

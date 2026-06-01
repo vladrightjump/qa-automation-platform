@@ -89,7 +89,7 @@ export default function AddressesPage() {
     }
   }
 
-  if (!isHydrated || !token) return <p className="text-gray-500">Loading…</p>;
+  if (!isHydrated || !token) return <p className="text-ink-faint">Loading…</p>;
 
   return (
     <section className="space-y-4" data-testid="addresses-page">
@@ -98,17 +98,17 @@ export default function AddressesPage() {
         <button
           onClick={openCreate}
           data-testid="addresses-new"
-          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded"
+          className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
         >
           Add address
         </button>
       </div>
 
-      {!items && <p className="text-gray-500">Loading…</p>}
+      {!items && <p className="text-ink-faint">Loading…</p>}
       {items && items.length === 0 && (
         <p
           data-testid="addresses-empty"
-          className="border rounded p-6 bg-white text-center text-gray-600"
+          className="border rounded p-6 bg-card text-center text-ink-soft"
         >
           No saved addresses yet.
         </p>
@@ -119,7 +119,7 @@ export default function AddressesPage() {
             <li
               key={a.id}
               data-testid={`address-card-${a.id}`}
-              className="border rounded p-3 bg-white text-sm"
+              className="border rounded p-3 bg-card text-sm"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -135,7 +135,7 @@ export default function AddressesPage() {
                     )}
                   </div>
                   <div>{a.name}</div>
-                  <div className="text-gray-600">
+                  <div className="text-ink-soft">
                     {a.line1}
                     {a.line2 ? `, ${a.line2}` : ''}, {a.city} {a.postalCode}{' '}
                     {a.country}
@@ -145,7 +145,7 @@ export default function AddressesPage() {
                   <button
                     onClick={() => openEdit(a)}
                     data-testid={`address-edit-${a.id}`}
-                    className="text-blue-600 hover:underline"
+                    className="text-clay-600 hover:underline"
                   >
                     Edit
                   </button>
@@ -253,7 +253,7 @@ export default function AddressesPage() {
             <button
               type="submit"
               data-testid="address-form-submit"
-              className="px-3 py-1.5 bg-blue-600 text-white rounded"
+              className="px-3 py-1.5 bg-clay-500 text-card rounded"
             >
               Save
             </button>
@@ -281,7 +281,7 @@ export default function AddressesPage() {
           <button
             onClick={() => void confirmDelete()}
             data-testid="address-delete-confirm"
-            className="px-3 py-1.5 bg-red-600 text-white rounded text-sm"
+            className="px-3 py-1.5 bg-red-600 text-card rounded text-sm"
           >
             Delete
           </button>

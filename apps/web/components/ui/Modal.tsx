@@ -69,7 +69,7 @@ export default function Modal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4"
     >
       <div
         ref={dialogRef}
@@ -77,12 +77,12 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={`${testId}-title`}
         data-testid={testId}
-        className="animate-scale-in bg-white rounded-2xl shadow-pop w-full max-w-md p-5 border border-gray-100"
+        className="animate-scale-in bg-card rounded-2xl shadow-pop w-full max-w-md p-6 border border-line"
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <h2
             id={`${testId}-title`}
-            className="text-lg font-semibold text-gray-900"
+            className="font-display text-xl text-ink"
           >
             {title}
           </h2>
@@ -90,7 +90,7 @@ export default function Modal({
             onClick={onClose}
             data-testid={`${testId}-close`}
             aria-label="Close dialog"
-            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center text-xl leading-none transition-colors"
+            className="text-ink-faint hover:text-ink hover:bg-paper-deep rounded-full w-8 h-8 flex items-center justify-center text-xl leading-none transition-colors"
           >
             &times;
           </button>

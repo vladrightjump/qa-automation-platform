@@ -34,7 +34,7 @@ export default function RelatedProducts({ productId, category }: RelatedProducts
       data-testid="related-products"
       className="animate-fade-in space-y-3"
     >
-      <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wider">
+      <h2 className="text-sm font-medium text-ink-soft uppercase tracking-wider">
         You might also like
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
@@ -45,18 +45,18 @@ export default function RelatedProducts({ productId, category }: RelatedProducts
               key={p.id}
               href={`/products/${p.id}`}
               data-testid={`related-item-${p.id}`}
-              className="snap-start shrink-0 w-44 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
+              className="snap-start shrink-0 w-44 bg-card rounded-2xl overflow-hidden border border-line shadow-card hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
             >
               <div
-                className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-xl font-bold`}
+                className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center text-card text-xl font-bold`}
               >
                 {initials(p.name)}
               </div>
               <div className="p-3">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-ink truncate">
                   {p.name}
                 </p>
-                <p className="text-sm text-gray-700 mt-0.5">
+                <p className="text-sm text-ink-soft mt-0.5">
                   ${(p.priceCents / 100).toFixed(2)}
                 </p>
               </div>

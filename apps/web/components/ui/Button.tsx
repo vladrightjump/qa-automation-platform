@@ -12,11 +12,11 @@ const BASE =
   'inline-flex items-center justify-center gap-1.5 rounded-full font-medium transition-colors active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-600 hover:bg-brand-700 text-white disabled:bg-gray-300',
+  primary: 'bg-brand-600 hover:bg-brand-700 text-card disabled:bg-line-strong',
   secondary:
-    'border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40',
-  ghost: 'text-gray-700 hover:bg-gray-100 disabled:opacity-40',
-  danger: 'bg-red-600 hover:bg-red-700 text-white disabled:bg-gray-300',
+    'border border-line text-ink hover:bg-paper-deep disabled:opacity-40',
+  ghost: 'text-ink-soft hover:bg-paper-deep disabled:opacity-40',
+  danger: 'bg-red-600 hover:bg-red-700 text-card disabled:bg-line-strong',
 };
 
 const SIZES: Record<ButtonSize, string> = {
