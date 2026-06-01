@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import { API_BASE } from '../support/api-client';
 
 test.describe('wishlist', () => {
-  test('@smoke authed user can add and remove items', async ({
+  test('authed user can add and remove items', { tag: ['@smoke', '@wishlist'] }, async ({
     api,
     testUser,
   }) => {
@@ -16,12 +16,12 @@ test.describe('wishlist', () => {
     expect(w.items).toEqual([]);
   });
 
-  test('@regression unauthenticated requests return 401', async ({ api }) => {
+  test('unauthenticated requests return 401', { tag: ['@regression', '@wishlist'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/wishlist`);
     expect(res.status()).toBe(401);
   });
 
-  test('@regression adding the same product twice is idempotent', async ({
+  test('adding the same product twice is idempotent', { tag: ['@regression', '@wishlist'] }, async ({
     api,
     testUser,
   }) => {
@@ -31,7 +31,7 @@ test.describe('wishlist', () => {
     await api.removeFromWishlist(testUser.token, 'prod_widget');
   });
 
-  test('@regression adding a non-existent product returns 404', async ({
+  test('adding a non-existent product returns 404', { tag: ['@regression', '@wishlist'] }, async ({
     api,
     testUser,
   }) => {
@@ -42,7 +42,7 @@ test.describe('wishlist', () => {
     expect(res.status()).toBe(404);
   });
 
-  test('@regression invalid productId pattern returns 400', async ({
+  test('invalid productId pattern returns 400', { tag: ['@regression', '@wishlist'] }, async ({
     api,
     testUser,
   }) => {

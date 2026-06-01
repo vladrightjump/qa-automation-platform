@@ -5,7 +5,7 @@ import { test, expect } from '../fixtures';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('checkout side-effects (DB layer)', () => {
-  test('@smoke checkout decrements stock, writes audit log, and clears cart', async ({
+  test('checkout decrements stock, writes audit log, and clears cart', { tag: ['@smoke', '@checkout'] }, async ({
     api,
     db,
     testUser,
@@ -49,7 +49,7 @@ test.describe('checkout side-effects (DB layer)', () => {
     expect(cart).not.toBeNull();
   });
 
-  test('@regression checkout is transactional — failure rolls back stock', async ({
+  test('checkout is transactional — failure rolls back stock', { tag: ['@regression', '@checkout'] }, async ({
     api,
     db,
     testUser,

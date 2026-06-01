@@ -1,29 +1,18 @@
 import { test, expect } from '../fixtures';
 import { API_BASE } from '../support/api-client';
 import { ProductFactory } from '../factories/product.factory';
+import { seedPaidOrder } from '../support/seed';
 
 // Earn rate mirrors LOYALTY_EARN_RATE in the API (5% of the charged total,
 // 1 point = 1¢). A $20.00 order earns floor(2000 * 0.05) = 100 points.
-async function earnViaCheckout(
-  api: import('../support/api-client').ApiClient,
-  db: import('@qa/db').PrismaClient,
-  token: string,
-  priceCents: number,
-) {
-  const product = await db.product.create({
-    data: ProductFactory.build({ stock: 5, priceCents }),
-  });
-  await api.addToCart(token, product.id, 1);
-  return api.checkout(token);
-}
 
 test.describe('loyalty points / store credit', () => {
-  test('@smoke checkout earns 5% back as points + audit log', async ({
+  test('checkout earns 5% back as points + audit log', { tag: ['@smoke', '@loyalty'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await earnViaCheckout(api, db, testUser.token, 2000);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 2000 });
     expect(order.totalCents).toBe(2000);
 
     const loyalty = await api.getLoyalty(testUser.token);
@@ -35,12 +24,12 @@ test.describe('loyalty points / store credit', () => {
     expect(log).not.toBeNull();
   });
 
-  test('@regression redeeming points reduces the total and the ledger nets out', async ({
+  test('redeeming points reduces the total and the ledger nets out', { tag: ['@regression', '@loyalty'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    await earnViaCheckout(api, db, testUser.token, 2000); // +100
+    await seedPaidOrder(api, db, { token: testUser.token, priceCents: 2000 }); // +100
 
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
@@ -56,12 +45,12 @@ test.describe('loyalty points / store credit', () => {
     expect(loyalty.balancePoints).toBe(45);
   });
 
-  test('@regression redeeming more than the balance returns 400', async ({
+  test('redeeming more than the balance returns 400', { tag: ['@regression', '@loyalty'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    await earnViaCheckout(api, db, testUser.token, 2000); // balance 100
+    await seedPaidOrder(api, db, { token: testUser.token, priceCents: 2000 }); // balance 100
 
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
@@ -75,12 +64,12 @@ test.describe('loyalty points / store credit', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression a promo discount and store credit stack', async ({
+  test('a promo discount and store credit stack', { tag: ['@regression', '@loyalty'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    await earnViaCheckout(api, db, testUser.token, 2000); // +100
+    await seedPaidOrder(api, db, { token: testUser.token, priceCents: 2000 }); // +100
 
     const code = `LOYAL${Date.now()}${Math.floor(Math.random() * 1000)}`;
     await db.promoCode.create({

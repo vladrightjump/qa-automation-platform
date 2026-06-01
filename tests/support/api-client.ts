@@ -3,6 +3,13 @@
 // the API surface fails here, with a clear contract-violation error, instead
 // of leaking through specs as confusing `undefined` errors at the assertion
 // site.
+//
+// Design note (Phase 13): this is deliberately kept as one cohesive,
+// uniformly-shaped class rather than split into per-domain client modules. The
+// methods share one tiny pattern (request → check → Zod-parse) with no
+// cross-domain state, so a split would add import/composition indirection and
+// churn every spec for little real gain. A per-domain split is recorded as a
+// follow-up should the surface grow materially.
 import type { APIRequestContext } from '@playwright/test';
 import {
   AddressSchema,

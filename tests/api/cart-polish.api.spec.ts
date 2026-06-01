@@ -3,7 +3,7 @@ import { API_BASE } from '../support/api-client';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('cart quantity + reorder', () => {
-  test('@smoke updateCartItem clamps quantity to product stock', async ({
+  test('updateCartItem clamps quantity to product stock', { tag: ['@smoke', '@cart'] }, async ({
     api,
     db,
     testUser,
@@ -19,7 +19,7 @@ test.describe('cart quantity + reorder', () => {
     expect(item?.quantity).toBe(3);
   });
 
-  test('@regression updating quantity below 1 is rejected with 400', async ({
+  test('updating quantity below 1 is rejected with 400', { tag: ['@regression', '@cart'] }, async ({
     api,
     testUser,
     db,
@@ -38,7 +38,7 @@ test.describe('cart quantity + reorder', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression reorder updates item order in the response', async ({
+  test('reorder updates item order in the response', { tag: ['@regression', '@cart'] }, async ({
     api,
     db,
     testUser,
@@ -60,7 +60,7 @@ test.describe('cart quantity + reorder', () => {
     expect(cart.items.map((i) => i.productId)).toEqual([c.id, a.id, b.id]);
   });
 
-  test('@regression reorder with missing item is rejected with 400', async ({
+  test('reorder with missing item is rejected with 400', { tag: ['@regression', '@cart'] }, async ({
     api,
     db,
     testUser,

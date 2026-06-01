@@ -4,7 +4,7 @@ import { AddressFactory } from '../factories/address.factory';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('checkout with promo + address', () => {
-  test('@smoke applying WELCOME10 reduces order total by 10%', async ({
+  test('applying WELCOME10 reduces order total by 10%', { tag: ['@smoke', '@checkout'] }, async ({
     api,
     db,
     testUser,
@@ -32,7 +32,7 @@ test.describe('checkout with promo + address', () => {
     expect(order.paymentMethod).toBe('CARD');
   });
 
-  test('@regression FREESHIP applies flat $5 off', async ({
+  test('FREESHIP applies flat $5 off', { tag: ['@regression', '@checkout'] }, async ({
     api,
     db,
     testUser,
@@ -54,7 +54,7 @@ test.describe('checkout with promo + address', () => {
     expect(order.totalCents).toBe(2_500);
   });
 
-  test('@regression unknown promo code returns 404', async ({
+  test('unknown promo code returns 404', { tag: ['@regression', '@checkout'] }, async ({
     api,
     testUser,
     db,
@@ -70,7 +70,7 @@ test.describe('checkout with promo + address', () => {
     expect(res.status()).toBe(404);
   });
 
-  test('@regression expired promo (OLDDEAL) returns 400', async ({
+  test('expired promo (OLDDEAL) returns 400', { tag: ['@regression', '@checkout'] }, async ({
     api,
     testUser,
     db,
@@ -86,7 +86,7 @@ test.describe('checkout with promo + address', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression checkout with addressId belonging to another user returns 400', async ({
+  test('checkout with addressId belonging to another user returns 400', { tag: ['@regression', '@checkout'] }, async ({
     api,
     testUser,
     db,

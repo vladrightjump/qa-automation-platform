@@ -1,21 +1,16 @@
 import { test, expect } from '../fixtures';
-import { AddressFactory } from '../factories/address.factory';
-import { ProductFactory } from '../factories/product.factory';
+import { seedPaidOrder } from '../support/seed';
 
 test.describe('admin order management (UI)', () => {
   test('admin fulfils a PAID order from the orders dashboard', {
     tag: ['@smoke', '@admin-orders', '@sanity'],
   }, async ({ adminPage, api, db, testUser }) => {
     // A customer places a PAID order.
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 4, priceCents: 1800 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 1800,
+      stock: 4,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
 
     await adminPage.goto('/admin/orders');
     // Filter to PAID to narrow the global list to the relevant row.
@@ -38,15 +33,11 @@ test.describe('admin order management (UI)', () => {
   test('admin approves then refunds a return', {
     tag: ['@regression', '@admin-orders'],
   }, async ({ adminPage, api, db, testUser }) => {
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 4, priceCents: 3000 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 3000,
+      stock: 4,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
     const ret = await api.requestReturn(testUser.token, order.id, 'Damaged box');
 
     await adminPage.goto('/admin/orders');

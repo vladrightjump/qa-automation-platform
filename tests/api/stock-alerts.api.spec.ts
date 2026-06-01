@@ -3,7 +3,7 @@ import { API_BASE } from '../support/api-client';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('back-in-stock alerts', () => {
-  test('@smoke subscribing to an out-of-stock product creates an alert', async ({
+  test('subscribing to an out-of-stock product creates an alert', { tag: ['@smoke', '@stock-alert'] }, async ({
     api,
     db,
     testUser,
@@ -20,7 +20,7 @@ test.describe('back-in-stock alerts', () => {
     expect(mine.some((a) => a.productId === product.id)).toBe(true);
   });
 
-  test('@regression subscribing to an in-stock product returns 400', async ({
+  test('subscribing to an in-stock product returns 400', { tag: ['@regression', '@stock-alert'] }, async ({
     api,
     db,
     testUser,
@@ -37,7 +37,7 @@ test.describe('back-in-stock alerts', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression subscribing twice is idempotent', async ({
+  test('subscribing twice is idempotent', { tag: ['@regression', '@stock-alert'] }, async ({
     api,
     db,
     testUser,
@@ -54,7 +54,7 @@ test.describe('back-in-stock alerts', () => {
     expect(count).toBe(1);
   });
 
-  test('@regression unsubscribing removes the alert', async ({
+  test('unsubscribing removes the alert', { tag: ['@regression', '@stock-alert'] }, async ({
     api,
     db,
     testUser,
@@ -71,7 +71,7 @@ test.describe('back-in-stock alerts', () => {
     expect(count).toBe(0);
   });
 
-  test('@regression admin restock (0 → >0) notifies subscribers + audit log', async ({
+  test('admin restock (0 → >0) notifies subscribers + audit log', { tag: ['@regression', '@stock-alert'] }, async ({
     api,
     db,
     adminUser,
