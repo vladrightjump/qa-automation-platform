@@ -20,7 +20,7 @@ This plan is split into focused files. **Reference** files hold the standing con
 | 9 — Promo discovery | ✅ Done (`feat/promo-discovery-and-sanity-suite`) |
 | 10 — Refactor: contracts as source of truth | ✅ Done (uncommitted — web `import type`s from `@qa/contracts`; 33 dupes deleted) |
 | 11 — Refactor: web UI primitives + hooks | ✅ Done (uncommitted — product-visual + useRequireAuth; Button adopted as a no-visual-risk subset) |
-| 12 — Refactor: decompose OrdersService | 📝 TODO (spec written) |
+| 12 — Refactor: decompose OrdersService | ✅ Done (uncommitted — Promo/Loyalty/Returns services; OrdersService orchestrates) |
 | 13 — Refactor: test ergonomics + tag convention | 📝 TODO (spec written) |
 
 **Environment notes (this machine):** Node 20.19.6 (repo pinned to Node 20, not 22) · pnpm 9.15.4 via Corepack · Docker not installed — instead **Postgres 16 installed natively via Homebrew** (`brew services start postgresql@16`), role `qa`/db `qa`. CI will still use the `docker-compose.yml` service.
@@ -46,5 +46,5 @@ This plan is split into focused files. **Reference** files hold the standing con
 ## Refactoring track (behaviour-preserving — execute in order; suite is the safety net)
 - ✅ [phase-10-refactor-contracts-sot.md](./phase-10-refactor-contracts-sot.md) — web consumes `@qa/contracts` types (kill 33 duplicates)
 - ✅ [phase-11-refactor-web-ui-primitives.md](./phase-11-refactor-web-ui-primitives.md) — `Button`/visual/auth-guard primitives
-- 📝 [phase-12-refactor-api-services.md](./phase-12-refactor-api-services.md) — split `OrdersService` (promo/loyalty/returns)
+- ✅ [phase-12-refactor-api-services.md](./phase-12-refactor-api-services.md) — split `OrdersService` (promo/loyalty/returns)
 - 📝 [phase-13-refactor-test-ergonomics.md](./phase-13-refactor-test-ergonomics.md) — seeding helpers, client split, native tags
