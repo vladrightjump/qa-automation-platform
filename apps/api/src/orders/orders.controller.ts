@@ -3,6 +3,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, type AuthedUser } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { OrdersService } from './orders.service';
+import { PromoService } from './promo.service';
+import { LoyaltyService } from './loyalty.service';
+import { ReturnsService } from './returns.service';
 import { ApplyPromoDto, CheckoutDto, RequestReturnDto } from './dto';
 
 @ApiTags('orders')
@@ -10,7 +13,12 @@ import { ApplyPromoDto, CheckoutDto, RequestReturnDto } from './dto';
 @UseGuards(AuthGuard)
 @Controller()
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly promo: PromoService,
+    private readonly loyalty: LoyaltyService,
+    private readonly returns: ReturnsService,
+  ) {}
 
   @Post('orders')
   checkout(@CurrentUser() user: AuthedUser, @Body() dto: CheckoutDto) {
@@ -29,7 +37,7 @@ export class OrdersController {
 
   @Post('promo-codes/apply')
   applyPromo(@CurrentUser() user: AuthedUser, @Body() dto: ApplyPromoDto) {
-    return this.orders.previewPromo(user.id, dto.code);
+    return this.promo.previewPromo(user.id, dto.code);
   }
 
   @Post('orders/:id/cancel')
@@ -43,12 +51,12 @@ export class OrdersController {
     @Param('id') id: string,
     @Body() dto: RequestReturnDto,
   ) {
-    return this.orders.requestReturn(user.id, id, dto.reason);
+    return this.returns.requestReturn(user.id, id, dto.reason);
   }
 
   @Get('loyalty')
-  loyalty(@CurrentUser() user: AuthedUser) {
-    return this.orders.getLoyalty(user.id);
+  getLoyalty(@CurrentUser() user: AuthedUser) {
+    return this.loyalty.getLoyalty(user.id);
   }
 }
 
@@ -58,10 +66,10 @@ export class OrdersController {
 @ApiTags('promo-codes')
 @Controller('promo-codes')
 export class PromoController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(private readonly promo: PromoService) {}
 
   @Get()
   list() {
-    return this.orders.listPromoCodes();
+    return this.promo.listPromoCodes();
   }
 }
