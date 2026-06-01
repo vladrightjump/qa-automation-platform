@@ -4,7 +4,7 @@ import { AuthResultSchema } from '@qa/contracts';
 import { API_BASE } from '../support/api-client';
 
 test.describe('auth', () => {
-  test('@smoke register issues a token + Zod-conformant user', async ({ api }) => {
+  test('register issues a token + Zod-conformant user', { tag: ['@smoke', '@auth'] }, async ({ api }) => {
     const creds = UserFactory.build();
     const result = await api.register(creds.email, creds.password);
     expect(AuthResultSchema.safeParse(result).success).toBe(true);
@@ -12,27 +12,27 @@ test.describe('auth', () => {
     expect(result.token.length).toBeGreaterThan(20);
   });
 
-  test('@smoke login round-trips the same credentials', async ({ api, testUser }) => {
+  test('login round-trips the same credentials', { tag: ['@smoke', '@auth'] }, async ({ api, testUser }) => {
     const result = await api.login(testUser.email, testUser.password);
     expect(result.user.id).toBe(testUser.id);
     expect(result.token.length).toBeGreaterThan(20);
   });
 
-  test('@regression register rejects duplicate email with 409', async ({ api, testUser }) => {
+  test('register rejects duplicate email with 409', { tag: ['@regression', '@auth'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/auth/register`, {
       data: { email: testUser.email, password: 'newpassword12345' },
     });
     expect(res.status()).toBe(409);
   });
 
-  test('@regression register rejects invalid email + short password with 400', async ({ api }) => {
+  test('register rejects invalid email + short password with 400', { tag: ['@regression', '@auth'] }, async ({ api }) => {
     const res = await api.raw().post(`${API_BASE}/auth/register`, {
       data: { email: 'not-an-email', password: 'short' },
     });
     expect(res.status()).toBe(400);
   });
 
-  test('@regression login rejects wrong password with 401', async ({ api, testUser }) => {
+  test('login rejects wrong password with 401', { tag: ['@regression', '@auth'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/auth/login`, {
       data: { email: testUser.email, password: 'wrong-password-999' },
     });

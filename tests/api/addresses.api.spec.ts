@@ -3,7 +3,7 @@ import { API_BASE } from '../support/api-client';
 import { AddressFactory } from '../factories/address.factory';
 
 test.describe('addresses', () => {
-  test('@smoke authed user can CRUD their addresses', async ({
+  test('authed user can CRUD their addresses', { tag: ['@smoke', '@addresses'] }, async ({
     api,
     testUser,
   }) => {
@@ -27,14 +27,14 @@ test.describe('addresses', () => {
     expect(after.map((a) => a.id)).not.toContain(created.id);
   });
 
-  test('@regression unauthenticated address access returns 401', async ({
+  test('unauthenticated address access returns 401', { tag: ['@regression', '@addresses'] }, async ({
     api,
   }) => {
     const res = await api.raw().get(`${API_BASE}/addresses`);
     expect(res.status()).toBe(401);
   });
 
-  test('@regression cannot edit another user’s address (403)', async ({
+  test('cannot edit another user’s address (403)', { tag: ['@regression', '@addresses'] }, async ({
     api,
     testUser,
   }) => {
@@ -56,7 +56,7 @@ test.describe('addresses', () => {
     await api.deleteAddress(testUser.token, a.id);
   });
 
-  test('@regression setting an address default un-flags the previous default', async ({
+  test('setting an address default un-flags the previous default', { tag: ['@regression', '@addresses'] }, async ({
     api,
     testUser,
   }) => {
@@ -76,7 +76,7 @@ test.describe('addresses', () => {
     expect(bAfter.isDefault).toBe(true);
   });
 
-  test('@regression validation rejects empty required fields with 400', async ({
+  test('validation rejects empty required fields with 400', { tag: ['@regression', '@addresses'] }, async ({
     api,
     testUser,
   }) => {

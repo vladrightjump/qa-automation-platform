@@ -1,20 +1,15 @@
 import { test, expect } from '../fixtures';
-import { AddressFactory } from '../factories/address.factory';
-import { ProductFactory } from '../factories/product.factory';
+import { seedPaidOrder } from '../support/seed';
 
 test.describe('order returns (UI)', () => {
   test('request a return from the order detail page → status badge', {
     tag: ['@smoke', '@returns', '@sanity'],
   }, async ({ authedPage, api, db, testUser }) => {
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 3, priceCents: 1500 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 1500,
+      stock: 3,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
 
     await authedPage.goto(`/orders/${order.id}`);
 
@@ -40,15 +35,11 @@ test.describe('order returns (UI)', () => {
   test('a cancelled order cannot be returned', {
     tag: ['@regression', '@returns'],
   }, async ({ authedPage, api, db, testUser }) => {
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 2, priceCents: 1000 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 1000,
+      stock: 2,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
     await api.cancelOrder(testUser.token, order.id);
 
     await authedPage.goto(`/orders/${order.id}`);

@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures';
-import { AddressFactory } from '../factories/address.factory';
-import { ProductFactory } from '../factories/product.factory';
+import { seedPaidOrder } from '../support/seed';
 
 test.describe('orders list filter + cancel (UI)', () => {
   test('status filter tabs narrow the orders list', {
@@ -12,15 +11,11 @@ test.describe('orders list filter + cancel (UI)', () => {
     testUser,
   }) => {
     // Create one paid order so we have something in the list.
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 3, priceCents: 1000 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 1000,
+      stock: 3,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
 
     await authedPage.goto('/orders');
     await expect(
@@ -48,15 +43,11 @@ test.describe('orders list filter + cancel (UI)', () => {
     db,
     testUser,
   }) => {
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 2, priceCents: 1500 }),
+    const order = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 1500,
+      stock: 2,
     });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
-    await api.addToCart(testUser.token, product.id, 1);
-    const order = await api.checkout(testUser.token);
 
     await authedPage.goto(`/orders/${order.id}`);
     await expect(authedPage.getByTestId('order-cancel')).toBeVisible();
@@ -81,18 +72,17 @@ test.describe('orders list filter + cancel (UI)', () => {
     db,
     testUser,
   }) => {
-    const product = await db.product.create({
-      data: ProductFactory.build({ stock: 3, priceCents: 800 }),
-    });
-    await api.createAddress(
-      testUser.token,
-      AddressFactory.build({ isDefault: true }),
-    );
     // Place two orders so search has something to narrow.
-    await api.addToCart(testUser.token, product.id, 1);
-    const o1 = await api.checkout(testUser.token);
-    await api.addToCart(testUser.token, product.id, 1);
-    const o2 = await api.checkout(testUser.token);
+    const o1 = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 800,
+      stock: 3,
+    });
+    const o2 = await seedPaidOrder(api, db, {
+      token: testUser.token,
+      priceCents: 800,
+      stock: 3,
+    });
 
     await authedPage.goto('/orders');
     await authedPage.getByTestId('orders-search').fill(o1.id);

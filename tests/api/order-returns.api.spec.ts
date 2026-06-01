@@ -1,29 +1,14 @@
 import { test, expect } from '../fixtures';
 import { API_BASE } from '../support/api-client';
-import { AddressFactory } from '../factories/address.factory';
-import { ProductFactory } from '../factories/product.factory';
-
-// Helper: place one PAID order for the given user.
-async function placePaidOrder(
-  api: import('../support/api-client').ApiClient,
-  db: import('@qa/db').PrismaClient,
-  token: string,
-) {
-  const product = await db.product.create({
-    data: ProductFactory.build({ stock: 3, priceCents: 1200 }),
-  });
-  await api.createAddress(token, AddressFactory.build({ isDefault: true }));
-  await api.addToCart(token, product.id, 1);
-  return api.checkout(token, { paymentMethod: 'CARD' });
-}
+import { seedPaidOrder } from '../support/seed';
 
 test.describe('order returns', () => {
-  test('@smoke requesting a return on a PAID order → REQUESTED + audit log', async ({
+  test('requesting a return on a PAID order → REQUESTED + audit log', { tag: ['@smoke', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
 
     const ret = await api.requestReturn(
       testUser.token,
@@ -40,12 +25,12 @@ test.describe('order returns', () => {
     expect(log).not.toBeNull();
   });
 
-  test('@regression GET /orders/:id surfaces the requested return', async ({
+  test('GET /orders/:id surfaces the requested return', { tag: ['@regression', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
     await api.requestReturn(testUser.token, order.id, 'Wrong size');
 
     const fetched = await api.getOrder(testUser.token, order.id);
@@ -53,12 +38,12 @@ test.describe('order returns', () => {
     expect(fetched.returns[0]?.reason).toBe('Wrong size');
   });
 
-  test('@regression returning a CANCELLED order returns 400', async ({
+  test('returning a CANCELLED order returns 400', { tag: ['@regression', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
     await api.cancelOrder(testUser.token, order.id);
 
     const res = await api.raw().post(`${API_BASE}/orders/${order.id}/return`, {
@@ -68,12 +53,12 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression a second open return on the same order returns 400', async ({
+  test('a second open return on the same order returns 400', { tag: ['@regression', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
     await api.requestReturn(testUser.token, order.id, 'First request');
 
     const res = await api.raw().post(`${API_BASE}/orders/${order.id}/return`, {
@@ -83,12 +68,12 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression returning another user’s order returns 403', async ({
+  test('returning another user’s order returns 403', { tag: ['@regression', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
 
     const other = await api.register(
       `other-${Date.now()}@qa-test.local`,
@@ -101,12 +86,12 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(403);
   });
 
-  test('@regression a too-short reason returns 400', async ({
+  test('a too-short reason returns 400', { tag: ['@regression', '@returns'] }, async ({
     api,
     db,
     testUser,
   }) => {
-    const order = await placePaidOrder(api, db, testUser.token);
+    const order = await seedPaidOrder(api, db, { token: testUser.token, priceCents: 1200, stock: 3 });
 
     const res = await api.raw().post(`${API_BASE}/orders/${order.id}/return`, {
       headers: { Authorization: `Bearer ${testUser.token}` },

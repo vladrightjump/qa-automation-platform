@@ -5,14 +5,14 @@ import { UserFactory } from '../factories/user.factory';
 import { API_BASE } from '../support/api-client';
 
 test.describe('orders / checkout', () => {
-  test('@regression checkout with empty cart returns 400', async ({ api, testUser }) => {
+  test('checkout with empty cart returns 400', { tag: ['@regression', '@orders'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/orders`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
     });
     expect(res.status()).toBe(400);
   });
 
-  test('@regression checkout an out-of-stock product returns 400', async ({
+  test('checkout an out-of-stock product returns 400', { tag: ['@regression', '@orders'] }, async ({
     api,
     testUser,
   }) => {
@@ -27,7 +27,7 @@ test.describe('orders / checkout', () => {
     expect(String(body.message)).toMatch(/stock/i);
   });
 
-  test('@smoke checkout returns a PAID order with correct totals', async ({
+  test('checkout returns a PAID order with correct totals', { tag: ['@smoke', '@orders'] }, async ({
     api,
     db,
     testUser,
@@ -49,7 +49,7 @@ test.describe('orders / checkout', () => {
     expect(order.items[0]?.quantity).toBe(2);
   });
 
-  test('@regression list orders returns the user own orders only', async ({
+  test('list orders returns the user own orders only', { tag: ['@regression', '@orders'] }, async ({
     api,
     db,
     testUser,
@@ -65,7 +65,7 @@ test.describe('orders / checkout', () => {
     for (const o of orders) expect(o.userId).toBe(testUser.id);
   });
 
-  test('@regression get another user order returns 403', async ({ api, db, testUser }) => {
+  test('get another user order returns 403', { tag: ['@regression', '@orders'] }, async ({ api, db, testUser }) => {
     // Create a second user with their own order.
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5 }),
@@ -82,7 +82,7 @@ test.describe('orders / checkout', () => {
     expect(res.status()).toBe(403);
   });
 
-  test('@regression get a non-existent order returns 404', async ({ api, testUser }) => {
+  test('get a non-existent order returns 404', { tag: ['@regression', '@orders'] }, async ({ api, testUser }) => {
     const res = await api.raw().get(`${API_BASE}/orders/does_not_exist`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
     });

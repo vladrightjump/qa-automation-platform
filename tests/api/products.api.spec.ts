@@ -3,7 +3,7 @@ import { PagedProductsSchema, ProductSchema } from '@qa/contracts';
 import { API_BASE } from '../support/api-client';
 
 test.describe('products', () => {
-  test('@smoke list returns paginated products with the agreed shape', async ({
+  test('list returns paginated products with the agreed shape', { tag: ['@smoke', '@catalog'] }, async ({
     api,
   }) => {
     const page = await api.listProducts({ category: ['office'] });
@@ -14,14 +14,14 @@ test.describe('products', () => {
     expect(page.items.map((p) => p.id)).toContain('prod_notebook_a5');
   });
 
-  test('@regression default sort is name ascending', async ({ api }) => {
+  test('default sort is name ascending', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
     const page = await api.listProducts({ pageSize: 100 });
     const names = page.items.map((p) => p.name);
     const sorted = [...names].sort((a, b) => a.localeCompare(b));
     expect(names).toEqual(sorted);
   });
 
-  test('@regression filter by category narrows results', async ({ api }) => {
+  test('filter by category narrows results', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
     const all = await api.listProducts({ pageSize: 100 });
     const apparel = await api.listProducts({
       category: ['apparel'],
@@ -31,7 +31,7 @@ test.describe('products', () => {
     expect(apparel.items.every((p) => p.category === 'apparel')).toBe(true);
   });
 
-  test('@regression filter by multiple categories returns union', async ({
+  test('filter by multiple categories returns union', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({
@@ -46,7 +46,7 @@ test.describe('products', () => {
     ).toBe(true);
   });
 
-  test('@regression search q matches name and description case-insensitively', async ({
+  test('search q matches name and description case-insensitively', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({ q: 'widget' });
@@ -60,7 +60,7 @@ test.describe('products', () => {
     ).toBe(true);
   });
 
-  test('@regression search returns empty page when no match', async ({
+  test('search returns empty page when no match', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({ q: 'definitelydoesnotexist' });
@@ -68,7 +68,7 @@ test.describe('products', () => {
     expect(result.items).toEqual([]);
   });
 
-  test('@regression price filter respects min/max', async ({ api }) => {
+  test('price filter respects min/max', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
     const result = await api.listProducts({
       minPriceCents: 1000,
       maxPriceCents: 2000,
@@ -81,7 +81,7 @@ test.describe('products', () => {
     ).toBe(true);
   });
 
-  test('@regression sort=price_asc orders by price ascending', async ({
+  test('sort=price_asc orders by price ascending', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({ sort: 'price_asc', pageSize: 100 });
@@ -89,7 +89,7 @@ test.describe('products', () => {
     expect([...prices].sort((a, b) => a - b)).toEqual(prices);
   });
 
-  test('@regression sort=price_desc orders by price descending', async ({
+  test('sort=price_desc orders by price descending', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({ sort: 'price_desc', pageSize: 100 });
@@ -97,7 +97,7 @@ test.describe('products', () => {
     expect([...prices].sort((a, b) => b - a)).toEqual(prices);
   });
 
-  test('@regression pagination returns disjoint pages and respects pageSize', async ({
+  test('pagination returns disjoint pages and respects pageSize', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const page1 = await api.listProducts({ page: 1, pageSize: 5 });
@@ -111,7 +111,7 @@ test.describe('products', () => {
     expect(overlap).toEqual([]);
   });
 
-  test('@regression get by id returns a single product matching the shape', async ({
+  test('get by id returns a single product matching the shape', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
     const product = await api.getProduct('prod_widget');
@@ -120,14 +120,14 @@ test.describe('products', () => {
     expect(product.category).toBe('gadgets');
   });
 
-  test('@regression get missing product returns 404', async ({ api }) => {
+  test('get missing product returns 404', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
     const res = await api
       .raw()
       .get(`${API_BASE}/products/prod_does_not_exist`);
     expect(res.status()).toBe(404);
   });
 
-  test('@regression invalid sort param rejected with 400', async ({ api }) => {
+  test('invalid sort param rejected with 400', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/products?sort=bogus`);
     expect(res.status()).toBe(400);
   });

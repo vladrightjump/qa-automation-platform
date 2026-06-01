@@ -3,7 +3,7 @@ import { API_BASE } from '../support/api-client';
 import { ProductFactory } from '../factories/product.factory';
 
 test.describe('reviews', () => {
-  test('@smoke authed user can post a review; summary reflects average', async ({
+  test('authed user can post a review; summary reflects average', { tag: ['@smoke', '@reviews'] }, async ({
     api,
     db,
     testUser,
@@ -28,7 +28,7 @@ test.describe('reviews', () => {
     expect(summary.averageRating).toBe(4);
   });
 
-  test('@regression unauthenticated post returns 401', async ({ api }) => {
+  test('unauthenticated post returns 401', { tag: ['@regression', '@reviews'] }, async ({ api }) => {
     const res = await api.raw().post(
       `${API_BASE}/products/prod_widget/reviews`,
       { data: { rating: 5, title: 'x', body: 'y' } },
@@ -36,7 +36,7 @@ test.describe('reviews', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('@regression rating out of range rejected with 400', async ({
+  test('rating out of range rejected with 400', { tag: ['@regression', '@reviews'] }, async ({
     api,
     testUser,
     db,
@@ -54,7 +54,7 @@ test.describe('reviews', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('@regression duplicate review by same user returns 409', async ({
+  test('duplicate review by same user returns 409', { tag: ['@regression', '@reviews'] }, async ({
     api,
     testUser,
     db,
@@ -77,7 +77,7 @@ test.describe('reviews', () => {
     expect(res.status()).toBe(409);
   });
 
-  test('@regression sort=highest puts top rating first', async ({
+  test('sort=highest puts top rating first', { tag: ['@regression', '@reviews'] }, async ({
     api,
     db,
   }) => {
@@ -105,7 +105,7 @@ test.describe('reviews', () => {
     expect(list.items.map((r) => r.rating)).toEqual([5, 4, 3]);
   });
 
-  test('@regression cannot delete someone else’s review (403)', async ({
+  test('cannot delete someone else’s review (403)', { tag: ['@regression', '@reviews'] }, async ({
     api,
     testUser,
     db,

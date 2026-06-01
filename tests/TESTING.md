@@ -80,9 +80,10 @@ per feature also carries `@sanity`.
 | `@stock-alert` | Back-in-stock "notify me" subscriptions |
 | `@loyalty` | Loyalty points / store credit (earn + redeem) |
 
-> **Note:** the 13 `tests/api/*.spec.ts` specs still use the older title-based
-> `@smoke`/`@regression` tags (still greppable). Migrating them to native tags +
-> feature tags is a tracked follow-up — see the promo technical task.
+> **Note:** every spec — `tests/api/*` and `tests/e2e/*` — now uses native
+> Playwright `tag: [...]` arrays carrying the `@smoke`/`@regression` tier plus a
+> feature tag, so `--grep @<feature>` selects across both layers (e.g.
+> `test:feature @loyalty` includes `tests/api/loyalty.api.spec.ts`).
 
 ---
 
