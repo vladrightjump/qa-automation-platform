@@ -12,9 +12,10 @@ import {
   type PromoCode,
   type PromoPreview,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import Toast from '@/components/Toast';
 import { useToast } from '@/components/ui/ToastQueue';
+import Button from '@/components/ui/Button';
 
 type Step = 'address' | 'payment' | 'review';
 const STEPS: { id: Step; label: string }[] = [
@@ -53,7 +54,7 @@ function validateAddress(input: AddressInput): AddressErrors {
 export default function CheckoutPage() {
   const router = useRouter();
   const toast = useToast();
-  const { token, isHydrated, refreshCartCount } = useAuth();
+  const { token, isHydrated, refreshCartCount } = useRequireAuth();
   const [step, setStep] = useState<Step>('address');
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,11 +83,7 @@ export default function CheckoutPage() {
   const [applyLoyalty, setApplyLoyalty] = useState(false);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
+    if (!isHydrated || !token) return;
     void api.listAddresses(token).then((list) => {
       setAddresses(list);
       const def = list.find((a) => a.isDefault) ?? list[0];
@@ -96,7 +93,7 @@ export default function CheckoutPage() {
     void api.getCart(token).then(setCart);
     void api.listPromoCodes().then(setDeals);
     void api.getLoyalty(token).then((l) => setLoyaltyBalance(l.balancePoints));
-  }, [isHydrated, token, router]);
+  }, [isHydrated, token]);
 
   const subtotalCents =
     cart?.items.reduce((s, i) => s + i.product.priceCents * i.quantity, 0) ?? 0;
@@ -552,34 +549,37 @@ export default function CheckoutPage() {
       )}
 
       <div className="flex items-center justify-between pt-2">
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           type="button"
           onClick={back}
           disabled={step === 'address'}
           data-testid="checkout-back"
-          className="px-4 py-1.5 border border-line hover:bg-paper-deep rounded-full text-sm transition-colors disabled:opacity-40"
         >
           ← Back
-        </button>
+        </Button>
         {step !== 'review' ? (
-          <button
+          <Button
+            variant="primary"
+            size="md"
             type="button"
             onClick={() => void next()}
             data-testid="checkout-next"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
           >
             Next <span aria-hidden="true">→</span>
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            variant="primary"
+            size="md"
             type="button"
             onClick={() => void placeOrder()}
             disabled={busy}
             data-testid="checkout-submit"
-            className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-card rounded-full font-medium text-sm transition-all duration-150 active:scale-95 disabled:bg-line-strong disabled:active:scale-100"
           >
             {busy ? 'Placing…' : 'Place order'}
-          </button>
+          </Button>
         )}
       </div>
       </div>

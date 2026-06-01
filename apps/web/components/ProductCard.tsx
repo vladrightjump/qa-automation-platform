@@ -6,24 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/ui/ToastQueue';
-
-// Warm duotone washes — each category gets a tone from the boutique family
-// (clay, rosewood, sage, ochre) rather than candy gradients.
-const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-[#e3c0aa] to-[#b25c3c]',
-  apparel: 'from-[#e8c8bf] to-[#b56a59]',
-  home: 'from-[#d9dcc4] to-[#6e7256]',
-  office: 'from-[#e9d7a6] to-[#b8862f]',
-};
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface ProductCardProps {
   product: Product;
@@ -107,7 +90,7 @@ export default function ProductCard({
 
   const oos = product.stock === 0;
   const lowStock = !oos && product.stock <= 5;
-  const gradient = CATEGORY_HUE[product.category] ?? 'from-clay-200 to-clay-500';
+  const gradient = categoryGradient(product.category);
 
   return (
     <article

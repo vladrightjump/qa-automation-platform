@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { api, type Order, type OrderStatus } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import OrderStatusBadge from '@/components/OrderStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
@@ -21,20 +20,15 @@ const TABS: { id: Filter; label: string }[] = [
 ];
 
 export default function OrdersPage() {
-  const router = useRouter();
-  const { token, isHydrated } = useAuth();
+  const { token } = useRequireAuth();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) return;
     api.listOrders(token).then(setOrders);
-  }, [isHydrated, token, router]);
+  }, [token]);
 
   const visible = useMemo(() => {
     if (!orders) return null;

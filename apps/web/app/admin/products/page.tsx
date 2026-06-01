@@ -8,7 +8,7 @@ import {
   type Product,
   type ProductCategory,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import Modal from '@/components/ui/Modal';
 import Pagination from '@/components/ui/Pagination';
@@ -64,7 +64,7 @@ function toInput(form: FormState): AdminProductInput {
 }
 
 export default function AdminProductsPage() {
-  const { token, user, isHydrated } = useAuth();
+  const { token, user, isHydrated } = useRequireAuth({ requireAdmin: true });
   const toast = useToast();
   const [data, setData] = useState<PagedProducts | null>(null);
   const [page, setPage] = useState(1);
@@ -72,20 +72,6 @@ export default function AdminProductsPage() {
   const [mode, setMode] = useState<'create' | 'edit' | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      window.location.replace('/login');
-      return;
-    }
-    if (user && user.role !== 'ADMIN') {
-      toast.push({ variant: 'error', message: 'Admin role required.' });
-      window.location.replace('/');
-    }
-    // toast is excluded — its context value identity changes each render
-    // and would cause this effect to loop pushing toasts.
-  }, [isHydrated, token, user]);
 
   const reload = useCallback(async () => {
     if (!token) return;

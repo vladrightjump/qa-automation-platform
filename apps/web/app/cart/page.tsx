@@ -1,10 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { api, type Cart } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import Button from '@/components/ui/Button';
 import CartTable from '@/components/CartTable';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import Skeleton from '@/components/ui/Skeleton';
@@ -12,18 +11,13 @@ import EmptyState from '@/components/ui/EmptyState';
 import EmptyCart from '@/components/illustrations/EmptyCart';
 
 export default function CartPage() {
-  const router = useRouter();
-  const { token, isHydrated } = useAuth();
+  const { token } = useRequireAuth();
   const [cart, setCart] = useState<Cart | null>(null);
 
   const load = useCallback(async () => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) return;
     setCart(await api.getCart(token));
-  }, [isHydrated, token, router]);
+  }, [token]);
 
   useEffect(() => {
     void load();
@@ -64,12 +58,9 @@ export default function CartPage() {
           title="Your cart is empty"
           description="Browse the catalog and add a few things to see them here."
           action={
-            <Link
-              href="/"
-              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
-            >
+            <Button as="link" href="/" variant="primary" size="md">
               Browse products
-            </Link>
+            </Button>
           }
         />
       ) : (
@@ -78,14 +69,16 @@ export default function CartPage() {
         </div>
       )}
       {!isEmpty && (
-        <Link
+        <Button
+          as="link"
           href="/checkout"
+          variant="primary"
+          size="md"
           data-testid="cart-checkout"
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium rounded-full transition-all duration-150 active:scale-95"
         >
           Proceed to checkout
           <span aria-hidden="true">→</span>
-        </Link>
+        </Button>
       )}
       <RecentlyViewed excludeId={null} />
     </section>

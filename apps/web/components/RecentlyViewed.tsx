@@ -4,22 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, type Product } from '@/lib/api';
 import { getRecent } from '@/lib/recently-viewed';
-
-const CATEGORY_HUE: Record<string, string> = {
-  gadgets: 'from-[#e3c0aa] to-[#b25c3c]',
-  apparel: 'from-[#e8c8bf] to-[#b56a59]',
-  home: 'from-[#d9dcc4] to-[#6e7256]',
-  office: 'from-[#e9d7a6] to-[#b8862f]',
-};
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface RecentlyViewedProps {
   excludeId?: string | null;
@@ -60,8 +45,7 @@ export default function RecentlyViewed({ excludeId = null }: RecentlyViewedProps
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
         {products.map((p) => {
-          const gradient =
-            CATEGORY_HUE[p.category] ?? 'from-clay-200 to-clay-500';
+          const gradient = categoryGradient(p.category);
           return (
             <Link
               key={p.id}

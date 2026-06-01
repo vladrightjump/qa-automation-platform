@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { api, type Address, type AddressInput } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import Modal from '@/components/ui/Modal';
 
@@ -19,9 +18,8 @@ const EMPTY_FORM: AddressInput = {
 };
 
 export default function AddressesPage() {
-  const router = useRouter();
   const toast = useToast();
-  const { token, isHydrated } = useAuth();
+  const { token, isHydrated } = useRequireAuth();
   const [items, setItems] = useState<Address[] | null>(null);
   const [mode, setMode] = useState<{ kind: 'create' } | { kind: 'edit'; id: string } | null>(
     null,
@@ -39,13 +37,9 @@ export default function AddressesPage() {
   }, [token, toast]);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
+    if (!isHydrated || !token) return;
     void reload();
-  }, [isHydrated, token, router, reload]);
+  }, [isHydrated, token, reload]);
 
   function openCreate() {
     setForm(EMPTY_FORM);
