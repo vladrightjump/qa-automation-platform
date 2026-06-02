@@ -11,6 +11,8 @@ import { AddressesModule } from './addresses/addresses.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { StockAlertsModule } from './stock-alerts/stock-alerts.module';
+import { GeoModule } from './geo/geo.module';
+import { MeModule } from './me/me.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { StockAlertsModule } from './stock-alerts/stock-alerts.module';
     WishlistModule,
     ReviewsModule,
     StockAlertsModule,
+    GeoModule,
+    MeModule,
   ],
 })
 export class AppModule {}

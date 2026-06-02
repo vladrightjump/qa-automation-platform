@@ -115,3 +115,33 @@ export async function upsertPromoCodes(client: PrismaClient): Promise<void> {
     });
   }
 }
+
+// Supported regions for geolocation resolution. Deterministic IDs + canonical
+// city coordinates so `GET /geo/resolve` and its tests stay stable. locale /
+// currency mirror the @qa/contracts LOCALE_CURRENCY map.
+interface SeedRegion {
+  id: string;
+  country: string;
+  name: string;
+  locale: string;
+  currency: string;
+  lat: number;
+  lng: number;
+}
+
+export const REGIONS = {
+  us: { id: 'region_us', country: 'US', name: 'United States', locale: 'en-US', currency: 'USD', lat: 40.7128, lng: -74.006 },
+  de: { id: 'region_de', country: 'DE', name: 'Germany', locale: 'de-DE', currency: 'EUR', lat: 52.52, lng: 13.405 },
+  fr: { id: 'region_fr', country: 'FR', name: 'France', locale: 'fr-FR', currency: 'EUR', lat: 48.8566, lng: 2.3522 },
+} as const satisfies Record<string, SeedRegion>;
+
+export async function upsertRegions(client: PrismaClient): Promise<void> {
+  for (const region of Object.values(REGIONS)) {
+    const { id, ...rest } = region;
+    await client.region.upsert({
+      where: { id },
+      update: rest,
+      create: region,
+    });
+  }
+}

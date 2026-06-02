@@ -2,6 +2,9 @@
 // any structural drift in the API surface fails fast and at the right layer.
 // All TS types are inferred from schemas — single source of truth.
 import { z } from 'zod';
+import { LocaleSchema, CurrencySchema } from './i18n';
+
+export * from './i18n';
 
 export const UserRoleSchema = z.enum(['USER', 'ADMIN']);
 
@@ -9,6 +12,12 @@ export const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   role: UserRoleSchema,
+});
+
+// The authenticated user's own profile, incl. the persisted locale preference
+// (null = not yet set). Returned by PATCH /me/locale.
+export const MeSchema = UserSchema.extend({
+  preferredLocale: LocaleSchema.nullable(),
 });
 
 export const ProductCategorySchema = z.enum(['gadgets', 'apparel', 'home', 'office']);
@@ -212,6 +221,20 @@ export const AuthResultSchema = z.object({
   user: UserSchema,
 });
 
+// Geolocation — a supported region (one per country) and the result of
+// resolving lat/lng to the nearest seeded region. See the i18n module for the
+// locale/currency source of truth.
+export const RegionSchema = z.object({
+  country: z.string().length(2),
+  name: z.string(),
+  locale: LocaleSchema,
+  currency: CurrencySchema,
+});
+
+export const RegionListSchema = z.array(RegionSchema);
+
+export const GeoResolveSchema = RegionSchema;
+
 export const ProductListSchema = z.array(ProductSchema);
 export const OrderListSchema = z.array(OrderSchema);
 
@@ -250,5 +273,8 @@ export type LoyaltyType = z.infer<typeof LoyaltyTypeSchema>;
 export type LoyaltyTransaction = z.infer<typeof LoyaltyTransactionSchema>;
 export type LoyaltyBalance = z.infer<typeof LoyaltyBalanceSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
+export type Me = z.infer<typeof MeSchema>;
+export type Region = z.infer<typeof RegionSchema>;
+export type GeoResolve = z.infer<typeof GeoResolveSchema>;
 
 export { z };

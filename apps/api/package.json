@@ -17,6 +17,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.1.24",
     "@nestjs/swagger": "^11.4.4",
+    "@qa/contracts": "workspace:*",
     "@qa/db": "workspace:*",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",

@@ -45,6 +45,9 @@ model User {
   email     String     @unique
   password  String // hashed by the API in Phase 2
   role      UserRole   @default(USER)
+  // Persisted UI locale preference. null = infer from geo / Accept-Language.
+  // Validated against the LocaleSchema in @qa/contracts at the API boundary.
+  preferredLocale String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   cart      Cart?
@@ -190,6 +193,21 @@ model Address {
   orders     Order[]
 
   @@index([userId])
+}
+
+// A supported shipping/pricing region, one row per country. `GET /geo/resolve`
+// maps a visitor's lat/lng to the nearest region by great-circle distance, and
+// the storefront uses the region's locale/currency as its suggestion. IDs are
+// deterministic (`region_us`, `region_de`, `region_fr`) so fixtures and
+// assertions stay stable across CI shards.
+model Region {
+  id       String @id
+  country  String @unique // ISO-3166-1 alpha-2
+  name     String
+  locale   String // one of @qa/contracts SUPPORTED_LOCALES
+  currency String // "USD" | "EUR"
+  lat      Float
+  lng      Float
 }
 
 model PromoCode {
