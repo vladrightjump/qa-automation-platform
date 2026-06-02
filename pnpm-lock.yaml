@@ -53,6 +53,9 @@ importers:
       '@nestjs/swagger':
         specifier: ^11.4.4
         version: 11.4.4(@nestjs/common@11.1.24(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.24)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
+      '@qa/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@qa/db':
         specifier: workspace:*
         version: link:../../packages/db

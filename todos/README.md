@@ -22,6 +22,7 @@ This plan is split into focused files. **Reference** files hold the standing con
 | 11 — Refactor: web UI primitives + hooks | ✅ Done (uncommitted — product-visual + useRequireAuth; Button adopted as a no-visual-risk subset) |
 | 12 — Refactor: decompose OrdersService | ✅ Done (uncommitted — Promo/Loyalty/Returns services; OrdersService orchestrates) |
 | 13 — Refactor: test ergonomics + tag convention | ✅ Done (uncommitted — seed helpers + native-tag migration; client kept single-file by decision) |
+| 14 — i18n, geolocation & device-emulation matrix | 📋 Planned (feature + test-infra extension) |
 
 **Environment notes (this machine):** Node 20.19.6 (repo pinned to Node 20, not 22) · pnpm 9.15.4 via Corepack · Docker not installed — instead **Postgres 16 installed natively via Homebrew** (`brew services start postgresql@16`), role `qa`/db `qa`. CI will still use the `docker-compose.yml` service.
 
@@ -42,6 +43,7 @@ This plan is split into focused files. **Reference** files hold the standing con
 - ✅ [phase-7-agentic-mcp.md](./phase-7-agentic-mcp.md) — agentic testing layer + Playwright MCP (optional)
 - ✅ [phase-8-documentation.md](./phase-8-documentation.md) — docs & portfolio polish
 - ✅ [phase-9-promo-discovery.md](./phase-9-promo-discovery.md) — promo discovery (coupons under test)
+- 📋 [phase-14-i18n-geolocation-devices.md](./phase-14-i18n-geolocation-devices.md) — i18n + geolocation (SUT) + built-in mobile/tablet emulation matrix
 
 ## Refactoring track (behaviour-preserving — execute in order; suite is the safety net)
 - ✅ [phase-10-refactor-contracts-sot.md](./phase-10-refactor-contracts-sot.md) — web consumes `@qa/contracts` types (kill 33 duplicates)
