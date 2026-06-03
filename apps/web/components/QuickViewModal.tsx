@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Modal from '@/components/ui/Modal';
 import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useLocale } from '@/lib/i18n';
 import { useToast } from '@/components/ui/ToastQueue';
 import { categoryGradient, initials } from '@/lib/product-visual';
 
@@ -18,6 +19,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
   const router = useRouter();
   const toast = useToast();
   const { token, refreshCartCount } = useAuth();
+  const { t, formatMoney } = useLocale();
   const [busy, setBusy] = useState(false);
 
   async function add() {
@@ -79,10 +81,10 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
 
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-ink">
-              ${(product.priceCents / 100).toFixed(2)}
+              {formatMoney(product.priceCents)}
             </p>
             <span className="text-xs text-ink-faint">
-              {oos ? 'Sold out' : `${product.stock} in stock`}
+              {oos ? t('product.soldOut') : `${product.stock} in stock`}
             </span>
           </div>
 

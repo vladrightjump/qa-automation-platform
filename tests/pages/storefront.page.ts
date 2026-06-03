@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import type { ProductCategory, ProductSort } from '@qa/contracts';
+import type { Locale, ProductCategory, ProductSort } from '@qa/contracts';
 
 /**
  * Page Object for the product list / storefront home.
@@ -98,5 +98,43 @@ export class StorefrontPage {
 
   productCards(): Locator {
     return this.page.locator('[data-testid^="product-card-"]');
+  }
+
+  // --- i18n / geo ---
+
+  localeSwitcher(): Locator {
+    return this.page.getByTestId('locale-switcher');
+  }
+
+  async selectLocale(locale: Locale): Promise<void> {
+    await this.localeSwitcher().selectOption(locale);
+  }
+
+  productPrice(productId: string): Locator {
+    return this.page.getByTestId(`product-price-${productId}`);
+  }
+
+  geoBanner(): Locator {
+    return this.page.getByTestId('geo-banner');
+  }
+
+  geoSuggestion(): Locator {
+    return this.page.getByTestId('geo-suggestion');
+  }
+
+  async acceptGeo(): Promise<void> {
+    await this.page.getByTestId('geo-accept').click();
+  }
+
+  async dismissGeo(): Promise<void> {
+    await this.page.getByTestId('geo-dismiss').click();
+  }
+
+  geoFallback(): Locator {
+    return this.page.getByTestId('geo-fallback');
+  }
+
+  geoRegionSelect(): Locator {
+    return this.page.getByTestId('geo-region-select');
   }
 }

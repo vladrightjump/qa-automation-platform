@@ -13,6 +13,7 @@ import {
   type PromoPreview,
 } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
+import { useLocale } from '@/lib/i18n';
 import Toast from '@/components/Toast';
 import { useToast } from '@/components/ui/ToastQueue';
 import Button from '@/components/ui/Button';
@@ -55,6 +56,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const toast = useToast();
   const { token, isHydrated, refreshCartCount } = useRequireAuth();
+  const { t, formatMoney } = useLocale();
   const [step, setStep] = useState<Step>('address');
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -116,7 +118,7 @@ export default function CheckoutPage() {
       setPromo(preview);
       toast.push({
         variant: 'success',
-        message: `Applied ${preview.code} (-$${(preview.discountCents / 100).toFixed(2)})`,
+        message: `Applied ${preview.code} (-${formatMoney(preview.discountCents)})`,
       });
     } catch (e) {
       setPromo(null);
@@ -446,7 +448,7 @@ export default function CheckoutPage() {
                     {i.product.name} × {i.quantity}
                   </span>
                   <span className="font-mono">
-                    ${((i.product.priceCents * i.quantity) / 100).toFixed(2)}
+                    {formatMoney(i.product.priceCents * i.quantity)}
                   </span>
                 </li>
               ))}
@@ -477,7 +479,7 @@ export default function CheckoutPage() {
                           data-testid={`promo-deal-locked-${d.code}`}
                           className="text-xs text-ink-faint"
                         >
-                          Spend ${(d.minSpendCents / 100).toFixed(2)} to unlock
+                          Spend {formatMoney(d.minSpendCents)} to unlock
                         </span>
                       ) : (
                         <button
@@ -504,7 +506,7 @@ export default function CheckoutPage() {
                   data-testid="checkout-promo-applied"
                   className="text-green-700 font-mono"
                 >
-                  {promo.code} (-${(promo.discountCents / 100).toFixed(2)})
+                  {promo.code} (-{formatMoney(promo.discountCents)})
                 </span>
                 <button
                   type="button"
@@ -608,46 +610,46 @@ export default function CheckoutPage() {
                     {i.product.name} × {i.quantity}
                   </span>
                   <span className="font-mono shrink-0">
-                    ${((i.product.priceCents * i.quantity) / 100).toFixed(2)}
+                    {formatMoney(i.product.priceCents * i.quantity)}
                   </span>
                 </li>
               ))}
             </ul>
           )}
           <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t pt-2 text-ink-soft">
-            <dt>Subtotal</dt>
+            <dt>{t('checkout.subtotal')}</dt>
             <dd
               data-testid="checkout-summary-subtotal"
               className="font-mono text-right"
             >
-              ${(subtotalCents / 100).toFixed(2)}
+              {formatMoney(subtotalCents)}
             </dd>
-            <dt>Discount</dt>
+            <dt>{t('checkout.discount')}</dt>
             <dd
               data-testid="checkout-summary-discount"
               className="font-mono text-right"
             >
-              -${(discountCents / 100).toFixed(2)}
+              -{formatMoney(discountCents)}
             </dd>
             {redeemCents > 0 && (
               <>
-                <dt>Store credit</dt>
+                <dt>{t('checkout.loyalty')}</dt>
                 <dd
                   data-testid="checkout-summary-loyalty"
                   className="font-mono text-right text-amber-700"
                 >
-                  -${(redeemCents / 100).toFixed(2)}
+                  -{formatMoney(redeemCents)}
                 </dd>
               </>
             )}
             <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-ink">
-              Total
+              {t('checkout.total')}
             </dt>
             <dd
               data-testid="checkout-summary-total"
               className="col-start-2 border-t pt-1.5 mt-1 font-mono font-semibold text-ink text-right"
             >
-              ${(totalCents / 100).toFixed(2)}
+              {formatMoney(totalCents)}
             </dd>
           </dl>
 
@@ -666,7 +668,7 @@ export default function CheckoutPage() {
               <span>
                 Apply store credit{' '}
                 <span data-testid="checkout-loyalty-balance" className="font-mono">
-                  ${(loyaltyBalance / 100).toFixed(2)}
+                  {formatMoney(loyaltyBalance)}
                 </span>
               </span>
             </label>

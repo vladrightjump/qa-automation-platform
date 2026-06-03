@@ -61,7 +61,8 @@ per feature also carries `@sanity`.
 | `@regression` | Fuller happy + unhappy coverage; full suite on `main`. |
 | `@a11y` | axe-core / ARIA-contract checks. |
 | `@network` | `page.route` mocking / resilience scenarios. |
-| `@mobile` | Mobile-viewport-specific (runs in `chromium-mobile`). |
+| `@mobile` | Phone form factor (runs in `chromium-mobile` + `webkit-mobile`). |
+| `@tablet` | Tablet form factor (runs in `tablet-ipad` + `tablet-android`). |
 
 | Feature tag | Area |
 |-------------|------|
@@ -79,6 +80,8 @@ per feature also carries `@sanity`.
 | `@returns` | Order returns / RMA request flow |
 | `@stock-alert` | Back-in-stock "notify me" subscriptions |
 | `@loyalty` | Loyalty points / store credit (earn + redeem) |
+| `@i18n` | Locale switcher, translated strings, `formatMoney` |
+| `@geo` | `GET /geo/resolve` + `/geo/regions`, `PATCH /me/locale`, GeoBanner |
 
 > **Note:** every spec — `tests/api/*` and `tests/e2e/*` — now uses native
 > Playwright `tag: [...]` arrays carrying the `@smoke`/`@regression` tier plus a
@@ -102,7 +105,7 @@ Rules:
 
 Current `@sanity` set (one per feature): `@auth`, `@catalog`, `@cart`,
 `@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`,
-`@returns`, `@admin-orders`, `@stock-alert`, `@loyalty`.
+`@returns`, `@admin-orders`, `@stock-alert`, `@loyalty`, `@i18n`, `@geo`.
 
 ---
 
@@ -114,6 +117,9 @@ pnpm --filter @qa/tests test:smoke         # all @smoke
 pnpm --filter @qa/tests test:regression    # all @regression
 pnpm --filter @qa/tests test:a11y          # all @a11y
 pnpm --filter @qa/tests test:feature @cart # any feature (passes through to --grep)
+pnpm --filter @qa/tests test:mobile        # chromium-mobile + webkit-mobile
+pnpm --filter @qa/tests test:tablet        # tablet-ipad + tablet-android
+pnpm --filter @qa/tests test:visual        # storefront + tablet visual baselines
 pnpm --filter @qa/tests test               # full suite (chromium-desktop)
 ```
 

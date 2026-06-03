@@ -1,0 +1,47 @@
+{
+  "nav": {
+    "bag": "Panier",
+    "wishlist": "Favoris",
+    "orders": "Commandes",
+    "admin": "Admin",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter"
+  },
+  "product": {
+    "addToCart": "Ajouter au panier",
+    "outOfStock": "Indisponible",
+    "soldOut": "Épuisé",
+    "lowStock": "Stock faible",
+    "adding": "Ajout…"
+  },
+  "cart": {
+    "title": "Votre panier",
+    "empty": "Votre panier est vide.",
+    "subtotal": "Sous-total",
+    "item": "Article",
+    "qty": "Qté",
+    "remove": "Retirer",
+    "checkout": "Passer la commande",
+    "pricesIn": "Prix affichés en {currency}"
+  },
+  "checkout": {
+    "review": "Vérifier la commande",
+    "subtotal": "Sous-total",
+    "discount": "Remise",
+    "loyalty": "Fidélité",
+    "total": "Total"
+  },
+  "geo": {
+    "shippingTo": "Livraison vers {flag} {country} — prix en {currency}",
+    "change": "Changer",
+    "accept": "C'est bon",
+    "dismiss": "Fermer",
+    "pickRegion": "Choisir votre région"
+  },
+  "locale": {
+    "label": "Langue",
+    "en-US": "English (US)",
+    "de-DE": "Deutsch (DE)",
+    "fr-FR": "Français (FR)"
+  }
+}
