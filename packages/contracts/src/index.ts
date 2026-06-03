@@ -104,6 +104,36 @@ export const RecommendationSchema = z.object({
 
 export const RecommendationListSchema = z.array(RecommendationSchema);
 
+// Phase 15c — admin sales metrics. Single aggregation over Order × OrderItem
+// × Product for paid + fulfilled orders inside [from, to]. Cached server-side
+// (30s TTL) and busted by any admin product mutation.
+export const SalesMetricsCategorySchema = z.object({
+  category: ProductCategorySchema,
+  revenueCents: z.number().int().nonnegative(),
+  orderCount: z.number().int().nonnegative(),
+});
+
+export const SalesMetricsTopProductSchema = z.object({
+  productId: z.string(),
+  name: z.string(),
+  unitsSold: z.number().int().nonnegative(),
+  revenueCents: z.number().int().nonnegative(),
+});
+
+export const SalesMetricsRangeSchema = z.object({
+  fromIso: z.string(),
+  toIso: z.string(),
+});
+
+export const SalesMetricsSchema = z.object({
+  totalRevenueCents: z.number().int().nonnegative(),
+  orderCount: z.number().int().nonnegative(),
+  averageOrderValueCents: z.number().int().nonnegative(),
+  byCategory: z.array(SalesMetricsCategorySchema),
+  topProducts: z.array(SalesMetricsTopProductSchema),
+  range: SalesMetricsRangeSchema,
+});
+
 export const CartItemSchema = z.object({
   id: z.string(),
   cartId: z.string(),
@@ -312,6 +342,10 @@ export type PagedSearch = z.infer<typeof PagedSearchSchema>;
 export type Suggestion = z.infer<typeof SuggestionSchema>;
 export type RecommendationKind = z.infer<typeof RecommendationKindSchema>;
 export type Recommendation = z.infer<typeof RecommendationSchema>;
+export type SalesMetricsCategory = z.infer<typeof SalesMetricsCategorySchema>;
+export type SalesMetricsTopProduct = z.infer<typeof SalesMetricsTopProductSchema>;
+export type SalesMetricsRange = z.infer<typeof SalesMetricsRangeSchema>;
+export type SalesMetrics = z.infer<typeof SalesMetricsSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;

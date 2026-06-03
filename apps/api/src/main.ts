@@ -12,7 +12,14 @@ async function bootstrap(): Promise<void> {
   // CORS: the storefront (localhost:3000) and Playwright (file://) both hit
   // this from another origin. Permissive in dev/CI; lock down by origin in
   // a real prod deploy.
-  app.enableCors({ origin: true, credentials: true });
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    // Surface the X-Cache observability header to the browser so the
+    // admin/metrics page (and any future client) can read it via
+    // `response.headers.get('x-cache')`.
+    exposedHeaders: ['X-Cache'],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

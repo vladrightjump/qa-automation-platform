@@ -25,6 +25,7 @@ import type {
   PromoPreview,
   Recommendation,
   Return as OrderReturn,
+  SalesMetrics,
   ReturnStatus,
   Review,
   ReviewSummary,
@@ -64,6 +65,7 @@ export type {
   PromoPreview,
   Recommendation,
   ReturnStatus,
+  SalesMetrics,
   Review,
   ReviewSummary,
   StockAlert,
@@ -176,6 +178,44 @@ export const api = {
   suggestProducts: (q: string, limit = 8) => {
     const params = new URLSearchParams({ q, limit: String(limit) });
     return request<Suggestion[]>(`/products/suggestions?${params.toString()}`);
+  },
+
+  // Admin sales metrics (phase 15c). Returns the body + the X-Cache
+// header so the dev-only "cache state" chip on /admin/metrics can show
+// hit/miss for reviewers.
+  adminGetSalesMetricsWithCache: async (
+    token: string,
+    fromIso?: string,
+    toIso?: string,
+  ): Promise<{ data: SalesMetrics; cacheState: string | null }> => {
+    const params = new URLSearchParams();
+    if (fromIso) params.set('from', fromIso);
+    if (toIso) params.set('to', toIso);
+    const qs = params.toString();
+    const url = `${BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
+    // Intentionally NOT using `cache: 'no-store'` here: the browser
+    // translates that into a request `Cache-Control: no-cache` header,
+    // which the server-side CacheInterceptor honours by serving
+    // `X-Cache: bypass`. We want the natural miss → hit progression so
+    // the dev-only chip can demonstrate the cache contract end-to-end.
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const text = await res.text();
+    const body: unknown = text ? JSON.parse(text) : null;
+    if (!res.ok) {
+      const msg =
+        (body as { message?: string | string[] } | null)?.message ??
+        `${res.status} ${res.statusText}`;
+      throw new ApiError(
+        Array.isArray(msg) ? msg.join(', ') : String(msg),
+        res.status,
+      );
+    }
+    return {
+      data: body as SalesMetrics,
+      cacheState: res.headers.get('x-cache'),
+    };
   },
 
   // Recommendations (phase 15b). Authed; reads recently-viewed IDs from the

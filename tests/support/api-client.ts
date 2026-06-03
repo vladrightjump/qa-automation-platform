@@ -29,6 +29,7 @@ import {
   PromoPreviewSchema,
   RecommendationListSchema,
   RegionListSchema,
+  SalesMetricsSchema,
   ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
@@ -55,6 +56,7 @@ import {
   type PromoPreview,
   type Recommendation,
   type Region,
+  type SalesMetrics,
   type Return,
   type Review,
   type ReviewSummary,
@@ -574,6 +576,39 @@ export class ApiClient {
     if (!res.ok()) {
       throw new Error(`adminDeleteProduct: ${res.status()} ${await res.text()}`);
     }
+  }
+
+  // --- admin/metrics (phase 15c) ---
+
+  async adminGetSalesMetrics(
+    token: string,
+    range: { from?: string; to?: string } = {},
+  ): Promise<SalesMetrics> {
+    const params = new URLSearchParams();
+    if (range.from) params.set('from', range.from);
+    if (range.to) params.set('to', range.to);
+    const qs = params.toString();
+    const url = `${API_BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
+    const res = await this.request.get(url, { headers: authHeader(token) });
+    if (!res.ok()) {
+      throw new Error(`adminGetSalesMetrics: ${res.status()} ${await res.text()}`);
+    }
+    return SalesMetricsSchema.parse(await res.json());
+  }
+
+  adminGetSalesMetricsRaw(
+    token: string | undefined,
+    range: { from?: string; to?: string } = {},
+    headers: Record<string, string> = {},
+  ) {
+    const params = new URLSearchParams();
+    if (range.from) params.set('from', range.from);
+    if (range.to) params.set('to', range.to);
+    const qs = params.toString();
+    const url = `${API_BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
+    return this.request.get(url, {
+      headers: { ...authHeader(token), ...headers },
+    });
   }
 
   // --- admin/orders ---
