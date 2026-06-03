@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
+import { CacheModule } from './cache/cache.module';
+import { SearchModule } from './search/search.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
@@ -23,6 +25,10 @@ import { MeModule } from './me/me.module';
       signOptions: { expiresIn: '1d' },
     }),
     AuthModule,
+    CacheModule,
+    // SearchModule before ProductsModule so /products/search +
+    // /products/suggestions are matched before /products/:id.
+    SearchModule,
     ProductsModule,
     CartModule,
     OrdersModule,

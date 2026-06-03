@@ -145,3 +145,73 @@ export async function upsertRegions(client: PrismaClient): Promise<void> {
     });
   }
 }
+
+// Bulk product seed — drives the perf suite. Deterministic by seed: the same
+// `(count, rngSeed)` pair produces the same IDs, names, prices, and tags so
+// percentile assertions and relevance assertions stay stable across runs.
+//
+// IDs are prefixed `bulk_<rngSeed>_<i>` so the bulk set never collides with
+// the canonical `prod_widget`/`prod_gizmo` seeded fixtures.
+const ADJECTIVES = [
+  'compact', 'rugged', 'sleek', 'modular', 'silent', 'bright', 'cosmic',
+  'minimal', 'ergonomic', 'durable', 'portable', 'classic', 'modern', 'vibrant',
+  'precision', 'urban', 'arctic', 'industrial', 'wireless', 'eco',
+];
+const NOUNS = [
+  'lamp', 'mug', 'speaker', 'chair', 'desk', 'pen', 'notebook', 'backpack',
+  'jacket', 'watch', 'kettle', 'planter', 'mat', 'cable', 'mouse', 'keyboard',
+  'monitor', 'stand', 'pillow', 'rug',
+];
+const CATEGORIES = ['gadgets', 'apparel', 'home', 'office'] as const;
+
+// 32-bit Mulberry RNG — tiny, deterministic, no dep. Same seed → same stream.
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pick<T>(rng: () => number, arr: readonly T[]): T {
+  return arr[Math.floor(rng() * arr.length)]!;
+}
+
+export interface BulkSeedResult {
+  /** Number of rows inserted (excludes ones that already existed). */
+  inserted: number;
+  /** Total rows now in the DB. */
+  total: number;
+}
+
+export async function seedBulkProducts(
+  client: PrismaClient,
+  count: number,
+  rngSeed = 42,
+): Promise<BulkSeedResult> {
+  const rng = mulberry32(rngSeed);
+  // createMany skips duplicate primary keys on conflict so the seed is
+  // idempotent. Same (count, seed) → same set, no churn on repeated calls.
+  const rows = Array.from({ length: count }, (_, i) => {
+    const adj = pick(rng, ADJECTIVES);
+    const noun = pick(rng, NOUNS);
+    const category = pick(rng, CATEGORIES);
+    const priceCents = 500 + Math.floor(rng() * 9500); // $5..$100
+    const stock = 5 + Math.floor(rng() * 95); // 5..100
+    return {
+      id: `bulk_${rngSeed}_${i}`,
+      name: `${adj[0]!.toUpperCase()}${adj.slice(1)} ${noun}`,
+      description: `A ${adj} ${noun} for the discerning shopper.`,
+      priceCents,
+      stock,
+      category,
+      tags: [adj, noun, category],
+    };
+  });
+  const result = await client.product.createMany({ data: rows, skipDuplicates: true });
+  const total = await client.product.count();
+  return { inserted: result.count, total };
+}

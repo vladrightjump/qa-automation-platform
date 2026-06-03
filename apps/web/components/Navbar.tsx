@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import LocaleSwitcher from './LocaleSwitcher';
+import SearchBox from './SearchBox';
 
 export default function Navbar() {
   const { token, user, cartCount, clear } = useAuth();
@@ -40,6 +41,10 @@ export default function Navbar() {
             est. 26
           </span>
         </Link>
+
+        <div className="hidden md:block flex-1 mx-6">
+          <SearchBox />
+        </div>
 
         <div className="flex items-center gap-0.5 sm:gap-1 text-sm">
           <LocaleSwitcher />

@@ -23,6 +23,7 @@ import {
   PagedOrdersSchema,
   PagedProductsSchema,
   PagedReviewsSchema,
+  PagedSearchSchema,
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
@@ -32,6 +33,7 @@ import {
   ReviewSummarySchema,
   StockAlertListSchema,
   StockAlertSchema,
+  SuggestionListSchema,
   WishlistSchema,
   z,
   type Address,
@@ -42,6 +44,7 @@ import {
   type Order,
   type PagedProducts,
   type PagedReviews,
+  type PagedSearch,
   type PaymentMethod,
   type OrderStatus,
   type Product,
@@ -54,6 +57,7 @@ import {
   type Review,
   type ReviewSummary,
   type StockAlert,
+  type Suggestion,
   type Wishlist,
 } from '@qa/contracts';
 
@@ -125,6 +129,87 @@ export class ApiClient {
     const res = await this.request.get(`${API_BASE}/products/${id}`);
     if (!res.ok()) throw new Error(`getProduct(${id}): ${res.status()}`);
     return ProductSchema.parse(await res.json());
+  }
+
+  // --- search + suggestions (phase 15a) ---
+
+  // Raw variant kept so cache-spec tests can read response headers
+  // (X-Cache: hit/miss/bypass) directly.
+  listProductsRaw(query: ListProductsQuery = {}, headers: Record<string, string> = {}) {
+    const params = new URLSearchParams();
+    if (query.q) params.set('q', query.q);
+    if (query.category)
+      for (const c of query.category) params.append('category', c);
+    if (query.minPriceCents != null)
+      params.set('minPriceCents', String(query.minPriceCents));
+    if (query.maxPriceCents != null)
+      params.set('maxPriceCents', String(query.maxPriceCents));
+    if (query.sort) params.set('sort', query.sort);
+    if (query.page) params.set('page', String(query.page));
+    if (query.pageSize) params.set('pageSize', String(query.pageSize));
+    const qs = params.toString();
+    const url = qs ? `${API_BASE}/products?${qs}` : `${API_BASE}/products`;
+    return this.request.get(url, { headers });
+  }
+
+  async searchProducts(
+    q: string,
+    page = 1,
+    pageSize = 12,
+  ): Promise<PagedSearch> {
+    const params = new URLSearchParams({
+      q,
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    const res = await this.request.get(
+      `${API_BASE}/products/search?${params.toString()}`,
+    );
+    if (!res.ok()) {
+      throw new Error(`searchProducts: ${res.status()} ${await res.text()}`);
+    }
+    return PagedSearchSchema.parse(await res.json());
+  }
+
+  searchProductsRaw(q: string | undefined, page = 1, pageSize = 12) {
+    const params = new URLSearchParams();
+    if (q !== undefined) params.set('q', q);
+    params.set('page', String(page));
+    params.set('pageSize', String(pageSize));
+    return this.request.get(`${API_BASE}/products/search?${params.toString()}`);
+  }
+
+  async suggestProducts(q: string, limit = 8): Promise<Suggestion[]> {
+    const params = new URLSearchParams({ q, limit: String(limit) });
+    const res = await this.request.get(
+      `${API_BASE}/products/suggestions?${params.toString()}`,
+    );
+    if (!res.ok()) {
+      throw new Error(`suggestProducts: ${res.status()} ${await res.text()}`);
+    }
+    return SuggestionListSchema.parse(await res.json());
+  }
+
+  suggestProductsRaw(q: string | undefined, limit?: number) {
+    const params = new URLSearchParams();
+    if (q !== undefined) params.set('q', q);
+    if (limit !== undefined) params.set('limit', String(limit));
+    return this.request.get(
+      `${API_BASE}/products/suggestions?${params.toString()}`,
+    );
+  }
+
+  async bulkSeedProducts(count: number, rngSeed = 42): Promise<{
+    inserted: number;
+    total: number;
+  }> {
+    const res = await this.request.post(`${API_BASE}/test/bulk-seed-products`, {
+      data: { count, rngSeed },
+    });
+    if (!res.ok()) {
+      throw new Error(`bulkSeedProducts: ${res.status()} ${await res.text()}`);
+    }
+    return (await res.json()) as { inserted: number; total: number };
   }
 
   // --- cart ---
