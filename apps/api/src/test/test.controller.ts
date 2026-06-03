@@ -2,6 +2,7 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   prisma,
+  refreshRecommendationView,
   seedBulkProducts,
   upsertAdmin,
   upsertPromoCodes,
@@ -49,5 +50,16 @@ export class TestController {
     const result = await seedBulkProducts(prisma, dto.count, dto.rngSeed ?? 42);
     this.cache.invalidatePrefix('/products');
     return result;
+  }
+
+  /**
+   * Refreshes the RecommendationView materialized view. Called by tests
+   * that seed new paid orders and want the collaborative signal to
+   * reflect them before asserting on /recommendations.
+   */
+  @Post('refresh-recommendation-view')
+  async refreshRecommendationView() {
+    await refreshRecommendationView(prisma);
+    return { ok: true };
   }
 }

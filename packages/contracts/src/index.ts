@@ -83,6 +83,27 @@ export const SuggestionSchema = z.object({
 
 export const SuggestionListSchema = z.array(SuggestionSchema);
 
+// Phase 15b — recommendations. Three signal sources unioned into a single
+// ranked list per request:
+//   recently-viewed — same-category products from the X-Recently-Viewed header
+//   same-category   — categories from the user's most-recent paid order
+//   collaborative   — co-occurrence counts from RecommendationView (materialized)
+// Scoring is deterministic so e2e tests can pin top-N.
+export const RecommendationKindSchema = z.enum([
+  'recently-viewed',
+  'same-category',
+  'collaborative',
+]);
+
+export const RecommendationSchema = z.object({
+  kind: RecommendationKindSchema,
+  product: ProductSchema,
+  score: z.number(),
+  reason: z.string(),
+});
+
+export const RecommendationListSchema = z.array(RecommendationSchema);
+
 export const CartItemSchema = z.object({
   id: z.string(),
   cartId: z.string(),
@@ -289,6 +310,8 @@ export type SearchHighlights = z.infer<typeof SearchHighlightsSchema>;
 export type ProductSearchResult = z.infer<typeof ProductSearchResultSchema>;
 export type PagedSearch = z.infer<typeof PagedSearchSchema>;
 export type Suggestion = z.infer<typeof SuggestionSchema>;
+export type RecommendationKind = z.infer<typeof RecommendationKindSchema>;
+export type Recommendation = z.infer<typeof RecommendationSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;

@@ -18,7 +18,11 @@ test.describe('recently viewed (UI)', () => {
       authedPage.getByTestId('product-card-prod_gizmo'),
     ).toBeVisible();
 
-    await authedPage.goto('/');
+    // The `/products/[id]` route still shows the RecentlyViewed strip
+    // (the home + cart routes now use the richer <Recommendations>; see
+    // tests/e2e/recommendations.e2e.spec.ts for that surface). Navigate to
+    // a third product so the previously-viewed two appear in the strip.
+    await authedPage.goto('/products/prod_thingamajig');
     const strip = authedPage.getByTestId('recently-viewed');
     await expect(strip).toBeVisible();
     await expect(

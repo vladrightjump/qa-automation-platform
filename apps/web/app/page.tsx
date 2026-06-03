@@ -13,7 +13,7 @@ import ProductCard from '@/components/ProductCard';
 import Toast from '@/components/Toast';
 import Hero from '@/components/Hero';
 import QuickViewModal from '@/components/QuickViewModal';
-import RecentlyViewed from '@/components/RecentlyViewed';
+import Recommendations from '@/components/Recommendations';
 import Pagination from '@/components/ui/Pagination';
 import PriceRangeSlider from '@/components/ui/PriceRangeSlider';
 import Select from '@/components/ui/Select';
@@ -192,7 +192,7 @@ function HomePageInner() {
   return (
     <section className="space-y-8">
       <Hero />
-      <RecentlyViewed excludeId={null} />
+      <Recommendations excludeId={null} />
       {err && <Toast message={err} />}
 
       <div id="catalog" className="grid gap-6 md:grid-cols-[240px_1fr]">

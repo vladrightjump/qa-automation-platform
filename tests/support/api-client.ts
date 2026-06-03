@@ -27,6 +27,7 @@ import {
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
+  RecommendationListSchema,
   RegionListSchema,
   ReturnSchema,
   ReviewSchema,
@@ -52,6 +53,7 @@ import {
   type ProductSort,
   type PromoCode,
   type PromoPreview,
+  type Recommendation,
   type Region,
   type Return,
   type Review,
@@ -197,6 +199,40 @@ export class ApiClient {
     return this.request.get(
       `${API_BASE}/products/suggestions?${params.toString()}`,
     );
+  }
+
+  // --- recommendations (phase 15b) ---
+
+  async getRecommendations(
+    token: string,
+    recentlyViewed: string[] = [],
+  ): Promise<Recommendation[]> {
+    const headers: Record<string, string> = { ...authHeader(token) };
+    if (recentlyViewed.length > 0) {
+      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
+    }
+    const res = await this.request.get(`${API_BASE}/recommendations`, { headers });
+    if (!res.ok()) {
+      throw new Error(`getRecommendations: ${res.status()} ${await res.text()}`);
+    }
+    return RecommendationListSchema.parse(await res.json());
+  }
+
+  getRecommendationsRaw(token: string | undefined, recentlyViewed: string[] = []) {
+    const headers: Record<string, string> = { ...authHeader(token) };
+    if (recentlyViewed.length > 0) {
+      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
+    }
+    return this.request.get(`${API_BASE}/recommendations`, { headers });
+  }
+
+  async refreshRecommendationView(): Promise<void> {
+    const res = await this.request.post(
+      `${API_BASE}/test/refresh-recommendation-view`,
+    );
+    if (!res.ok()) {
+      throw new Error(`refreshRecommendationView: ${res.status()} ${await res.text()}`);
+    }
   }
 
   async bulkSeedProducts(count: number, rngSeed = 42): Promise<{

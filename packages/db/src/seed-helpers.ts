@@ -215,3 +215,11 @@ export async function seedBulkProducts(
   const total = await client.product.count();
   return { inserted: result.count, total };
 }
+
+// Refreshes the RecommendationView materialized view. Called by the
+// env-gated test seam (POST /test/refresh-recommendation-view) after bulk
+// seeding or after creating new paid orders in a test. Cheap on the test
+// SUT — refresh is non-concurrent.
+export async function refreshRecommendationView(client: PrismaClient): Promise<void> {
+  await client.$executeRawUnsafe('REFRESH MATERIALIZED VIEW "RecommendationView"');
+}

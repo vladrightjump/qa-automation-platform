@@ -84,6 +84,7 @@ per feature also carries `@sanity`.
 | `@geo` | `GET /geo/resolve` + `/geo/regions`, `PATCH /me/locale`, GeoBanner |
 | `@search` | Full-text search + autocomplete (`GET /products/search`, `/products/suggestions`) |
 | `@cache` | `X-Cache: hit/miss/bypass` header contract + admin-mutation invalidation |
+| `@recommendations` | `GET /recommendations` (collaborative + same-category + recently-viewed) + carousel |
 
 > **Note:** every spec — `tests/api/*` and `tests/e2e/*` — now uses native
 > Playwright `tag: [...]` arrays carrying the `@smoke`/`@regression` tier plus a
@@ -107,7 +108,8 @@ Rules:
 
 Current `@sanity` set (one per feature): `@auth`, `@catalog`, `@cart`,
 `@checkout`, `@orders`, `@reviews`, `@wishlist`, `@addresses`, `@admin`, `@promo`,
-`@returns`, `@admin-orders`, `@stock-alert`, `@loyalty`, `@i18n`, `@geo`, `@search`.
+`@returns`, `@admin-orders`, `@stock-alert`, `@loyalty`, `@i18n`, `@geo`, `@search`,
+`@recommendations`.
 
 ---
 

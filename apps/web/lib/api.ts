@@ -23,6 +23,7 @@ import type {
   ProductSort,
   PromoCode,
   PromoPreview,
+  Recommendation,
   Return as OrderReturn,
   ReturnStatus,
   Review,
@@ -61,6 +62,7 @@ export type {
   ProductSort,
   PromoCode,
   PromoPreview,
+  Recommendation,
   ReturnStatus,
   Review,
   ReviewSummary,
@@ -174,6 +176,21 @@ export const api = {
   suggestProducts: (q: string, limit = 8) => {
     const params = new URLSearchParams({ q, limit: String(limit) });
     return request<Suggestion[]>(`/products/suggestions?${params.toString()}`);
+  },
+
+  // Recommendations (phase 15b). Authed; reads recently-viewed IDs from the
+  // X-Recently-Viewed header so the server can union them with same-category
+  // + collaborative signals.
+  getRecommendations: (token: string, recentlyViewed: string[] = []) => {
+    const headers: Record<string, string> = {};
+    if (recentlyViewed.length > 0) {
+      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
+    }
+    return request<Recommendation[]>(
+      '/recommendations',
+      { headers },
+      token,
+    );
   },
 
   // ---- back-in-stock alerts ----
