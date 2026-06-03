@@ -2,6 +2,7 @@ import { defineConfig, devices, type ReporterDescription } from '@playwright/tes
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PHONE_PROJECTS, TABLET_PROJECTS } from './support/devices';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -68,18 +69,27 @@ export default defineConfig({
       testIgnore: ['**/*.visual.spec.ts'],
     },
 
-    // 3. Mobile viewport — only @smoke + @mobile-tagged specs. Uses the
-    //    per-test fixture auth path (not storageState) so the existing
-    //    specs run unchanged.
-    {
-      name: 'chromium-mobile',
-      use: { ...devices['Pixel 5'] },
+    // 3. Phone form factors — both engines, @smoke + @mobile tags only.
+    //    Matrix lives in tests/support/devices.ts so the config stays terse.
+    ...PHONE_PROJECTS.map((p) => ({
+      name: p.name,
+      use: { ...devices[p.device] },
       dependencies: ['setup'],
-      grep: /@smoke|@mobile/,
+      grep: p.grep,
       testIgnore: ['**/*.visual.spec.ts'],
-    },
+    })),
 
-    // 4. Cross-browser smoke — webkit @smoke only, keeps CI minutes sane.
+    // 4. Tablet form factors — iPad (webkit) + Galaxy Tab S4 (chromium).
+    //    @smoke + @tablet tags; responsive layout assertions land here.
+    ...TABLET_PROJECTS.map((p) => ({
+      name: p.name,
+      use: { ...devices[p.device] },
+      dependencies: ['setup'],
+      grep: p.grep,
+      testIgnore: ['**/*.visual.spec.ts'],
+    })),
+
+    // 5. Cross-browser smoke — webkit @smoke only, keeps CI minutes sane.
     //    Also uses the per-test fixture auth path.
     {
       name: 'webkit',
@@ -89,15 +99,31 @@ export default defineConfig({
       testIgnore: ['**/*.visual.spec.ts'],
     },
 
-    // 5. Visual regression — separate project so screenshots don't run
+    // 6. Visual regression — separate project so screenshots don't run
     //    in every shard. *Uses* storageState so visual specs land on a
     //    deterministic logged-in page without spinning up a per-test user.
-    //    Trace + screenshot are forced on for diff debugging.
+    //    Trace + screenshot are forced on for diff debugging. Excludes
+    //    `tablet.visual.spec.ts` — that's owned by the tablet-visual project.
     {
       name: 'visual',
       testMatch: /.*\.visual\.spec\.ts/,
+      testIgnore: ['**/tablet.visual.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
+        storageState: USER_STATE,
+        trace: 'on',
+        screenshot: 'on',
+      },
+      dependencies: ['setup'],
+    },
+
+    // 7. Tablet visual baselines — iPad descriptor for screenshot diffs
+    //    on the localized storefront at tablet width.
+    {
+      name: 'tablet-visual',
+      testMatch: /.*tablet\.visual\.spec\.ts/,
+      use: {
+        ...devices['iPad (gen 7)'],
         storageState: USER_STATE,
         trace: 'on',
         screenshot: 'on',

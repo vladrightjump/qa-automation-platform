@@ -165,7 +165,7 @@ The Playwright suite is layered to demonstrate the framework's full surface, not
 | **Network mocking** | `tests/e2e/network-mocking.e2e.spec.ts` | `page.route` covering 500 / 401 / slow / contract-drift paths — exercises UI states the real backend can't easily produce. |
 | **a11y scans** | `tests/e2e/a11y.e2e.spec.ts` | Axe core run via `toBeAccessible` against every major route, tagged `@a11y @regression`. Surfaced as `pnpm test:a11y`. |
 | **Visual regression** | `tests/e2e/*.visual.spec.ts` | `toHaveScreenshot` with masks on dynamic regions. Lives in a separate `visual` project so screenshots don't tag along with every shard. Update baselines via `pnpm test:update-snapshots`. |
-| **Multi-project config** | `tests/playwright.config.ts` | `setup` → `chromium-desktop` (default) / `chromium-mobile` (Pixel 5, @smoke + @mobile) / `webkit` (@smoke) / `visual` (storageState + trace=on). Per-project trace and screenshot policies. |
+| **Multi-project config** | `tests/playwright.config.ts` + `tests/support/devices.ts` | `setup` → `chromium-desktop` (default) / phone matrix `chromium-mobile` (Pixel 5) + `webkit-mobile` (iPhone 14), both `@smoke ∪ @mobile` / tablet matrix `tablet-ipad` + `tablet-android` (Galaxy Tab S4), both `@smoke ∪ @tablet` / `webkit` (Desktop Safari, @smoke) / `visual` (storageState + trace=on, desktop screenshots) / `tablet-visual` (iPad screenshots of the localized storefront). Per-project trace and screenshot policies; matrix lives in `support/devices.ts` so the config stays terse. |
 | **Reporters** | `tests/playwright.config.ts` | `html` (always), `list` (always), `junit` (CI consumption), `github` (PR annotations, CI-only). |
 
 The point isn't to use every pattern in every test — it's that each pattern has a clear home and an obvious "why now" trigger.
@@ -187,6 +187,10 @@ The point isn't to use every pattern in every test — it's that each pattern ha
 | The `/test/reset` seam | [`apps/api/src/test/`](./apps/api/src/test/) |
 | Auth hydration (the bug from §5) | [`apps/web/lib/auth.tsx`](./apps/web/lib/auth.tsx) |
 | Playwright config (multi-project, reporters, timeouts) | [`tests/playwright.config.ts`](./tests/playwright.config.ts) |
+| Device-emulation matrix (phone + tablet projects) | [`tests/support/devices.ts`](./tests/support/devices.ts) |
+| i18n contracts / `formatMoney` / FX table | [`packages/contracts/src/i18n.ts`](./packages/contracts/src/i18n.ts) |
+| i18n runtime (LocaleProvider, message catalogs) | [`apps/web/lib/i18n.tsx`](./apps/web/lib/i18n.tsx), [`apps/web/messages/`](./apps/web/messages/) |
+| GeoBanner + LocaleSwitcher | [`apps/web/components/GeoBanner.tsx`](./apps/web/components/GeoBanner.tsx), [`apps/web/components/LocaleSwitcher.tsx`](./apps/web/components/LocaleSwitcher.tsx) |
 | Custom expect matchers (`toHaveCartCount`, `toMatchContract`, `toBeAccessible`) | [`tests/support/matchers.ts`](./tests/support/matchers.ts) |
 | Setup project (storageState producer) | [`tests/setup/auth.setup.ts`](./tests/setup/auth.setup.ts) |
 | Network mocking, a11y, visual specs | [`tests/e2e/network-mocking.e2e.spec.ts`](./tests/e2e/network-mocking.e2e.spec.ts), [`a11y.e2e.spec.ts`](./tests/e2e/a11y.e2e.spec.ts), [`*.visual.spec.ts`](./tests/e2e/) |

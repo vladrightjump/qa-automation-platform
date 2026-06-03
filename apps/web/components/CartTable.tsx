@@ -3,6 +3,7 @@
 import { useState, type DragEvent } from 'react';
 import { api, type Cart } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useLocale } from '@/lib/i18n';
 import { useToast } from '@/components/ui/ToastQueue';
 import Modal from '@/components/ui/Modal';
 
@@ -14,6 +15,7 @@ export default function CartTable({
   onChange: () => void;
 }) {
   const { token, refreshCartCount } = useAuth();
+  const { t, formatMoney, currency } = useLocale();
   const toast = useToast();
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export default function CartTable({
   }
 
   if (cart.items.length === 0) {
-    return <p className="text-ink-soft">Your cart is empty.</p>;
+    return <p className="text-ink-soft">{t('cart.empty')}</p>;
   }
 
   return (
@@ -91,9 +93,9 @@ export default function CartTable({
         <thead className="border-b text-left text-ink-soft">
           <tr>
             <th className="py-2" />
-            <th className="py-2">Item</th>
-            <th className="py-2">Qty</th>
-            <th className="py-2">Subtotal</th>
+            <th className="py-2">{t('cart.item')}</th>
+            <th className="py-2">{t('cart.qty')}</th>
+            <th className="py-2">{t('cart.subtotal')}</th>
             <th />
           </tr>
         </thead>
@@ -150,7 +152,7 @@ export default function CartTable({
               </td>
               <td className="py-2">
                 <span data-testid={`cart-line-subtotal-${i.productId}`}>
-                  ${((i.product.priceCents * i.quantity) / 100).toFixed(2)}
+                  {formatMoney(i.product.priceCents * i.quantity)}
                 </span>
               </td>
               <td className="py-2 text-right">
@@ -159,7 +161,7 @@ export default function CartTable({
                   data-testid={`cart-remove-${i.productId}`}
                   className="text-red-600 hover:underline"
                 >
-                  Remove
+                  {t('cart.remove')}
                 </button>
               </td>
             </tr>
@@ -167,7 +169,13 @@ export default function CartTable({
         </tbody>
       </table>
       <p className="font-semibold" data-testid="cart-subtotal">
-        Subtotal: ${(subtotal / 100).toFixed(2)}
+        {t('cart.subtotal')}: {formatMoney(subtotal)}
+      </p>
+      <p
+        className="text-[10px] uppercase tracking-[0.15em] text-ink-faint"
+        data-testid="cart-currency-affordance"
+      >
+        {t('cart.pricesIn', { currency })}
       </p>
 
       <Modal

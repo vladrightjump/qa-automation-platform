@@ -12,11 +12,12 @@
     "test:regression": "playwright test --grep @regression",
     "test:feature": "playwright test --grep",
     "test:ui": "playwright test --ui",
-    "test:mobile": "playwright test --project chromium-mobile",
+    "test:mobile": "playwright test --project chromium-mobile --project webkit-mobile",
+    "test:tablet": "playwright test --project tablet-ipad --project tablet-android",
     "test:webkit": "playwright test --project webkit",
-    "test:visual": "playwright test --project visual",
+    "test:visual": "playwright test --project visual --project tablet-visual",
     "test:a11y": "playwright test --grep @a11y",
-    "test:update-snapshots": "playwright test --project visual --update-snapshots"
+    "test:update-snapshots": "playwright test --project visual --project tablet-visual --update-snapshots"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

@@ -152,9 +152,13 @@ locale/geo-aware specs.
   config") and `tests/TESTING.md` (tag taxonomy: add `@i18n`, `@geo`, `@tablet`)
   updated.
 
-## Status — 📋 Planned (not started)
+## Status — ✅ Built
 
-Authored as the next feature phase. No code written yet.
+- API + contracts shipped in `a423834` (Region table, `GET /geo/resolve`, `GET /geo/regions`, `PATCH /me/locale`, `LocaleSchema` / `RegionSchema` / `MeSchema`, `formatMoney` / `convertCents` / `FX_RATES_FROM_USD`).
+- Web app: lightweight `LocaleProvider` in `apps/web/lib/i18n.tsx` (kept in line with the existing `AuthProvider` / `ToastProvider` pattern instead of adding `next-intl`); message catalogs at `apps/web/messages/{en-US,de-DE,fr-FR}.json`; `LocaleSwitcher` in the navbar; `GeoBanner` mounted in the root layout. `formatMoney` wired everywhere on the shopper surface (ProductCard, CartTable, QuickViewModal, RecentlyViewed, RelatedProducts, OrderSummary, wishlist, checkout). Admin pages keep canonical USD.
+- Test infra: `tests/support/devices.ts` describes the matrix; new Playwright projects `webkit-mobile`, `tablet-ipad`, `tablet-android`, plus a dedicated `tablet-visual` project. Scripts `test:tablet` added; `test:mobile` now spans both phone engines.
+- Specs: `tests/api/geo.api.spec.ts` (resolve + regions + boundaries + `LOCALE_CHANGED` audit), `tests/e2e/i18n.e2e.spec.ts` (locale switch, formatMoney, USD-cents DB invariant on checkout), `tests/e2e/geolocation.e2e.spec.ts` (Berlin grant → accept → localize; deny → manual picker), `tests/e2e/responsive.e2e.spec.ts` (mobile/tablet column counts gated to the device projects), `tests/e2e/tablet.visual.spec.ts` (en-US + de-DE baselines).
+- All `@geo` + `@i18n` + `@tablet` + `@mobile` feature suites green locally; sanity gate grew by `@i18n @sanity` and `@geo @sanity`; tablet visual baselines committed.
 
 ## Follow-ups (out of scope)
 

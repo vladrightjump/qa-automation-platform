@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, type Product } from '@/lib/api';
 import { getRecent } from '@/lib/recently-viewed';
+import { useLocale } from '@/lib/i18n';
 import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface RecentlyViewedProps {
@@ -12,6 +13,7 @@ interface RecentlyViewedProps {
 
 export default function RecentlyViewed({ excludeId = null }: RecentlyViewedProps) {
   const [products, setProducts] = useState<Product[]>([]);
+  const { formatMoney } = useLocale();
 
   useEffect(() => {
     const ids = getRecent().filter((id) => id !== excludeId);
@@ -63,7 +65,7 @@ export default function RecentlyViewed({ excludeId = null }: RecentlyViewedProps
                   {p.name}
                 </p>
                 <p className="text-xs text-ink-soft mt-0.5">
-                  ${(p.priceCents / 100).toFixed(2)}
+                  {formatMoney(p.priceCents)}
                 </p>
               </div>
             </Link>

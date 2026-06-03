@@ -4,7 +4,7 @@ A full-stack, monorepo **test automation** portfolio project. A deliberately sma
 
 > Set up state via API → verify hidden side-effects in the database → confirm behavior in the UI — in **one** test, against the **same** Prisma client the API uses.
 
-**Status — Phases 0–7 complete (Phase 6 awaits a real `git push`; Phase 8 = this docs pass).** 32 specs green locally · `@smoke` 9 specs in ~5 s · CI workflow validated locally.
+**Status — Phases 0–14 complete** (Phase 14 adds i18n, geolocation, and a built-in device-emulation matrix). 38 `@smoke` specs green locally · `@sanity` gate covers 16 features end-to-end · CI workflow validated locally.
 
 ---
 
@@ -143,14 +143,31 @@ Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/we
 
 ## Tests
 
-| Layer | Files | Specs |
+| Layer | Files | What it covers |
 |---|---|---|
-| API contracts | `tests/api/*.api.spec.ts` × 4 | 21 |
-| DB side-effects | `tests/api/*.db.spec.ts` × 2 | 3 |
-| UI hybrid (incl. POMs) | `tests/e2e/*.e2e.spec.ts` × 4 | 8 |
-| **Total** | **10 files** | **32 — 9 `@smoke` + 23 `@regression`** |
+| API contracts | `tests/api/*.api.spec.ts` × 17 | status codes, Zod schemas, request/response math |
+| DB side-effects | `tests/api/*.db.spec.ts` × 2 | hidden state changes the API doesn't expose |
+| UI hybrid (POMs + DB ground truth) | `tests/e2e/*.e2e.spec.ts` × 25 | browser flow + DB assertion in the same test |
+| Visual baselines | `tests/e2e/*.visual.spec.ts` × 2 | `toHaveScreenshot` (desktop + tablet) |
 
-Every spec carries a kind tag (`@smoke`/`@regression`) plus a feature tag (`@auth`, `@cart`, `@checkout`, `@promo`, …), and one critical test per feature is tagged `@sanity` to form a fast pre-deploy gate. The full rulebook — assertion conventions, tag taxonomy, and the sanity-suite definition — lives in [`tests/TESTING.md`](./tests/TESTING.md). The signature DB-layer spec ([`tests/api/checkout.db.spec.ts`](./tests/api/checkout.db.spec.ts)) asserts the full transactional side-effect surface of one checkout in one place.
+Every spec carries a kind tag (`@smoke`/`@regression`) plus one or more feature tags (`@auth`, `@cart`, `@checkout`, `@promo`, `@i18n`, `@geo`, …), and one critical test per feature is tagged `@sanity` to form a fast pre-deploy gate. The full rulebook — assertion conventions, tag taxonomy, and the sanity-suite definition — lives in [`tests/TESTING.md`](./tests/TESTING.md). The signature DB-layer spec ([`tests/api/checkout.db.spec.ts`](./tests/api/checkout.db.spec.ts)) asserts the full transactional side-effect surface of one checkout in one place.
+
+### Device-emulation matrix
+
+Phase 14 grew Playwright's project list into a built-in device matrix — no third-party device cloud:
+
+| Project | Descriptor | Tag filter |
+|---|---|---|
+| `chromium-desktop` | Desktop Chrome (1280×720) | full suite |
+| `chromium-mobile` | Pixel 5 | `@smoke` ∪ `@mobile` |
+| `webkit-mobile` | iPhone 14 | `@smoke` ∪ `@mobile` |
+| `tablet-ipad` | iPad (gen 7), webkit | `@smoke` ∪ `@tablet` |
+| `tablet-android` | Galaxy Tab S4, chromium | `@smoke` ∪ `@tablet` |
+| `webkit` | Desktop Safari | `@smoke` only |
+| `visual` | Desktop Chrome | `*.visual.spec.ts` minus tablet |
+| `tablet-visual` | iPad (gen 7) | `tablet.visual.spec.ts` |
+
+The matrix lives in [`tests/support/devices.ts`](./tests/support/devices.ts) so the Playwright config stays terse. `pnpm --filter @qa/tests test:tablet` runs both tablet projects; `test:mobile` covers both phone engines.
 
 ## CI
 

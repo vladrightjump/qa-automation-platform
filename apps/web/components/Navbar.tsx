@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useLocale } from '@/lib/i18n';
+import LocaleSwitcher from './LocaleSwitcher';
 
 export default function Navbar() {
   const { token, user, cartCount, clear } = useAuth();
+  const { t } = useLocale();
   const [pulse, setPulse] = useState(false);
   const previousCount = useRef(cartCount);
 
@@ -39,13 +42,14 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-0.5 sm:gap-1 text-sm">
+          <LocaleSwitcher />
           <Link
             href="/cart"
             data-testid="nav-cart"
             className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
             aria-label={`Cart with ${cartCount} item${cartCount === 1 ? '' : 's'}`}
           >
-            <span className="hidden sm:inline">Bag</span>
+            <span className="hidden sm:inline" data-testid="nav-cart-label">{t('nav.bag')}</span>
             <span
               data-testid="cart-count"
               className={`inline-block min-w-5 text-center bg-clay-500 text-card text-xs rounded-full px-2 py-0.5 font-semibold transition-transform ${pulse ? 'animate-pulse-once' : ''}`}
@@ -60,14 +64,14 @@ export default function Navbar() {
                 data-testid="nav-wishlist"
                 className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
               >
-                Wishlist
+                {t('nav.wishlist')}
               </Link>
               <Link
                 href="/orders"
                 data-testid="nav-orders"
                 className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
               >
-                Orders
+                {t('nav.orders')}
               </Link>
               {user?.role === 'ADMIN' && (
                 <Link
@@ -75,7 +79,7 @@ export default function Navbar() {
                   data-testid="nav-admin"
                   className="inline-flex items-center px-3 py-1.5 rounded-full bg-clay-50 text-clay-700 font-medium hover:bg-clay-100 transition-colors"
                 >
-                  Admin
+                  {t('nav.admin')}
                 </Link>
               )}
               <button
@@ -88,16 +92,17 @@ export default function Navbar() {
                   {(user?.email?.[0] ?? '?').toUpperCase()}
                 </span>
                 <span className="hidden md:inline text-xs text-ink-faint">
-                  Sign out
+                  {t('nav.signOut')}
                 </span>
               </button>
             </>
           ) : (
             <Link
               href="/login"
+              data-testid="nav-signin"
               className="inline-flex items-center px-4 py-1.5 rounded-full bg-clay-500 text-card font-medium hover:bg-clay-600 transition-colors active:scale-95"
             >
-              Sign in
+              {t('nav.signIn')}
             </Link>
           )}
         </div>

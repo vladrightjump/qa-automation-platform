@@ -15,7 +15,9 @@ import {
   AddressSchema,
   AuthResultSchema,
   CartSchema,
+  GeoResolveSchema,
   LoyaltyBalanceSchema,
+  MeSchema,
   OrderListSchema,
   OrderSchema,
   PagedOrdersSchema,
@@ -24,6 +26,7 @@ import {
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
+  RegionListSchema,
   ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
@@ -34,6 +37,8 @@ import {
   type Address,
   type AuthResult,
   type Cart,
+  type Locale,
+  type Me,
   type Order,
   type PagedProducts,
   type PagedReviews,
@@ -44,6 +49,7 @@ import {
   type ProductSort,
   type PromoCode,
   type PromoPreview,
+  type Region,
   type Return,
   type Review,
   type ReviewSummary,
@@ -547,6 +553,51 @@ export class ApiClient {
       throw new Error(`getLoyalty: ${res.status()} ${await res.text()}`);
     }
     return LoyaltyBalanceSchema.parse(await res.json());
+  }
+
+  // --- geo / locale ---
+  async resolveGeo(lat: number, lng: number): Promise<Region> {
+    const res = await this.request.get(
+      `${API_BASE}/geo/resolve?lat=${lat}&lng=${lng}`,
+    );
+    if (!res.ok()) {
+      throw new Error(`resolveGeo(${lat},${lng}): ${res.status()} ${await res.text()}`);
+    }
+    return GeoResolveSchema.parse(await res.json());
+  }
+
+  // Like resolveGeo but returns the raw response so negative-path specs can
+  // assert on status codes / error bodies without throwing.
+  resolveGeoRaw(lat: unknown, lng: unknown) {
+    return this.request.get(
+      `${API_BASE}/geo/resolve?lat=${String(lat)}&lng=${String(lng)}`,
+    );
+  }
+
+  async listRegions(): Promise<Region[]> {
+    const res = await this.request.get(`${API_BASE}/geo/regions`);
+    if (!res.ok()) {
+      throw new Error(`listRegions: ${res.status()} ${await res.text()}`);
+    }
+    return RegionListSchema.parse(await res.json());
+  }
+
+  async setLocale(token: string, locale: Locale): Promise<Me> {
+    const res = await this.request.patch(`${API_BASE}/me/locale`, {
+      headers: authHeader(token),
+      data: { locale },
+    });
+    if (!res.ok()) {
+      throw new Error(`setLocale: ${res.status()} ${await res.text()}`);
+    }
+    return MeSchema.parse(await res.json());
+  }
+
+  setLocaleRaw(token: string, locale: unknown) {
+    return this.request.patch(`${API_BASE}/me/locale`, {
+      headers: authHeader(token),
+      data: { locale },
+    });
   }
 
   // --- test seam (env-guarded on the API side) ---

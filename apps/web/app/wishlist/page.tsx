@@ -10,10 +10,12 @@ import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptyWishlist from '@/components/illustrations/EmptyWishlist';
 import RecentlyViewed from '@/components/RecentlyViewed';
+import { useLocale } from '@/lib/i18n';
 
 export default function WishlistPage() {
   const toast = useToast();
   const { token, isHydrated, refreshCartCount } = useRequireAuth();
+  const { formatMoney } = useLocale();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
 
   const reload = useCallback(async () => {
@@ -103,8 +105,7 @@ export default function WishlistPage() {
                   {i.product.name}
                 </Link>
                 <p className="text-sm text-ink-soft">
-                  ${(i.product.priceCents / 100).toFixed(2)} · Stock{' '}
-                  {i.product.stock}
+                  {formatMoney(i.product.priceCents)} · Stock {i.product.stock}
                 </p>
               </div>
               <div className="flex items-center gap-2">

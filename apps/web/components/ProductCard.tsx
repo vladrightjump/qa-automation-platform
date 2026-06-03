@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useLocale } from '@/lib/i18n';
 import { useToast } from '@/components/ui/ToastQueue';
 import { categoryGradient, initials } from '@/lib/product-visual';
 
@@ -24,6 +25,7 @@ export default function ProductCard({
   const router = useRouter();
   const toast = useToast();
   const { token, refreshCartCount } = useAuth();
+  const { t, formatMoney } = useLocale();
   const [busy, setBusy] = useState(false);
   const [inWishlist, setInWishlist] = useState(false);
   const [pulse, setPulse] = useState(false);
@@ -106,12 +108,12 @@ export default function ProductCard({
         <span aria-hidden="true">{initials(product.name)}</span>
         {lowStock && (
           <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-accent-500 px-2 py-0.5 rounded-full">
-            Low stock
+            {t('product.lowStock')}
           </span>
         )}
         {oos && (
           <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-ink px-2 py-0.5 rounded-full">
-            Sold out
+            {t('product.soldOut')}
           </span>
         )}
 
@@ -162,8 +164,11 @@ export default function ProductCard({
         )}
 
         <div className="flex items-center justify-between mt-1">
-          <p className="font-display text-lg text-ink tabular-nums">
-            ${(product.priceCents / 100).toFixed(2)}
+          <p
+            data-testid={`product-price-${product.id}`}
+            className="font-display text-lg text-ink tabular-nums"
+          >
+            {formatMoney(product.priceCents)}
           </p>
           <span
             data-testid={`product-category-${product.id}`}
@@ -193,7 +198,7 @@ export default function ProductCard({
           data-testid={`add-to-cart-${product.id}`}
           className="mt-auto px-3 py-2 bg-clay-500 hover:bg-clay-600 active:scale-95 text-card text-sm font-medium rounded-full transition-all duration-200 disabled:bg-line disabled:text-ink-faint disabled:active:scale-100"
         >
-          {oos ? 'Out of stock' : busy ? 'Adding…' : 'Add to cart'}
+          {oos ? t('product.outOfStock') : busy ? t('product.adding') : t('product.addToCart')}
         </button>
       </div>
     </article>

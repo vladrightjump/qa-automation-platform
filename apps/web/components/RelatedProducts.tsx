@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, type Product, type ProductCategory } from '@/lib/api';
+import { useLocale } from '@/lib/i18n';
 import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface RelatedProductsProps {
@@ -12,6 +13,7 @@ interface RelatedProductsProps {
 
 export default function RelatedProducts({ productId, category }: RelatedProductsProps) {
   const [items, setItems] = useState<Product[]>([]);
+  const { formatMoney } = useLocale();
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +59,7 @@ export default function RelatedProducts({ productId, category }: RelatedProducts
                   {p.name}
                 </p>
                 <p className="text-sm text-ink-soft mt-0.5">
-                  ${(p.priceCents / 100).toFixed(2)}
+                  {formatMoney(p.priceCents)}
                 </p>
               </div>
             </Link>
