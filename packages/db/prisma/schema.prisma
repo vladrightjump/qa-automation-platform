@@ -63,6 +63,12 @@ model User {
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
 // fixtures and assertions remain stable across runs / CI shards.
+//
+// `searchVector` is a PostgreSQL tsvector maintained by a DB trigger from
+// name + description + tags (see migration `_add_product_search`). The
+// FTS query (GET /products/search) uses it with ts_rank_cd for ranking; a
+// GIN index lives on the column. Prisma surfaces it as Unsupported so the
+// client can ignore it — all SQL touching it is raw.
 model Product {
   id            String         @id
   name          String
@@ -71,6 +77,7 @@ model Product {
   stock         Int
   category      String         @default("gadgets")
   tags          String[]       @default([])
+  searchVector  Unsupported("tsvector")?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   cartItems     CartItem[]

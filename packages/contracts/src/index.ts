@@ -49,6 +49,40 @@ export const PagedProductsSchema = z.object({
   pageSize: z.number().int().positive(),
 });
 
+// Phase 15 — full-text search surface. Adds a ranked, FTS-backed result
+// shape that extends ProductSchema with the rank score and per-field
+// highlight snippets. The /products/search endpoint serves this; tests
+// assert relevance order is deterministic per the seeded products.
+export const SearchHighlightsSchema = z.object({
+  name: z.string().nullable(),
+  description: z.string().nullable(),
+});
+
+export const ProductSearchResultSchema = ProductSchema.extend({
+  score: z.number(),
+  highlights: SearchHighlightsSchema,
+});
+
+export const PagedSearchSchema = z.object({
+  items: z.array(ProductSearchResultSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  // Server-side wall time for the FTS query (ms). Surfaced for the perf
+  // suite — this is a metric, not a budget.
+  tookMs: z.number().int().nonnegative(),
+});
+
+// Autocomplete entry used by /products/suggestions. `productId` may be
+// null for synthetic suggestions (e.g. a matched category name).
+export const SuggestionSchema = z.object({
+  value: z.string(),
+  productId: z.string().nullable(),
+  category: ProductCategorySchema.nullable(),
+});
+
+export const SuggestionListSchema = z.array(SuggestionSchema);
+
 export const CartItemSchema = z.object({
   id: z.string(),
   cartId: z.string(),
@@ -251,6 +285,10 @@ export type Product = z.infer<typeof ProductSchema>;
 export type ProductCategory = z.infer<typeof ProductCategorySchema>;
 export type ProductSort = z.infer<typeof ProductSortSchema>;
 export type PagedProducts = z.infer<typeof PagedProductsSchema>;
+export type SearchHighlights = z.infer<typeof SearchHighlightsSchema>;
+export type ProductSearchResult = z.infer<typeof ProductSearchResultSchema>;
+export type PagedSearch = z.infer<typeof PagedSearchSchema>;
+export type Suggestion = z.infer<typeof SuggestionSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;

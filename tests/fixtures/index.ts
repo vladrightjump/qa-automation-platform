@@ -31,6 +31,7 @@ import { CartPage } from '../pages/cart.page';
 import { CheckoutPage } from '../pages/checkout.page';
 import { AddressesPage } from '../pages/addresses.page';
 import { AdminProductsPage } from '../pages/admin.page';
+import { SearchPage } from '../pages/search.page';
 
 interface AuthedTestUser {
   id: string;
@@ -51,6 +52,7 @@ interface Fixtures {
   checkout: CheckoutPage;
   addresses: AddressesPage;
   adminProducts: AdminProductsPage;
+  search: SearchPage;
 }
 
 interface WorkerFixtures {
@@ -124,6 +126,9 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
   },
   adminProducts: async ({ page }, use) => {
     await use(new AdminProductsPage(page));
+  },
+  search: async ({ page }, use) => {
+    await use(new SearchPage(page));
   },
 });
 

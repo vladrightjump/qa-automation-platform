@@ -6,9 +6,12 @@ import {
 import { prisma } from '@qa/db';
 import { Prisma } from '@qa/db';
 import type { CreateProductDto, UpdateProductDto } from './dto';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class AdminProductsService {
+  constructor(private readonly cache: CacheService) {}
+
   async list(page = 1, pageSize = 20) {
     const [items, total] = await Promise.all([
       prisma.product.findMany({
@@ -23,7 +26,7 @@ export class AdminProductsService {
 
   async create(dto: CreateProductDto) {
     try {
-      return await prisma.product.create({
+      const created = await prisma.product.create({
         data: {
           id: dto.id,
           name: dto.name,
@@ -34,6 +37,8 @@ export class AdminProductsService {
           tags: dto.tags ?? [],
         },
       });
+      this.cache.invalidatePrefix('/products');
+      return created;
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -63,10 +68,12 @@ export class AdminProductsService {
       existing.stock === 0 && dto.stock !== undefined && dto.stock > 0;
 
     if (!restocked) {
-      return prisma.product.update({ where: { id }, data });
+      const updated = await prisma.product.update({ where: { id }, data });
+      this.cache.invalidatePrefix('/products');
+      return updated;
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const updated = await tx.product.update({ where: { id }, data });
       const pending = await tx.stockAlert.findMany({
         where: { productId: id, notified: false },
@@ -88,6 +95,8 @@ export class AdminProductsService {
       }
       return updated;
     });
+    this.cache.invalidatePrefix('/products');
+    return result;
   }
 
   async remove(id: string) {
@@ -103,6 +112,7 @@ export class AdminProductsService {
     }
     await prisma.cartItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
+    this.cache.invalidatePrefix('/products');
     return { ok: true };
   }
 

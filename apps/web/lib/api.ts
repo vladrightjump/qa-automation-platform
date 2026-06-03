@@ -16,6 +16,7 @@ import type {
   PagedOrders,
   PagedProducts,
   PagedReviews,
+  PagedSearch,
   PaymentMethod,
   Product,
   ProductCategory,
@@ -27,6 +28,7 @@ import type {
   Review,
   ReviewSummary,
   StockAlert,
+  Suggestion,
   User,
   UserRole,
   Wishlist,
@@ -52,6 +54,7 @@ export type {
   PagedOrders,
   PagedProducts,
   PagedReviews,
+  PagedSearch,
   PaymentMethod,
   Product,
   ProductCategory,
@@ -62,6 +65,7 @@ export type {
   Review,
   ReviewSummary,
   StockAlert,
+  Suggestion,
   User,
   UserRole,
   Wishlist,
@@ -161,6 +165,16 @@ export const api = {
   listProducts: (query: ListProductsQuery = {}) =>
     request<PagedProducts>(`/products${buildProductsQuery(query)}`),
   getProduct: (id: string) => request<Product>(`/products/${id}`),
+
+  // Full-text search + autocomplete (phase 15a).
+  searchProducts: (q: string, page = 1, pageSize = 12) => {
+    const params = new URLSearchParams({ q, page: String(page), pageSize: String(pageSize) });
+    return request<PagedSearch>(`/products/search?${params.toString()}`);
+  },
+  suggestProducts: (q: string, limit = 8) => {
+    const params = new URLSearchParams({ q, limit: String(limit) });
+    return request<Suggestion[]>(`/products/suggestions?${params.toString()}`);
+  },
 
   // ---- back-in-stock alerts ----
   subscribeStockAlert: (token: string, productId: string) =>
