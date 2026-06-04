@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   prisma,
@@ -10,6 +10,7 @@ import {
 import { TestEndpointsGuard } from './test-endpoints.guard';
 import { BulkSeedProductsDto } from './dto';
 import { CacheService } from '../cache/cache.service';
+import { clearFaultInjection, setFaultStage } from './fault-injection';
 
 @ApiTags('test')
 @UseGuards(TestEndpointsGuard)
@@ -24,6 +25,7 @@ export class TestController {
    */
   @Post('reset')
   async reset() {
+    clearFaultInjection();
     await prisma.auditLog.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
@@ -38,6 +40,20 @@ export class TestController {
     await upsertPromoCodes(prisma);
     this.cache.clear();
     return { ok: true };
+  }
+
+  /**
+   * Arms a one-shot failure injection at the named stage. The next call
+   * through that stage throws and auto-clears the flag, so a test that
+   * crashes after arming can't poison the next run. `?at=` (empty) clears.
+   * Currently the only consumer is OrdersService.checkout at the
+   * `stock-decrement` stage.
+   */
+  @Post('inject-failure')
+  injectFailure(@Query('at') at?: string) {
+    const stage = at && at.length > 0 ? at : null;
+    setFaultStage(stage);
+    return { ok: true, at: stage };
   }
 
   /**
