@@ -55,14 +55,51 @@ test('complete flow → confirmation + DB row', {
 Every e2e test carries **one kind tag** + **one or more feature tags**; one test
 per feature also carries `@sanity`.
 
+**Tier tags** — every test carries exactly one of these:
+
 | Kind tag | Meaning |
 |----------|---------|
 | `@smoke` | Critical happy path; runs on PRs and cross-browser. |
 | `@regression` | Fuller happy + unhappy coverage; full suite on `main`. |
+
+**Layer tags** — additive, mark how a test exercises the SUT:
+
+| Kind tag | Meaning |
+|----------|---------|
 | `@a11y` | axe-core / ARIA-contract checks. |
 | `@network` | `page.route` mocking / resilience scenarios. |
 | `@mobile` | Phone form factor (runs in `chromium-mobile` + `webkit-mobile`). |
 | `@tablet` | Tablet form factor (runs in `tablet-ipad` + `tablet-android`). |
+
+**Scenario-dimension tags** — additive, mark *what kind of input/state* a test exercises:
+
+| Kind tag | Meaning | Example |
+|----------|---------|---------|
+| `@negative` | Asserts a failure path: 4xx, validation error, blocked action. | `auth.api.spec.ts` — "register rejects invalid email + short password with 400". |
+| `@edge` | Boundary inputs that aren't business-rule numerics: max-length, unicode, max-int, decimal precision. | `cart-polish.api.spec.ts` — "updateCartItem clamps quantity to product stock". |
+| `@boundary` | Numeric boundaries on **business rules**: promo cap, stock=0, expiry second, minSpend cents. | `checkout-wizard.api.spec.ts` — "expired promo (OLDDEAL) returns 400". |
+| `@empty` | Empty-state UI: no orders, no products, no wishlist, no reviews. | `wishlist.e2e.spec.ts` — "empty state renders when wishlist is empty". |
+| `@security` | RBAC denial, token tampering, missing/expired auth, IDOR (cross-user access). | `addresses.api.spec.ts` — "cannot edit another user's address (403)". |
+| `@race` | Concurrent / contended state: parallel checkout, double-submit, idempotency. | _Phase C_ — `tests/api/race-conditions.db.spec.ts`. |
+| `@slow` | Expensive end-to-end; excluded from PR `@smoke`, runs only on `main`. | _Phase C_ — concurrent-checkout matrix in `race-conditions.db.spec.ts`. |
+
+### 2a. Scenario-dimension mapping rules
+
+- A test carries **at most one** scenario-dimension kind tag from
+  `@negative`, `@edge`, `@boundary`, `@empty`, `@security`, `@race`.
+  If two would apply, pick the dominant one (the one most likely to be
+  searched for in a code review).
+- Scenario-dimension tags are **additive** to a tier tag
+  (`@smoke` / `@regression` / `@sanity`) and one or more feature tags
+  — they never replace them. A failing-path test is still part of
+  regression.
+- `@slow` is independent of the scenario-dimension axis — any test can
+  carry it. It opts the test *out* of the PR-gated `@smoke` lane.
+- Layer tags (`@a11y`, `@network`, `@mobile`, `@tablet`) and
+  scenario-dimension tags are orthogonal — a `@network @negative`
+  test is fine (UI-side failure-path mock).
+- `@perf` is dimensioned by the Lighthouse / Web Vitals layer and
+  lives only on `tests/perf/*.perf.spec.ts`.
 
 | Feature tag | Area |
 |-------------|------|
@@ -122,6 +159,13 @@ pnpm --filter @qa/tests test:sanity        # the one-per-feature gate
 pnpm --filter @qa/tests test:smoke         # all @smoke
 pnpm --filter @qa/tests test:regression    # all @regression
 pnpm --filter @qa/tests test:a11y          # all @a11y
+pnpm --filter @qa/tests test:negative      # all @negative
+pnpm --filter @qa/tests test:edge          # all @edge
+pnpm --filter @qa/tests test:boundary      # all @boundary
+pnpm --filter @qa/tests test:empty         # all @empty
+pnpm --filter @qa/tests test:security      # all @security
+pnpm --filter @qa/tests test:race          # all @race
+pnpm --filter @qa/tests test:slow          # all @slow (kept out of @smoke)
 pnpm --filter @qa/tests test:feature @cart # any feature (passes through to --grep)
 pnpm --filter @qa/tests test:mobile        # chromium-mobile + webkit-mobile
 pnpm --filter @qa/tests test:tablet        # tablet-ipad + tablet-android

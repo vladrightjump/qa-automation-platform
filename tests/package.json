@@ -17,6 +17,13 @@
     "test:webkit": "playwright test --project webkit",
     "test:visual": "playwright test --project visual --project tablet-visual",
     "test:a11y": "playwright test --grep @a11y",
+    "test:negative": "playwright test --grep @negative --pass-with-no-tests",
+    "test:edge": "playwright test --grep @edge --pass-with-no-tests",
+    "test:boundary": "playwright test --grep @boundary --pass-with-no-tests",
+    "test:empty": "playwright test --grep @empty --pass-with-no-tests",
+    "test:security": "playwright test --grep @security --pass-with-no-tests",
+    "test:race": "playwright test --grep @race --pass-with-no-tests",
+    "test:slow": "playwright test --grep @slow --pass-with-no-tests",
     "test:update-snapshots": "playwright test --project visual --project tablet-visual --update-snapshots",
     "perf:lighthouse": "playwright test --project lighthouse-perf",
     "perf:all": "pnpm perf:lighthouse"
