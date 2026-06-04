@@ -27,6 +27,17 @@ describe('mulberry32', () => {
       expect(n).toBeLessThan(1);
     }
   });
+
+  it('pinned sequence for seed=42 (catches arithmetic-operator drift in the LCG step)', () => {
+    // These exact values come from the reference Mulberry32 implementation
+    // (+ 0x6d2b79f5, ^ >>> 15/7/14 shifts). Any mutation to the additive
+    // constant, the shifts, or the OR mask changes the stream.
+    const rng = mulberry32(42);
+    expect(rng().toFixed(10)).toBe('0.6011037519');
+    expect(rng().toFixed(10)).toBe('0.4482905590');
+    expect(rng().toFixed(10)).toBe('0.8524657935');
+    expect(rng().toFixed(10)).toBe('0.6697340414');
+  });
 });
 
 describe('pick', () => {
@@ -49,6 +60,16 @@ describe('pick', () => {
   it('single-element array always returns that element', () => {
     const rng = mulberry32(99);
     expect(pick(rng, ['only'] as const)).toBe('only');
+  });
+
+  it('multi-element array: 30 picks hit at least 3 distinct indices', () => {
+    // Catches `rng() * arr.length` mutated to `rng() / arr.length` — the
+    // divided form is always < 1 → Math.floor → 0 → only arr[0] ever picked.
+    const rng = mulberry32(1);
+    const arr = ['a', 'b', 'c', 'd', 'e'] as const;
+    const seen = new Set<string>();
+    for (let i = 0; i < 30; i += 1) seen.add(pick(rng, arr));
+    expect(seen.size).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -94,6 +115,21 @@ describe('buildBulkProductRows', () => {
       expect(row.stock).toBeGreaterThanOrEqual(5);
       expect(row.stock).toBeLessThanOrEqual(5 + 94);
     }
+  });
+
+  it('prices vary across rows (catches *9500 → /9500 mutant that pins to 500)', () => {
+    const rows = buildBulkProductRows(50, 42);
+    const distinct = new Set(rows.map((r) => r.priceCents));
+    expect(distinct.size).toBeGreaterThan(5);
+    // And there's at least one row clearly above the minimum.
+    expect(Math.max(...rows.map((r) => r.priceCents))).toBeGreaterThan(1500);
+  });
+
+  it('stock varies across rows (catches *95 → /95 mutant that pins to 5)', () => {
+    const rows = buildBulkProductRows(50, 42);
+    const distinct = new Set(rows.map((r) => r.stock));
+    expect(distinct.size).toBeGreaterThan(5);
+    expect(Math.max(...rows.map((r) => r.stock))).toBeGreaterThan(20);
   });
 
   it('category is one of the four supported values', () => {

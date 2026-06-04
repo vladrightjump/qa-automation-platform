@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comments": [
+    "Phase 16c — Stryker mutation testing of the project's pure helpers.",
+    "Targets only the files unit-tested by Vitest in 16b. Mutating service",
+    "code would require Prisma + transaction mocking and is captured as a",
+    "follow-up in todos/phase-16-mutation-testing.md.",
+    "",
+    "The vitest runner runs both packages' configs in turn. coverageAnalysis",
+    "perTest scopes each mutant to only the tests that touch the mutated",
+    "line, keeping the run under a minute on a typical laptop.",
+    "",
+    "The break threshold below mirrors tests/mutation/budget.json. CI reads",
+    "the same number so dev and CI agree on the gate."
+  ],
+  "packageManager": "pnpm",
+  "plugins": [
+    "@stryker-mutator/vitest-runner"
+  ],
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "mutate": [
+    "packages/contracts/src/promo-math.ts",
+    "packages/contracts/src/loyalty-math.ts",
+    "packages/contracts/src/recommendations-math.ts",
+    "packages/contracts/src/i18n.ts",
+    "packages/db/src/bulk-seed-rng.ts"
+  ],
+  "checkers": [],
+  "coverageAnalysis": "perTest",
+  "reporters": ["progress", "clear-text", "html", "json"],
+  "htmlReporter": { "fileName": "reports/mutation/index.html" },
+  "jsonReporter": { "fileName": "reports/mutation/mutation.json" },
+  "thresholds": { "high": 95, "low": 85, "break": 95 },
+  "incremental": false,
+  "concurrency": 4
+}

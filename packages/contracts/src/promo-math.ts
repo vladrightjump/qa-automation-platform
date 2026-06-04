@@ -27,6 +27,10 @@ export function computeDiscount(
     const raw = Math.floor((subtotalCents * promo.percentOff) / 100);
     return { discountCents: Math.min(subtotalCents, raw) };
   }
+  // Stryker disable next-line ConditionalExpression: equivalent mutant.
+  // Forcing this branch to `true` still yields 0 for null flatOffCents
+  // (Math.min(subtotalCents, null) === 0), matching the default-return
+  // path — no observable difference, no real coverage gap.
   if (promo.flatOffCents != null) {
     return { discountCents: Math.min(subtotalCents, promo.flatOffCents) };
   }

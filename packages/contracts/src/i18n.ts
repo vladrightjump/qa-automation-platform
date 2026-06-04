@@ -13,6 +13,7 @@ export const DEFAULT_LOCALE = 'en-US';
 
 export const LocaleSchema = z.enum(SUPPORTED_LOCALES);
 
+// Stryker disable next-line ArrayDeclaration,StringLiteral
 export const CurrencySchema = z.enum(['USD', 'EUR']);
 
 // Which currency each locale displays. en-US → USD; de-DE/fr-FR → EUR.

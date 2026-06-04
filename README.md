@@ -69,8 +69,9 @@ The same product flow is validated three ways. Each layer catches what the other
 | **DB** | `*.db.spec.ts` | Side-effects invisible to the API response — stock decrement, `OrderStatus` transitions, `AuditLog` rows, cart cleared | Silent state corruption, audit-trail loss, txn rollback bugs |
 | **UI** | `*.e2e.spec.ts` | Browser flow via Page Objects, then DB ground-truth via `expect.poll` | Hydration races, missing CORS, broken `data-testid`, navigation bugs |
 | **Perf budgets** | `*.perf.spec.ts` | Per-route Lighthouse LCP/CLS/TBT + Web Vitals on a scripted journey | Bundle bloat, SSR regressions, N+1 queries surfacing as p95 jumps |
+| **Mutation score** | `*.test.ts` (Vitest) + Stryker | Pure-math helpers mutated; surviving mutants fail the budget | Test-quality drift — weakened assertions, deleted branches, soft boundaries |
 
-A test in the UI layer **doesn't trust the UI** to tell it the operation succeeded. It opens the DB and checks the row. Perf budgets live in [`tests/perf/budgets.json`](./tests/perf/budgets.json) and gate CI via [`.github/workflows/perf.yml`](./.github/workflows/perf.yml).
+A test in the UI layer **doesn't trust the UI** to tell it the operation succeeded. It opens the DB and checks the row. Perf budgets live in [`tests/perf/budgets.json`](./tests/perf/budgets.json) and gate CI via [`.github/workflows/perf.yml`](./.github/workflows/perf.yml). The mutation-score budget lives in [`tests/mutation/budget.json`](./tests/mutation/budget.json) and gates CI via [`.github/workflows/mutation.yml`](./.github/workflows/mutation.yml).
 
 ---
 

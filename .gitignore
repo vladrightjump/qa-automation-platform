@@ -17,6 +17,9 @@ playwright-report/
 test-results/
 blob-report/
 coverage/
+# Stryker mutation testing outputs — regenerated on every `pnpm mutate`.
+.stryker-tmp/
+reports/mutation/
 # Playwright storageState produced by the setup project — regenerated each run.
 tests/.auth/
 

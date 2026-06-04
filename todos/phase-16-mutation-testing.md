@@ -185,8 +185,36 @@ single PR is preferable.
 - **Raw line-coverage gate in CI.** Stryker subsumes the strongest case
   for coverage; raw % is noisy.
 
-## Status — 🟡 In progress
+## Status — ✅ Built (16a–16c)
 
-- **16a — extract pure math helpers** — pending.
-- **16b — Vitest unit-test layer** — pending.
-- **16c — Stryker + budget + CI workflow** — pending.
+- **16a — extract pure math helpers** — ✅ Built. `promo-math.ts`,
+  `loyalty-math.ts`, `recommendations-math.ts` added to
+  `packages/contracts/src/` and re-exported from `index.ts`. The three
+  services (`PromoService`, `LoyaltyService`, `RecommendationsService`)
+  delegate to them; the duplicated `LOYALTY_EARN_RATE` in
+  `apps/api/src/orders/constants.ts` was removed in favour of the
+  contracts module's copy. No behaviour change — 24/24
+  `@promo|@loyalty|@recommendations` green, 23/23 sanity green.
+- **16b — Vitest unit-test layer** — ✅ Built. Added `vitest` +
+  `@vitest/coverage-v8` to `@qa/contracts` and `@qa/db`; each package
+  ships a `vitest.config.ts` with v8 coverage scoped to the mutated
+  files. Split the pure RNG + bulk-product row builder out of
+  `seed-helpers.ts` into a new `bulk-seed-rng.ts` (the Prisma-using
+  parts stayed in `seed-helpers`). 74 unit tests across the five
+  mutated files — 100% line/branch/function/statement coverage.
+  Root `pnpm test:unit` via Turbo; CI gains a `unit` job in `ci.yml`
+  that runs in parallel with `@sanity`.
+- **16c — Stryker + budget + CI workflow** — ✅ Built. `stryker.config.json`
+  targets exactly the five mutated files via the Vitest runner.
+  Sample-data string-literal mutants in `bulk-seed-rng.ts` are
+  suppressed with a `// Stryker disable all` / `restore` block;
+  equivalent mutants in `loyalty-math.ts` and `promo-math.ts` carry
+  inline `// Stryker disable next-line` comments with reasons.
+  Achieved **100% mutation score** on the first clean run (57 mutants,
+  0 survivors). Committed `tests/mutation/budget.json#minScore = 95`
+  for five points of headroom; Stryker's `break` threshold mirrors it.
+  New `.github/workflows/mutation.yml` runs nightly (04:30 UTC) +
+  on PRs that touch the mutated source / config / budget / Vitest
+  configs, double-checks the score against the budget, and uploads
+  the HTML + JSON report as a 30-day artifact. README, ARCHITECTURE,
+  TESTING, and `tests/mutation/README.md` updated.

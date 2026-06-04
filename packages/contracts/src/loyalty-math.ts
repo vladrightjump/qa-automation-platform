@@ -14,6 +14,10 @@ export const LOYALTY_EARN_RATE = 0.05;
 
 /** Points earned from a charged total. Always an integer ≥ 0. */
 export function earnedPoints(chargedCents: number): number {
+  // Stryker disable next-line EqualityOperator: equivalent mutant.
+  // Mutating `<= 0` to `< 0` is observably the same: at 0¢ the floor
+  // arithmetic also returns 0, so removing the fast-path doesn't change
+  // any output. The guard is defensive readability only.
   if (chargedCents <= 0) return 0;
   return Math.floor(chargedCents * LOYALTY_EARN_RATE);
 }
@@ -27,7 +31,12 @@ export function clampRedemption(
   requestedPoints: number,
   afterPromoCents: number,
 ): number {
+  // Stryker disable next-line EqualityOperator: equivalent mutant.
+  // `<= 0` vs `< 0` collapses identically — at `requestedPoints = 0`
+  // the Math.min path also returns 0.
   if (requestedPoints <= 0) return 0;
+  // Stryker disable next-line EqualityOperator: equivalent mutant for the
+  // same reason — Math.min(positive, 0) returns 0.
   if (afterPromoCents <= 0) return 0;
   return Math.min(requestedPoints, afterPromoCents);
 }

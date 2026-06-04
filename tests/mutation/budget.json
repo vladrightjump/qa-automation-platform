@@ -1,0 +1,12 @@
+{
+  "runner": "ci-ubuntu-2025-04",
+  "minScore": 95,
+  "notes": [
+    "Phase 16c locked floor. Current measured score is 100% on the five",
+    "files in stryker.config.json.mutate. We commit minScore=95 — five",
+    "points of headroom for routine refactors. Drop a mutation-test gap",
+    "(a survivor) below 95% and CI fails with a clear diff.",
+    "To raise the floor: run `pnpm mutate`, confirm the new score, bump",
+    "this file in the same PR. To lower it: explain why in the PR body."
+  ]
+}

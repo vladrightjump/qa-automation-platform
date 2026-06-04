@@ -6,6 +6,12 @@
 // re-runs the same (count, rngSeed) and skips duplicate primary keys.
 // Same row shape every time → same IDs → idempotent seed.
 
+// Sample data — the specific words don't matter; the bulk seed only needs
+// any non-empty stable set so deterministic per-seed IDs round-trip. We
+// skip mutation testing on the literal contents (Stryker mutating "lamp"
+// to "" wouldn't catch a real bug), but the arithmetic that consumes them
+// is still mutation-tested below.
+// Stryker disable all
 const ADJECTIVES = [
   'compact', 'rugged', 'sleek', 'modular', 'silent', 'bright', 'cosmic',
   'minimal', 'ergonomic', 'durable', 'portable', 'classic', 'modern', 'vibrant',
@@ -16,6 +22,7 @@ const NOUNS = [
   'jacket', 'watch', 'kettle', 'planter', 'mat', 'cable', 'mouse', 'keyboard',
   'monitor', 'stand', 'pillow', 'rug',
 ];
+// Stryker restore all
 const CATEGORIES = ['gadgets', 'apparel', 'home', 'office'] as const;
 
 // 32-bit Mulberry RNG — tiny, deterministic, no dep. Same seed → same stream.

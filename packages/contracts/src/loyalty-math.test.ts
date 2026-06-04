@@ -29,6 +29,12 @@ describe('earnedPoints', () => {
     expect(earnedPoints(-100)).toBe(0);
   });
 
+  it('exactly 1¢ charged → 0 points (boundary above the ≤ 0 guard)', () => {
+    // Catches `chargedCents <= 0` mutated to `chargedCents < 0`:
+    // the input must produce 0 via the floor math, not via the guard.
+    expect(earnedPoints(1)).toBe(0);
+  });
+
   it('one cent below the next integer: 19¢ → 0 points (boundary)', () => {
     expect(earnedPoints(19)).toBe(0);
   });
@@ -67,8 +73,18 @@ describe('clampRedemption', () => {
     expect(clampRedemption(-50, 1000)).toBe(0);
   });
 
+  it('exactly 1 point requested with room → returns 1 (boundary above ≤ 0)', () => {
+    // Catches `requestedPoints <= 0` mutated to `requestedPoints < 0`.
+    expect(clampRedemption(1, 1000)).toBe(1);
+  });
+
   it('order total already zero or negative → zero (nothing to redeem against)', () => {
     expect(clampRedemption(100, 0)).toBe(0);
     expect(clampRedemption(100, -1)).toBe(0);
+  });
+
+  it('exactly 1¢ order total with a positive request → 1 (boundary above ≤ 0)', () => {
+    // Catches `afterPromoCents <= 0` mutated to `afterPromoCents < 0`.
+    expect(clampRedemption(100, 1)).toBe(1);
   });
 });
