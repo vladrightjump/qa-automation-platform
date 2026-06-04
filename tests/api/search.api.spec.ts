@@ -51,7 +51,7 @@ test.describe('product search (API)', () => {
   });
 
   test('empty q → 400', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@edge'],
   }, async ({ api }) => {
     const res = await api.searchProductsRaw('');
     expect(res.status()).toBe(400);
@@ -60,7 +60,7 @@ test.describe('product search (API)', () => {
   });
 
   test('non-matching q → 200 with empty items', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@empty'],
   }, async ({ api }) => {
     const res = await api.searchProducts('xzqwyzz123nomatch');
     expect(res).toMatchContract(PagedSearchSchema);

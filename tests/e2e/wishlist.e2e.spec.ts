@@ -49,7 +49,7 @@ test.describe('wishlist (UI)', () => {
   });
 
   test('empty state renders when wishlist is empty', {
-    tag: ['@regression', '@wishlist'],
+    tag: ['@regression', '@wishlist', '@empty'],
   }, async ({
     authedPage,
   }) => {

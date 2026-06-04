@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import { UserFactory } from '../factories/user.factory';
 
 test.describe('auth side-effects (DB layer)', () => {
-  test('register stores user with a bcrypt hash (never plaintext)', { tag: ['@regression', '@auth'] }, async ({
+  test('register stores user with a bcrypt hash (never plaintext)', { tag: ['@regression', '@auth', '@security'] }, async ({
     api,
     db,
   }) => {

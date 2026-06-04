@@ -63,7 +63,7 @@ test.describe('promo discovery (UI)', () => {
   });
 
   test('a deal below its minimum spend shows as locked, not applyable', {
-    tag: ['@regression', '@promo'],
+    tag: ['@regression', '@promo', '@boundary'],
   }, async ({ authedPage, api, db, testUser, cart, checkout }) => {
     // BIG20 requires a $50 minimum — a $30 cart should show it locked.
     const product = await db.product.create({

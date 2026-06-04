@@ -35,7 +35,7 @@ test.describe('admin orders', () => {
     expect(fulfilled.items.some((o) => o.id === order.id)).toBe(false);
   });
 
-  test('fulfilling a CANCELLED order returns 400', { tag: ['@regression', '@admin-orders'] }, async ({
+  test('fulfilling a CANCELLED order returns 400', { tag: ['@regression', '@admin-orders', '@negative'] }, async ({
     api,
     db,
     adminUser,
@@ -52,7 +52,7 @@ test.describe('admin orders', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('a non-admin cannot fulfil orders (403)', { tag: ['@regression', '@admin-orders'] }, async ({
+  test('a non-admin cannot fulfil orders (403)', { tag: ['@regression', '@admin-orders', '@security'] }, async ({
     api,
     db,
     testUser,
@@ -101,7 +101,7 @@ test.describe('admin orders', () => {
     expect(log).not.toBeNull();
   });
 
-  test('refunding a not-yet-approved return returns 400', { tag: ['@regression', '@admin-orders'] }, async ({
+  test('refunding a not-yet-approved return returns 400', { tag: ['@regression', '@admin-orders', '@negative'] }, async ({
     api,
     db,
     adminUser,

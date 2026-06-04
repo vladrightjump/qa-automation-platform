@@ -49,7 +49,7 @@ test.describe('checkout side-effects (DB layer)', () => {
     expect(cart).not.toBeNull();
   });
 
-  test('checkout is transactional — failure rolls back stock', { tag: ['@regression', '@checkout'] }, async ({
+  test('checkout is transactional — failure rolls back stock', { tag: ['@regression', '@checkout', '@negative'] }, async ({
     api,
     db,
     testUser,

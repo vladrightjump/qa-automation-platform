@@ -30,7 +30,7 @@ test.describe('product search (UI)', () => {
   });
 
   test('submitting a query with no exact match lands on /search and shows results', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@edge'],
   }, async ({ page, api, storefront, search }) => {
     // Use a token that ranks the seeded `Doohickey` highly without producing
     // an exact-name suggestion that would deep-link to a product page.
@@ -47,7 +47,7 @@ test.describe('product search (UI)', () => {
   });
 
   test('empty result set renders the empty state', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@empty'],
   }, async ({ page, search }) => {
     await search.gotoResults('xzqwyzz123nomatch');
     await expect(page.getByText(/No results for/)).toBeVisible();

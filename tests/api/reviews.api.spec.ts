@@ -28,7 +28,7 @@ test.describe('reviews', () => {
     expect(summary.averageRating).toBe(4);
   });
 
-  test('unauthenticated post returns 401', { tag: ['@regression', '@reviews'] }, async ({ api }) => {
+  test('unauthenticated post returns 401', { tag: ['@regression', '@reviews', '@security'] }, async ({ api }) => {
     const res = await api.raw().post(
       `${API_BASE}/products/prod_widget/reviews`,
       { data: { rating: 5, title: 'x', body: 'y' } },
@@ -36,7 +36,7 @@ test.describe('reviews', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('rating out of range rejected with 400', { tag: ['@regression', '@reviews'] }, async ({
+  test('rating out of range rejected with 400', { tag: ['@regression', '@reviews', '@boundary'] }, async ({
     api,
     testUser,
     db,
@@ -54,7 +54,7 @@ test.describe('reviews', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('duplicate review by same user returns 409', { tag: ['@regression', '@reviews'] }, async ({
+  test('duplicate review by same user returns 409', { tag: ['@regression', '@reviews', '@negative'] }, async ({
     api,
     testUser,
     db,
@@ -105,7 +105,7 @@ test.describe('reviews', () => {
     expect(list.items.map((r) => r.rating)).toEqual([5, 4, 3]);
   });
 
-  test('cannot delete someone else’s review (403)', { tag: ['@regression', '@reviews'] }, async ({
+  test('cannot delete someone else’s review (403)', { tag: ['@regression', '@reviews', '@security'] }, async ({
     api,
     testUser,
     db,

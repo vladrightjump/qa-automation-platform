@@ -23,7 +23,7 @@ test.describe('order cancel', () => {
     expect(log).not.toBeNull();
   });
 
-  test('cancelling an already-cancelled order returns 400', { tag: ['@regression', '@orders'] }, async ({
+  test('cancelling an already-cancelled order returns 400', { tag: ['@regression', '@orders', '@negative'] }, async ({
     api,
     db,
     testUser,
@@ -41,7 +41,7 @@ test.describe('order cancel', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('cancelling another user’s order returns 403', { tag: ['@regression', '@orders'] }, async ({
+  test('cancelling another user’s order returns 403', { tag: ['@regression', '@orders', '@security'] }, async ({
     api,
     db,
     testUser,

@@ -20,7 +20,7 @@ test.describe('back-in-stock alerts', () => {
     expect(mine.some((a) => a.productId === product.id)).toBe(true);
   });
 
-  test('subscribing to an in-stock product returns 400', { tag: ['@regression', '@stock-alert'] }, async ({
+  test('subscribing to an in-stock product returns 400', { tag: ['@regression', '@stock-alert', '@negative'] }, async ({
     api,
     db,
     testUser,

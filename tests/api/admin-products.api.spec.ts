@@ -20,7 +20,7 @@ test.describe('admin/products', () => {
     await api.adminDeleteProduct(adminUser.token, input.id);
   });
 
-  test('non-admin user gets 403 on admin endpoints', { tag: ['@regression', '@admin'] }, async ({
+  test('non-admin user gets 403 on admin endpoints', { tag: ['@regression', '@admin', '@security'] }, async ({
     api,
     testUser,
   }) => {
@@ -30,12 +30,12 @@ test.describe('admin/products', () => {
     expect(res.status()).toBe(403);
   });
 
-  test('unauthenticated request gets 401', { tag: ['@regression', '@admin'] }, async ({ api }) => {
+  test('unauthenticated request gets 401', { tag: ['@regression', '@admin', '@security'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/admin/products`);
     expect(res.status()).toBe(401);
   });
 
-  test('duplicate id returns 409', { tag: ['@regression', '@admin'] }, async ({ api, adminUser }) => {
+  test('duplicate id returns 409', { tag: ['@regression', '@admin', '@negative'] }, async ({ api, adminUser }) => {
     const input = AdminProductFactory.build();
     await api.adminCreateProduct(adminUser.token, input);
     const res = await api.raw().post(`${API_BASE}/admin/products`, {
@@ -46,7 +46,7 @@ test.describe('admin/products', () => {
     await api.adminDeleteProduct(adminUser.token, input.id);
   });
 
-  test('invalid id pattern rejected with 400', { tag: ['@regression', '@admin'] }, async ({
+  test('invalid id pattern rejected with 400', { tag: ['@regression', '@admin', '@edge'] }, async ({
     api,
     adminUser,
   }) => {
@@ -87,7 +87,7 @@ test.describe('admin/products', () => {
     expect(found).toBeNull();
   });
 
-  test('cannot delete product referenced by an order (409)', { tag: ['@regression', '@admin'] }, async ({
+  test('cannot delete product referenced by an order (409)', { tag: ['@regression', '@admin', '@negative'] }, async ({
     api,
     adminUser,
     db,

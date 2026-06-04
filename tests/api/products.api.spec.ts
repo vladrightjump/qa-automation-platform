@@ -60,7 +60,7 @@ test.describe('products', () => {
     ).toBe(true);
   });
 
-  test('search returns empty page when no match', { tag: ['@regression', '@catalog'] }, async ({
+  test('search returns empty page when no match', { tag: ['@regression', '@catalog', '@empty'] }, async ({
     api,
   }) => {
     const result = await api.listProducts({ q: 'definitelydoesnotexist' });
@@ -120,14 +120,14 @@ test.describe('products', () => {
     expect(product.category).toBe('gadgets');
   });
 
-  test('get missing product returns 404', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
+  test('get missing product returns 404', { tag: ['@regression', '@catalog', '@negative'] }, async ({ api }) => {
     const res = await api
       .raw()
       .get(`${API_BASE}/products/prod_does_not_exist`);
     expect(res.status()).toBe(404);
   });
 
-  test('invalid sort param rejected with 400', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
+  test('invalid sort param rejected with 400', { tag: ['@regression', '@catalog', '@edge'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/products?sort=bogus`);
     expect(res.status()).toBe(400);
   });

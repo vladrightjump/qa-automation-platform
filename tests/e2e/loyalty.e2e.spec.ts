@@ -47,7 +47,7 @@ test.describe('loyalty / store credit (UI)', () => {
   });
 
   test('the store-credit control is hidden with no balance', {
-    tag: ['@regression', '@loyalty'],
+    tag: ['@regression', '@loyalty', '@empty'],
   }, async ({ authedPage, api, db, testUser, checkout }) => {
     await api.createAddress(
       testUser.token,

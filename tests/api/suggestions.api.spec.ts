@@ -33,7 +33,7 @@ test.describe('product suggestions (API)', () => {
   });
 
   test('empty q → 400; limit out of range → 400', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@edge'],
   }, async ({ api }) => {
     const empty = await api.suggestProductsRaw('');
     expect(empty.status()).toBe(400);
@@ -43,7 +43,7 @@ test.describe('product suggestions (API)', () => {
   });
 
   test('no prefix match → 200 with empty array', {
-    tag: ['@regression', '@search'],
+    tag: ['@regression', '@search', '@empty'],
   }, async ({ api }) => {
     const items = await api.suggestProducts('zzzxyz', 8);
     expect(items).toEqual([]);

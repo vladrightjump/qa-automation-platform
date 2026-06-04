@@ -45,7 +45,7 @@ test.describe('loyalty points / store credit', () => {
     expect(loyalty.balancePoints).toBe(45);
   });
 
-  test('redeeming more than the balance returns 400', { tag: ['@regression', '@loyalty'] }, async ({
+  test('redeeming more than the balance returns 400', { tag: ['@regression', '@loyalty', '@boundary'] }, async ({
     api,
     db,
     testUser,

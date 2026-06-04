@@ -16,7 +16,7 @@ test.describe('wishlist', () => {
     expect(w.items).toEqual([]);
   });
 
-  test('unauthenticated requests return 401', { tag: ['@regression', '@wishlist'] }, async ({ api }) => {
+  test('unauthenticated requests return 401', { tag: ['@regression', '@wishlist', '@security'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/wishlist`);
     expect(res.status()).toBe(401);
   });
@@ -31,7 +31,7 @@ test.describe('wishlist', () => {
     await api.removeFromWishlist(testUser.token, 'prod_widget');
   });
 
-  test('adding a non-existent product returns 404', { tag: ['@regression', '@wishlist'] }, async ({
+  test('adding a non-existent product returns 404', { tag: ['@regression', '@wishlist', '@negative'] }, async ({
     api,
     testUser,
   }) => {
@@ -42,7 +42,7 @@ test.describe('wishlist', () => {
     expect(res.status()).toBe(404);
   });
 
-  test('invalid productId pattern returns 400', { tag: ['@regression', '@wishlist'] }, async ({
+  test('invalid productId pattern returns 400', { tag: ['@regression', '@wishlist', '@edge'] }, async ({
     api,
     testUser,
   }) => {

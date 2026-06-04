@@ -27,14 +27,14 @@ test.describe('addresses', () => {
     expect(after.map((a) => a.id)).not.toContain(created.id);
   });
 
-  test('unauthenticated address access returns 401', { tag: ['@regression', '@addresses'] }, async ({
+  test('unauthenticated address access returns 401', { tag: ['@regression', '@addresses', '@security'] }, async ({
     api,
   }) => {
     const res = await api.raw().get(`${API_BASE}/addresses`);
     expect(res.status()).toBe(401);
   });
 
-  test('cannot edit another user’s address (403)', { tag: ['@regression', '@addresses'] }, async ({
+  test('cannot edit another user’s address (403)', { tag: ['@regression', '@addresses', '@security'] }, async ({
     api,
     testUser,
   }) => {
@@ -76,7 +76,7 @@ test.describe('addresses', () => {
     expect(bAfter.isDefault).toBe(true);
   });
 
-  test('validation rejects empty required fields with 400', { tag: ['@regression', '@addresses'] }, async ({
+  test('validation rejects empty required fields with 400', { tag: ['@regression', '@addresses', '@edge'] }, async ({
     api,
     testUser,
   }) => {

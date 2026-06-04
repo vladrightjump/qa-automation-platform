@@ -84,7 +84,7 @@ test.describe('admin/products UI', () => {
   });
 
   test('non-admin user is redirected away from /admin/products', {
-    tag: ['@regression', '@admin'],
+    tag: ['@regression', '@admin', '@security'],
   }, async ({
     authedPage,
   }) => {
@@ -98,7 +98,7 @@ test.describe('admin/products UI', () => {
   });
 
   test('non-admin user does not see the Admin link', {
-    tag: ['@regression', '@admin'],
+    tag: ['@regression', '@admin', '@security'],
   }, async ({
     authedPage,
   }) => {

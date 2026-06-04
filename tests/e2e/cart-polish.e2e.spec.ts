@@ -90,7 +90,7 @@ test.describe('cart quantity + remove modal (UI)', () => {
   });
 
   test('quantity is clamped to product stock by the API', {
-    tag: ['@regression', '@cart'],
+    tag: ['@regression', '@cart', '@boundary'],
   }, async ({
     authedPage,
     api,

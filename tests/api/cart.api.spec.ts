@@ -3,7 +3,7 @@ import { CartSchema } from '@qa/contracts';
 import { API_BASE } from '../support/api-client';
 
 test.describe('cart', () => {
-  test('GET /cart without token returns 401', { tag: ['@regression', '@cart'] }, async ({ api }) => {
+  test('GET /cart without token returns 401', { tag: ['@regression', '@cart', '@security'] }, async ({ api }) => {
     const res = await api.raw().get(`${API_BASE}/cart`);
     expect(res.status()).toBe(401);
   });
@@ -30,7 +30,7 @@ test.describe('cart', () => {
     expect(cart.items[0]?.quantity).toBe(4);
   });
 
-  test('add unknown product returns 404', { tag: ['@regression', '@cart'] }, async ({ api, testUser }) => {
+  test('add unknown product returns 404', { tag: ['@regression', '@cart', '@negative'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/cart/items`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
       data: { productId: 'prod_nope', quantity: 1 },
@@ -38,7 +38,7 @@ test.describe('cart', () => {
     expect(res.status()).toBe(404);
   });
 
-  test('invalid quantity (zero) returns 400', { tag: ['@regression', '@cart'] }, async ({ api, testUser }) => {
+  test('invalid quantity (zero) returns 400', { tag: ['@regression', '@cart', '@edge'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/cart/items`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
       data: { productId: 'prod_widget', quantity: 0 },

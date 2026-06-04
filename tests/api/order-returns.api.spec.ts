@@ -38,7 +38,7 @@ test.describe('order returns', () => {
     expect(fetched.returns[0]?.reason).toBe('Wrong size');
   });
 
-  test('returning a CANCELLED order returns 400', { tag: ['@regression', '@returns'] }, async ({
+  test('returning a CANCELLED order returns 400', { tag: ['@regression', '@returns', '@negative'] }, async ({
     api,
     db,
     testUser,
@@ -53,7 +53,7 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('a second open return on the same order returns 400', { tag: ['@regression', '@returns'] }, async ({
+  test('a second open return on the same order returns 400', { tag: ['@regression', '@returns', '@negative'] }, async ({
     api,
     db,
     testUser,
@@ -68,7 +68,7 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('returning another user’s order returns 403', { tag: ['@regression', '@returns'] }, async ({
+  test('returning another user’s order returns 403', { tag: ['@regression', '@returns', '@security'] }, async ({
     api,
     db,
     testUser,
@@ -86,7 +86,7 @@ test.describe('order returns', () => {
     expect(res.status()).toBe(403);
   });
 
-  test('a too-short reason returns 400', { tag: ['@regression', '@returns'] }, async ({
+  test('a too-short reason returns 400', { tag: ['@regression', '@returns', '@edge'] }, async ({
     api,
     db,
     testUser,
