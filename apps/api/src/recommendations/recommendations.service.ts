@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { prisma } from '@qa/db';
 import type { Product as PrismaProduct } from '@qa/db';
+import {
+  MAX_RECOMMENDATIONS,
+  SCORE,
+  compareRecommendations,
+} from '@qa/contracts';
 import type {
   Product,
   Recommendation,
@@ -11,16 +16,6 @@ interface CoOccurrenceRow {
   productBId: string;
   coOccurrenceCount: number;
 }
-
-const MAX_RECOMMENDATIONS = 12;
-
-// Scores per signal. Higher = surfaced earlier in the response.
-// Deterministic + documented so e2e specs can pin top-N.
-const SCORE = {
-  collaborative: (count: number) => 100 + count,
-  sameCategory: (recencyRank: number) => 50 - recencyRank,
-  recentlyViewed: (recencyRank: number) => 30 - recencyRank,
-} as const;
 
 function toProduct(row: PrismaProduct): Product {
   return {
@@ -149,9 +144,7 @@ export class RecommendationsService {
       }
     }
 
-    return out
-      .sort((a, b) => b.score - a.score || a.product.id.localeCompare(b.product.id))
-      .slice(0, MAX_RECOMMENDATIONS);
+    return out.sort(compareRecommendations).slice(0, MAX_RECOMMENDATIONS);
   }
 }
 

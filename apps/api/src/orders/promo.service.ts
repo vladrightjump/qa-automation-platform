@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@qa/db';
+import { computeDiscount } from '@qa/contracts';
 import { AuditAction } from './constants';
 
 export interface PromoApplyResult {
@@ -79,22 +80,13 @@ export class PromoService {
         `Promo code ${code} requires a minimum spend of ${promo.minSpendCents} cents`,
       );
     }
-    const discountCents = this.computeDiscount(promo, total);
+    // Pure arithmetic lives in @qa/contracts/promo-math so unit + mutation
+    // tests can drive it without Nest or Prisma.
+    const { discountCents } = computeDiscount(total, {
+      percentOff: promo.percentOff,
+      flatOffCents: promo.flatOffCents,
+    });
     return { code: promo.code, discountCents, promoCodeId: promo.id };
-  }
-
-  /** Pure discount math — percent-off or flat-off, never below zero. */
-  computeDiscount(
-    promo: { percentOff: number | null; flatOffCents: number | null },
-    total: number,
-  ): number {
-    if (promo.percentOff != null) {
-      return Math.min(total, Math.floor((total * promo.percentOff) / 100));
-    }
-    if (promo.flatOffCents != null) {
-      return Math.min(total, promo.flatOffCents);
-    }
-    return 0;
   }
 
   /**
