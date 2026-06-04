@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from './cache/cache.module';
 import { SearchModule } from './search/search.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
@@ -29,6 +30,7 @@ import { MeModule } from './me/me.module';
     // SearchModule before ProductsModule so /products/search +
     // /products/suggestions are matched before /products/:id.
     SearchModule,
+    RecommendationsModule,
     ProductsModule,
     CartModule,
     OrdersModule,

@@ -83,6 +83,57 @@ export const SuggestionSchema = z.object({
 
 export const SuggestionListSchema = z.array(SuggestionSchema);
 
+// Phase 15b — recommendations. Three signal sources unioned into a single
+// ranked list per request:
+//   recently-viewed — same-category products from the X-Recently-Viewed header
+//   same-category   — categories from the user's most-recent paid order
+//   collaborative   — co-occurrence counts from RecommendationView (materialized)
+// Scoring is deterministic so e2e tests can pin top-N.
+export const RecommendationKindSchema = z.enum([
+  'recently-viewed',
+  'same-category',
+  'collaborative',
+]);
+
+export const RecommendationSchema = z.object({
+  kind: RecommendationKindSchema,
+  product: ProductSchema,
+  score: z.number(),
+  reason: z.string(),
+});
+
+export const RecommendationListSchema = z.array(RecommendationSchema);
+
+// Phase 15c — admin sales metrics. Single aggregation over Order × OrderItem
+// × Product for paid + fulfilled orders inside [from, to]. Cached server-side
+// (30s TTL) and busted by any admin product mutation.
+export const SalesMetricsCategorySchema = z.object({
+  category: ProductCategorySchema,
+  revenueCents: z.number().int().nonnegative(),
+  orderCount: z.number().int().nonnegative(),
+});
+
+export const SalesMetricsTopProductSchema = z.object({
+  productId: z.string(),
+  name: z.string(),
+  unitsSold: z.number().int().nonnegative(),
+  revenueCents: z.number().int().nonnegative(),
+});
+
+export const SalesMetricsRangeSchema = z.object({
+  fromIso: z.string(),
+  toIso: z.string(),
+});
+
+export const SalesMetricsSchema = z.object({
+  totalRevenueCents: z.number().int().nonnegative(),
+  orderCount: z.number().int().nonnegative(),
+  averageOrderValueCents: z.number().int().nonnegative(),
+  byCategory: z.array(SalesMetricsCategorySchema),
+  topProducts: z.array(SalesMetricsTopProductSchema),
+  range: SalesMetricsRangeSchema,
+});
+
 export const CartItemSchema = z.object({
   id: z.string(),
   cartId: z.string(),
@@ -289,6 +340,12 @@ export type SearchHighlights = z.infer<typeof SearchHighlightsSchema>;
 export type ProductSearchResult = z.infer<typeof ProductSearchResultSchema>;
 export type PagedSearch = z.infer<typeof PagedSearchSchema>;
 export type Suggestion = z.infer<typeof SuggestionSchema>;
+export type RecommendationKind = z.infer<typeof RecommendationKindSchema>;
+export type Recommendation = z.infer<typeof RecommendationSchema>;
+export type SalesMetricsCategory = z.infer<typeof SalesMetricsCategorySchema>;
+export type SalesMetricsTopProduct = z.infer<typeof SalesMetricsTopProductSchema>;
+export type SalesMetricsRange = z.infer<typeof SalesMetricsRangeSchema>;
+export type SalesMetrics = z.infer<typeof SalesMetricsSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PromoPreview = z.infer<typeof PromoPreviewSchema>;

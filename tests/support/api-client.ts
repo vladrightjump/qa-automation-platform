@@ -27,7 +27,9 @@ import {
   ProductSchema,
   PromoCodeListSchema,
   PromoPreviewSchema,
+  RecommendationListSchema,
   RegionListSchema,
+  SalesMetricsSchema,
   ReturnSchema,
   ReviewSchema,
   ReviewSummarySchema,
@@ -52,7 +54,9 @@ import {
   type ProductSort,
   type PromoCode,
   type PromoPreview,
+  type Recommendation,
   type Region,
+  type SalesMetrics,
   type Return,
   type Review,
   type ReviewSummary,
@@ -197,6 +201,40 @@ export class ApiClient {
     return this.request.get(
       `${API_BASE}/products/suggestions?${params.toString()}`,
     );
+  }
+
+  // --- recommendations (phase 15b) ---
+
+  async getRecommendations(
+    token: string,
+    recentlyViewed: string[] = [],
+  ): Promise<Recommendation[]> {
+    const headers: Record<string, string> = { ...authHeader(token) };
+    if (recentlyViewed.length > 0) {
+      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
+    }
+    const res = await this.request.get(`${API_BASE}/recommendations`, { headers });
+    if (!res.ok()) {
+      throw new Error(`getRecommendations: ${res.status()} ${await res.text()}`);
+    }
+    return RecommendationListSchema.parse(await res.json());
+  }
+
+  getRecommendationsRaw(token: string | undefined, recentlyViewed: string[] = []) {
+    const headers: Record<string, string> = { ...authHeader(token) };
+    if (recentlyViewed.length > 0) {
+      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
+    }
+    return this.request.get(`${API_BASE}/recommendations`, { headers });
+  }
+
+  async refreshRecommendationView(): Promise<void> {
+    const res = await this.request.post(
+      `${API_BASE}/test/refresh-recommendation-view`,
+    );
+    if (!res.ok()) {
+      throw new Error(`refreshRecommendationView: ${res.status()} ${await res.text()}`);
+    }
   }
 
   async bulkSeedProducts(count: number, rngSeed = 42): Promise<{
@@ -538,6 +576,39 @@ export class ApiClient {
     if (!res.ok()) {
       throw new Error(`adminDeleteProduct: ${res.status()} ${await res.text()}`);
     }
+  }
+
+  // --- admin/metrics (phase 15c) ---
+
+  async adminGetSalesMetrics(
+    token: string,
+    range: { from?: string; to?: string } = {},
+  ): Promise<SalesMetrics> {
+    const params = new URLSearchParams();
+    if (range.from) params.set('from', range.from);
+    if (range.to) params.set('to', range.to);
+    const qs = params.toString();
+    const url = `${API_BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
+    const res = await this.request.get(url, { headers: authHeader(token) });
+    if (!res.ok()) {
+      throw new Error(`adminGetSalesMetrics: ${res.status()} ${await res.text()}`);
+    }
+    return SalesMetricsSchema.parse(await res.json());
+  }
+
+  adminGetSalesMetricsRaw(
+    token: string | undefined,
+    range: { from?: string; to?: string } = {},
+    headers: Record<string, string> = {},
+  ) {
+    const params = new URLSearchParams();
+    if (range.from) params.set('from', range.from);
+    if (range.to) params.set('to', range.to);
+    const qs = params.toString();
+    const url = `${API_BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
+    return this.request.get(url, {
+      headers: { ...authHeader(token), ...headers },
+    });
   }
 
   // --- admin/orders ---

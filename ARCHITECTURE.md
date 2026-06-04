@@ -194,6 +194,9 @@ The point isn't to use every pattern in every test — it's that each pattern ha
 | Custom expect matchers (`toHaveCartCount`, `toMatchContract`, `toBeAccessible`) | [`tests/support/matchers.ts`](./tests/support/matchers.ts) |
 | Setup project (storageState producer) | [`tests/setup/auth.setup.ts`](./tests/setup/auth.setup.ts) |
 | Network mocking, a11y, visual specs | [`tests/e2e/network-mocking.e2e.spec.ts`](./tests/e2e/network-mocking.e2e.spec.ts), [`a11y.e2e.spec.ts`](./tests/e2e/a11y.e2e.spec.ts), [`*.visual.spec.ts`](./tests/e2e/) |
-| CI workflow | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) |
+| Perf budgets (committed source of truth) | [`tests/perf/budgets.json`](./tests/perf/budgets.json) |
+| Lighthouse + Web Vitals perf specs | [`tests/perf/lighthouse/`](./tests/perf/lighthouse/), [`tests/perf/web-vitals.perf.spec.ts`](./tests/perf/web-vitals.perf.spec.ts) |
+| Perf seed seam (bulk products) | [`tests/perf/runner/seed.ts`](./tests/perf/runner/seed.ts), [`apps/api/src/test/test.controller.ts`](./apps/api/src/test/test.controller.ts) |
+| CI workflows | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml), [`.github/workflows/perf.yml`](./.github/workflows/perf.yml) |
 | Playwright MCP config | [`.mcp.json`](./.mcp.json) |
 | Build plan — phase by phase, with "as built" status blocks | [`todos/`](./todos/) |

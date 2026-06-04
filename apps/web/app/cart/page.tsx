@@ -5,7 +5,7 @@ import { api, type Cart } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import Button from '@/components/ui/Button';
 import CartTable from '@/components/CartTable';
-import RecentlyViewed from '@/components/RecentlyViewed';
+import Recommendations from '@/components/Recommendations';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptyCart from '@/components/illustrations/EmptyCart';
@@ -80,7 +80,7 @@ export default function CartPage() {
           <span aria-hidden="true">→</span>
         </Button>
       )}
-      <RecentlyViewed excludeId={null} />
+      <Recommendations excludeId={null} />
     </section>
   );
 }

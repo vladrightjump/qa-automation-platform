@@ -79,13 +79,22 @@ export default function Navbar() {
                 {t('nav.orders')}
               </Link>
               {user?.role === 'ADMIN' && (
-                <Link
-                  href="/admin/products"
-                  data-testid="nav-admin"
-                  className="inline-flex items-center px-3 py-1.5 rounded-full bg-clay-50 text-clay-700 font-medium hover:bg-clay-100 transition-colors"
-                >
-                  {t('nav.admin')}
-                </Link>
+                <>
+                  <Link
+                    href="/admin/products"
+                    data-testid="nav-admin"
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-clay-50 text-clay-700 font-medium hover:bg-clay-100 transition-colors"
+                  >
+                    {t('nav.admin')}
+                  </Link>
+                  <Link
+                    href="/admin/metrics"
+                    data-testid="nav-admin-metrics"
+                    className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-clay-700 hover:bg-clay-50 transition-colors"
+                  >
+                    Metrics
+                  </Link>
+                </>
               )}
               <button
                 onClick={clear}

@@ -38,6 +38,7 @@ export class AdminProductsService {
         },
       });
       this.cache.invalidatePrefix('/products');
+      this.cache.invalidatePrefix('/admin/metrics');
       return created;
     } catch (e) {
       if (
@@ -70,6 +71,7 @@ export class AdminProductsService {
     if (!restocked) {
       const updated = await prisma.product.update({ where: { id }, data });
       this.cache.invalidatePrefix('/products');
+      this.cache.invalidatePrefix('/admin/metrics');
       return updated;
     }
 
@@ -96,6 +98,7 @@ export class AdminProductsService {
       return updated;
     });
     this.cache.invalidatePrefix('/products');
+    this.cache.invalidatePrefix('/admin/metrics');
     return result;
   }
 
@@ -113,6 +116,7 @@ export class AdminProductsService {
     await prisma.cartItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
     this.cache.invalidatePrefix('/products');
+    this.cache.invalidatePrefix('/admin/metrics');
     return { ok: true };
   }
 

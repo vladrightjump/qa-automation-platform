@@ -17,7 +17,9 @@
     "test:webkit": "playwright test --project webkit",
     "test:visual": "playwright test --project visual --project tablet-visual",
     "test:a11y": "playwright test --grep @a11y",
-    "test:update-snapshots": "playwright test --project visual --project tablet-visual --update-snapshots"
+    "test:update-snapshots": "playwright test --project visual --project tablet-visual --update-snapshots",
+    "perf:lighthouse": "playwright test --project lighthouse-perf",
+    "perf:all": "pnpm perf:lighthouse"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
@@ -28,6 +30,9 @@
     "@qa/contracts": "workspace:*",
     "@qa/db": "workspace:*",
     "@qa/web": "workspace:*",
-    "dotenv": "^16.6.1"
+    "dotenv": "^16.6.1",
+    "lighthouse": "^13.3.0",
+    "playwright-lighthouse": "^4.0.0",
+    "web-vitals": "^5.3.0"
   }
 }
