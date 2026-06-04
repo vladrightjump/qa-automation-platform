@@ -27,9 +27,15 @@ if (isCI) reporter.push(['github']);
 
 export default defineConfig({
   testDir: '.',
-  testMatch: ['**/*.spec.ts', 'setup/**/*.setup.ts'],
+  testMatch: [
+    '**/*.spec.ts',
+    'setup/**/*.setup.ts',
+    'perf/setup/**/*.setup.ts',
+  ],
   // Agent-authored drafts under `e2e/_generated/` are excluded from every
-  // run — see e2e/_generated/README.md.
+  // run — see e2e/_generated/README.md. Perf specs are excluded from the
+  // default desktop/mobile/tablet projects via per-project `testIgnore`
+  // below (a top-level ignore would also hide them from `lighthouse-perf`).
   testIgnore: ['**/_generated/**', '**/*.draft.spec.ts'],
   timeout: 30_000,
   expect: {
@@ -66,7 +72,7 @@ export default defineConfig({
       name: 'chromium-desktop',
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
-      testIgnore: ['**/*.visual.spec.ts'],
+      testIgnore: ['**/*.visual.spec.ts', '**/*.perf.spec.ts'],
     },
 
     // 3. Phone form factors — both engines, @smoke + @mobile tags only.
@@ -76,7 +82,7 @@ export default defineConfig({
       use: { ...devices[p.device] },
       dependencies: ['setup'],
       grep: p.grep,
-      testIgnore: ['**/*.visual.spec.ts'],
+      testIgnore: ['**/*.visual.spec.ts', '**/*.perf.spec.ts'],
     })),
 
     // 4. Tablet form factors — iPad (webkit) + Galaxy Tab S4 (chromium).
@@ -86,7 +92,7 @@ export default defineConfig({
       use: { ...devices[p.device] },
       dependencies: ['setup'],
       grep: p.grep,
-      testIgnore: ['**/*.visual.spec.ts'],
+      testIgnore: ['**/*.visual.spec.ts', '**/*.perf.spec.ts'],
     })),
 
     // 5. Cross-browser smoke — webkit @smoke only, keeps CI minutes sane.
@@ -96,7 +102,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
       dependencies: ['setup'],
       grep: /@smoke/,
-      testIgnore: ['**/*.visual.spec.ts'],
+      testIgnore: ['**/*.visual.spec.ts', '**/*.perf.spec.ts'],
     },
 
     // 6. Visual regression — separate project so screenshots don't run
@@ -117,7 +123,29 @@ export default defineConfig({
       dependencies: ['setup'],
     },
 
-    // 7. Tablet visual baselines — iPad descriptor for screenshot diffs
+    // 7. Lighthouse perf — separate project, only runs `*.perf.spec.ts`.
+    //    Launches Chromium with --remote-debugging-port=9222 so
+    //    `playwright-lighthouse` can attach. Single worker so Lighthouse
+    //    audits don't compete for the runner's CPU.
+    {
+      name: 'perf-setup',
+      testMatch: /perf\/setup\/.*\.setup\.ts/,
+      dependencies: ['setup'],
+    },
+    {
+      name: 'lighthouse-perf',
+      testMatch: /.*\.perf\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: USER_STATE,
+        launchOptions: { args: ['--remote-debugging-port=9222'] },
+      },
+      dependencies: ['perf-setup'],
+      fullyParallel: false,
+      workers: 1,
+    },
+
+    // 8. Tablet visual baselines — iPad descriptor for screenshot diffs
     //    on the localized storefront at tablet width.
     {
       name: 'tablet-visual',

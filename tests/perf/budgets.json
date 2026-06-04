@@ -1,0 +1,37 @@
+{
+  "runner": "ci-ubuntu-2025-04",
+  "notes": [
+    "Budgets are sized for the GitHub Actions ubuntu-latest runner profile.",
+    "Tighter than the SUT typically delivers — they're the line a regression",
+    "would visibly cross. To rebaseline, run perf:lighthouse locally three",
+    "times, take the worst LCP/INP/TBT, round up to the nearest 50ms.",
+    "CLS is fixed at 0.1 (the Web Vitals 'good' threshold) on every route."
+  ],
+  "routes": {
+    "/": {
+      "lcp": 2500,
+      "cls": 0.1,
+      "tbt": 200
+    },
+    "/products/prod_widget": {
+      "lcp": 2500,
+      "cls": 0.1,
+      "tbt": 250
+    },
+    "/search?q=widget": {
+      "lcp": 3000,
+      "cls": 0.1,
+      "tbt": 300
+    },
+    "/cart": {
+      "lcp": 2500,
+      "cls": 0.1,
+      "tbt": 200
+    },
+    "/admin/metrics": {
+      "lcp": 3500,
+      "cls": 0.1,
+      "tbt": 400
+    }
+  }
+}

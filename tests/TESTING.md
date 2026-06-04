@@ -86,6 +86,7 @@ per feature also carries `@sanity`.
 | `@cache` | `X-Cache: hit/miss/bypass` header contract + admin-mutation invalidation |
 | `@recommendations` | `GET /recommendations` (collaborative + same-category + recently-viewed) + carousel |
 | `@metrics` | Admin sales metrics (`GET /admin/metrics/sales`) + `/admin/metrics` page |
+| `@perf` | Lighthouse + Web Vitals route budgets (`tests/perf/`); CI-gated via `.github/workflows/perf.yml` |
 
 > **Note:** every spec — `tests/api/*` and `tests/e2e/*` — now uses native
 > Playwright `tag: [...]` arrays carrying the `@smoke`/`@regression` tier plus a
@@ -125,8 +126,18 @@ pnpm --filter @qa/tests test:feature @cart # any feature (passes through to --gr
 pnpm --filter @qa/tests test:mobile        # chromium-mobile + webkit-mobile
 pnpm --filter @qa/tests test:tablet        # tablet-ipad + tablet-android
 pnpm --filter @qa/tests test:visual        # storefront + tablet visual baselines
+pnpm --filter @qa/tests perf:lighthouse    # Lighthouse + Web Vitals route budgets
 pnpm --filter @qa/tests test               # full suite (chromium-desktop)
 ```
+
+### Perf as a layer
+
+`tests/perf/` adds performance as a first-class assertion. The
+`lighthouse-perf` Playwright project runs Lighthouse audits + a Web Vitals
+journey on `/` against the committed budgets in
+[`tests/perf/budgets.json`](./perf/budgets.json). A breach fails CI. See
+[`tests/perf/README.md`](./perf/README.md) for invariants, how to run
+locally, and the rebaselining workflow.
 
 ---
 
