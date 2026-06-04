@@ -18,7 +18,10 @@
     "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
     "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
     "studio": "dotenv -e ../../.env -- prisma studio",
-    "postinstall": "prisma generate || true"
+    "postinstall": "prisma generate || true",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
@@ -30,8 +33,10 @@
   "devDependencies": {
     "@qa/config": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
+    "@vitest/coverage-v8": "^4.1.8",
     "dotenv-cli": "^7.4.4",
     "prisma": "^6.19.3",
-    "tsx": "^4.22.3"
+    "tsx": "^4.22.3",
+    "vitest": "^4.1.8"
   }
 }
