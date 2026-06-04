@@ -56,10 +56,20 @@ jobs:
       # job if the score drops, but we also cross-check the JSON report
       # against the committed budget so the PR comment / log shows both
       # numbers side-by-side.
+      #
+      # Stryker's JSON report doesn't include a precomputed score field —
+      # we derive it from files[].mutants[].status using the standard
+      # formula: (killed + timeout) / (killed + timeout + survived + noCoverage).
+      # Ignored mutants and compile errors are excluded.
       - name: Enforce committed minScore
         if: always()
         run: |
-          score=$(jq -r '.metrics.mutationScore' reports/mutation/mutation.json)
+          score=$(jq -r '
+            [.files | to_entries | map(.value.mutants) | flatten | .[] | .status] as $s
+            | ($s | map(select(. == "Killed" or . == "Timeout")) | length) as $killed
+            | ($s | map(select(. == "Killed" or . == "Timeout" or . == "Survived" or . == "NoCoverage")) | length) as $denom
+            | if $denom == 0 then 100 else ($killed / $denom * 100) end
+          ' reports/mutation/mutation.json)
           min=$(jq -r '.minScore' tests/mutation/budget.json)
           printf "Mutation score: %s\nCommitted floor: %s\n" "$score" "$min"
           awk -v s="$score" -v m="$min" 'BEGIN { exit (s+0 >= m+0) ? 0 : 1 }'
