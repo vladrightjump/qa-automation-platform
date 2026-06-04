@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config';
 // only the pure RNG + bias logic + ID construction here.
 export default defineConfig({
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.prop.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'html'],

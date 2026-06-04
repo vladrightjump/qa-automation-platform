@@ -8,7 +8,9 @@ export default defineConfig({
   test: {
     include: [
       'packages/contracts/src/**/*.test.ts',
+      'packages/contracts/src/**/*.prop.test.ts',
       'packages/db/src/**/*.test.ts',
+      'packages/db/src/**/*.prop.test.ts',
     ],
     coverage: {
       provider: 'v8',

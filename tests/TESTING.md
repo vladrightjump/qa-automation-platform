@@ -150,6 +150,11 @@ CI. Run locally with `pnpm mutate`. See
 [`tests/mutation/README.md`](./mutation/README.md) for invariants,
 how to read the HTML report, and the rebaselining workflow.
 
+Each mutated helper also has a `*.prop.test.ts` fast-check companion
+(phase 17). Property tests run under the same Vitest command and join
+the verifier suite Stryker uses — they catch mutants that survive only
+because the example list didn't reach a particular input.
+
 ---
 
 ## 5. POM, fixtures & factories (quick reference)

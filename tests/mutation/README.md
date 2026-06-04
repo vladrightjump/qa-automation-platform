@@ -78,10 +78,30 @@ configs. It runs `pnpm mutate`, double-checks the score against
 | `packages/db/src/bulk-seed-rng.ts` | Pure RNG + bulk-product row builder |
 | `packages/*/src/**/*.test.ts` | The Vitest verifier suite |
 
+## Property-based companion (phase 17)
+
+Each mutated source file also has a `*.prop.test.ts` companion that uses
+fast-check to assert invariants over ~100 random inputs per property:
+
+| Source | Property file |
+| --- | --- |
+| `packages/contracts/src/promo-math.ts` | `promo-math.prop.test.ts` |
+| `packages/contracts/src/loyalty-math.ts` | `loyalty-math.prop.test.ts` |
+| `packages/contracts/src/recommendations-math.ts` | `recommendations-math.prop.test.ts` |
+| `packages/contracts/src/i18n.ts` | `i18n.prop.test.ts` |
+| `packages/db/src/bulk-seed-rng.ts` | `bulk-seed-rng.prop.test.ts` |
+
+Property tests run under the same `pnpm test:unit` command and act as
+additional Stryker verifiers. fast-check shrinks any failing case to a
+minimal counterexample — see
+[`todos/phase-17-property-testing.md`](../../todos/phase-17-property-testing.md)
+for the locked invariants and one real example where a property exposed
+a bug in its own assertion on the first run.
+
 ## Out of scope
 
 - Mutation testing the NestJS services (Prisma + transaction mocking).
 - Mutation testing the React storefront.
-- Property-based testing (fast-check).
+- Generative SUT-level testing (fast-check journeys for Playwright).
 - Raw line-coverage gates in CI — Stryker subsumes the strongest case
   for coverage.
