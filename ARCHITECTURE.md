@@ -197,6 +197,9 @@ The point isn't to use every pattern in every test — it's that each pattern ha
 | Perf budgets (committed source of truth) | [`tests/perf/budgets.json`](./tests/perf/budgets.json) |
 | Lighthouse + Web Vitals perf specs | [`tests/perf/lighthouse/`](./tests/perf/lighthouse/), [`tests/perf/web-vitals.perf.spec.ts`](./tests/perf/web-vitals.perf.spec.ts) |
 | Perf seed seam (bulk products) | [`tests/perf/runner/seed.ts`](./tests/perf/runner/seed.ts), [`apps/api/src/test/test.controller.ts`](./apps/api/src/test/test.controller.ts) |
-| CI workflows | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml), [`.github/workflows/perf.yml`](./.github/workflows/perf.yml) |
+| Pure helpers (mutation-tested) | [`packages/contracts/src/{promo,loyalty,recommendations}-math.ts`](./packages/contracts/src/), [`packages/db/src/bulk-seed-rng.ts`](./packages/db/src/bulk-seed-rng.ts) |
+| Vitest unit suite (verifier for Stryker) | [`packages/*/src/**/*.test.ts`](./packages/) |
+| Mutation testing config + budget | [`stryker.config.json`](./stryker.config.json), [`tests/mutation/budget.json`](./tests/mutation/budget.json) |
+| CI workflows | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml), [`.github/workflows/perf.yml`](./.github/workflows/perf.yml), [`.github/workflows/mutation.yml`](./.github/workflows/mutation.yml) |
 | Playwright MCP config | [`.mcp.json`](./.mcp.json) |
 | Build plan — phase by phase, with "as built" status blocks | [`todos/`](./todos/) |

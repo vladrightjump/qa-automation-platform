@@ -52,9 +52,10 @@ export default function AdminMetricsPage() {
   );
 
   useEffect(() => {
+    // Intentionally re-fetch only when the auth token resolves; the default
+    // range is captured at mount via `init` above.
     void fetchMetrics(init.from, init.to);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, fetchMetrics, init.from, init.to]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

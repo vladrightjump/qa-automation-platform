@@ -139,6 +139,22 @@ journey on `/` against the committed budgets in
 [`tests/perf/README.md`](./perf/README.md) for invariants, how to run
 locally, and the rebaselining workflow.
 
+### Mutation testing as a layer
+
+`tests/mutation/` adds *test-quality* as a first-class assertion.
+Stryker mutates the pure helpers in `packages/contracts/src/` and
+`packages/db/src/bulk-seed-rng.ts` and re-runs the Vitest unit suite
+against each mutant. A surviving mutant lowers the mutation score; a
+drop below [`tests/mutation/budget.json`](./mutation/budget.json) fails
+CI. Run locally with `pnpm mutate`. See
+[`tests/mutation/README.md`](./mutation/README.md) for invariants,
+how to read the HTML report, and the rebaselining workflow.
+
+Each mutated helper also has a `*.prop.test.ts` fast-check companion
+(phase 17). Property tests run under the same Vitest command and join
+the verifier suite Stryker uses — they catch mutants that survive only
+because the example list didn't reach a particular input.
+
 ---
 
 ## 5. POM, fixtures & factories (quick reference)

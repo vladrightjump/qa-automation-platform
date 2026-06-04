@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { LoyaltyType, Prisma, prisma } from '@qa/db';
-import { AuditAction, LOYALTY_EARN_RATE } from './constants';
+import {
+  clampRedemption,
+  earnedPoints as earnedPointsPure,
+} from '@qa/contracts';
+import { AuditAction } from './constants';
 
 @Injectable()
 export class LoyaltyService {
@@ -41,12 +45,12 @@ export class LoyaltyService {
         `Cannot redeem ${requestedPoints} points — balance is ${balance}`,
       );
     }
-    return Math.min(requestedPoints, afterPromoCents);
+    return clampRedemption(requestedPoints, afterPromoCents);
   }
 
   /** Points earned (store credit accrued) from a charged total. */
   earnedPoints(totalCents: number): number {
-    return Math.floor(totalCents * LOYALTY_EARN_RATE);
+    return earnedPointsPure(totalCents);
   }
 
   /** Loyalty redemption ledger + audit row (store credit spent), inside txn. */

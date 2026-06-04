@@ -1,0 +1,84 @@
+name: Mutation
+
+# Phase 16c — Stryker mutation testing of the project's pure helpers.
+# A drop below tests/mutation/budget.json.minScore fails the run. Stryker
+# enforces the gate internally via stryker.config.json's break threshold;
+# this workflow makes the same number visible to reviewers via the PR
+# Files-changed view and uploads the HTML + JSON report as an artifact.
+
+on:
+  schedule:
+    # 04:30 UTC nightly — 30 min after perf.yml so they don't fight for a
+    # single ubuntu-latest runner.
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/contracts/src/**'
+      - 'packages/db/src/**'
+      - 'stryker.config.json'
+      - 'tests/mutation/budget.json'
+      - 'vitest.config.ts'
+      - 'packages/**/vitest.config.ts'
+      - '.github/workflows/mutation.yml'
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PNPM_VERSION: '9.15.4'
+  NODE_VERSION: '20'
+
+jobs:
+  stryker:
+    name: Stryker mutation score
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run Stryker
+        run: pnpm mutate
+
+      # Stryker's break threshold (stryker.config.json) already fails the
+      # job if the score drops, but we also cross-check the JSON report
+      # against the committed budget so the PR comment / log shows both
+      # numbers side-by-side.
+      #
+      # Stryker's JSON report doesn't include a precomputed score field —
+      # we derive it from files[].mutants[].status using the standard
+      # formula: (killed + timeout) / (killed + timeout + survived + noCoverage).
+      # Ignored mutants and compile errors are excluded.
+      - name: Enforce committed minScore
+        if: always()
+        run: |
+          score=$(jq -r '
+            [.files | to_entries | map(.value.mutants) | flatten | .[] | .status] as $s
+            | ($s | map(select(. == "Killed" or . == "Timeout")) | length) as $killed
+            | ($s | map(select(. == "Killed" or . == "Timeout" or . == "Survived" or . == "NoCoverage")) | length) as $denom
+            | if $denom == 0 then 100 else ($killed / $denom * 100) end
+          ' reports/mutation/mutation.json)
+          min=$(jq -r '.minScore' tests/mutation/budget.json)
+          printf "Mutation score: %s\nCommitted floor: %s\n" "$score" "$min"
+          awk -v s="$score" -v m="$min" 'BEGIN { exit (s+0 >= m+0) ? 0 : 1 }'
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-mutation-report
+          path: reports/mutation
+          retention-days: 30
+          if-no-files-found: warn

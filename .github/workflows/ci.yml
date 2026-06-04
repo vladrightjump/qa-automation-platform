@@ -135,6 +135,35 @@ jobs:
           echo "grep=$grep" >> "$GITHUB_OUTPUT"
 
   # ─────────────────────────────────────────────────────────────────────────
+  # Vitest unit-test layer (phase 16b). Fast (<10s), runs in parallel with
+  # the @sanity gate. Targets pure helpers in @qa/contracts + @qa/db that
+  # also feed the Stryker mutation-test layer (phase 16c).
+  # ─────────────────────────────────────────────────────────────────────────
+  unit:
+    name: Unit tests (vitest)
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Run unit tests
+        run: pnpm test:unit
+
+  # ─────────────────────────────────────────────────────────────────────────
   # Sanity gate: one critical happy-path test per feature (@sanity tag).
   # Fast, broad, and deterministic — runs before the heavier sharded suite
   # so an obvious cross-feature regression fails the run in ~1 shard's time.
