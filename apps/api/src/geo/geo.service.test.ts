@@ -3,7 +3,7 @@
 // distances; we assert which region is picked for hand-picked
 // coordinates whose nearest neighbour is unambiguous.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended';
+import { mockDeep, mockReset } from 'vitest-mock-extended';
 import type { PrismaClient } from '@qa/db';
 
 const prismaMock = mockDeep<PrismaClient>();
