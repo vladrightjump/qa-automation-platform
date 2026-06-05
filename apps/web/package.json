@@ -7,7 +7,8 @@
     "typecheck": "tsc --noEmit",
     "dev": "dotenv -e ../../.env -- next dev -p 3000",
     "build": "dotenv -e ../../.env -- next build --no-lint",
-    "start": "dotenv -e ../../.env -- next start -p 3000"
+    "start": "dotenv -e ../../.env -- next start -p 3000",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@qa/contracts": "workspace:*",
@@ -18,9 +19,16 @@
   "devDependencies": {
     "@qa/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "dotenv-cli": "^7.4.4",
-    "tailwindcss": "^4.3.0"
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4.3.0",
+    "vitest": "^4.1.8"
   }
 }

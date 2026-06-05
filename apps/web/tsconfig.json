@@ -24,6 +24,7 @@
     "components/**/*.tsx",
     "lib/**/*.ts",
     "lib/**/*.tsx",
+    "vitest.setup.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules", ".next"]
