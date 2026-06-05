@@ -28,6 +28,10 @@ test.describe('catalog filters', () => {
     storefront,
   }) => {
     await storefront.goto();
+    // Narrow with a search before applying the filter so the assertion
+    // is independent of bulk perf-seed products that may dominate page 1.
+    await storefront.search('Basic Tee');
+    await page.waitForURL(/q=/);
     await storefront.toggleCategory('apparel');
     await page.waitForURL(/category=apparel/);
 
@@ -42,14 +46,18 @@ test.describe('catalog filters', () => {
     storefront,
   }) => {
     await storefront.goto();
-    // Scope to office so parallel admin-API tests creating random products
-    // can't interfere with the assertion about which item is cheapest.
+    // Narrow with the seeded product's distinctive name so bulk perf-seed
+    // products (priceCents 500–9999) can't undercut the assertion about
+    // which is cheapest. The filter is still category-scoped.
+    await storefront.search('Gel Pen');
+    await page.waitForURL(/q=/);
     await storefront.toggleCategory('office');
     await page.waitForURL(/category=office/);
     await storefront.setSort('price_asc');
     await page.waitForURL(/sort=price_asc/);
 
-    // prod_pen_gel ($5.99) is the cheapest office item in the seed.
+    // prod_pen_gel ($5.99) is the cheapest office item with "Gel Pen" in
+    // the name; bulk products don't share the substring.
     const firstCard = storefront.productCards().first();
     await expect(firstCard).toHaveAttribute(
       'data-testid',

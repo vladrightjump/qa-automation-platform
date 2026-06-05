@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-const CATEGORIES = ['gadgets', 'apparel', 'home', 'office'] as const;
-type ProductCategory = (typeof CATEGORIES)[number];
+type ProductCategory = 'gadgets' | 'apparel' | 'home' | 'office';
 
 export interface AdminProductInput {
   id: string;
