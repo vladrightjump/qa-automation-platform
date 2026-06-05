@@ -79,6 +79,7 @@ export default function SearchBox() {
     <div ref={containerRef} className="relative w-full max-w-md">
       <input
         type="search"
+        role="combobox"
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
