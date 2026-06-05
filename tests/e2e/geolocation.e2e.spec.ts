@@ -70,7 +70,7 @@ test.describe('geolocation banner — denied / unavailable', () => {
   });
 
   test('permission denied → suggestion banner is hidden, manual region picker is shown', {
-    tag: ['@regression', '@geo'],
+    tag: ['@regression', '@geo', '@negative'],
   }, async ({ page, storefront }) => {
     await storefront.goto();
 

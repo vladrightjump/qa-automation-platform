@@ -54,7 +54,7 @@ test.describe('checkout with promo + address', () => {
     expect(order.totalCents).toBe(2_500);
   });
 
-  test('unknown promo code returns 404', { tag: ['@regression', '@checkout'] }, async ({
+  test('unknown promo code returns 404', { tag: ['@regression', '@checkout', '@negative'] }, async ({
     api,
     testUser,
     db,
@@ -70,7 +70,7 @@ test.describe('checkout with promo + address', () => {
     expect(res.status()).toBe(404);
   });
 
-  test('expired promo (OLDDEAL) returns 400', { tag: ['@regression', '@checkout'] }, async ({
+  test('expired promo (OLDDEAL) returns 400', { tag: ['@regression', '@checkout', '@boundary'] }, async ({
     api,
     testUser,
     db,
@@ -86,7 +86,7 @@ test.describe('checkout with promo + address', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('checkout with addressId belonging to another user returns 400', { tag: ['@regression', '@checkout'] }, async ({
+  test('checkout with addressId belonging to another user returns 400', { tag: ['@regression', '@checkout', '@security'] }, async ({
     api,
     testUser,
     db,

@@ -66,7 +66,7 @@ test.describe('admin sales metrics (API)', () => {
   });
 
   test('USER token → 403, unauth → 401', {
-    tag: ['@regression', '@metrics', '@admin'],
+    tag: ['@regression', '@metrics', '@admin', '@security'],
   }, async ({ api, testUser }) => {
     const forbidden = await api.adminGetSalesMetricsRaw(testUser.token);
     expect(forbidden.status()).toBe(403);
@@ -75,7 +75,7 @@ test.describe('admin sales metrics (API)', () => {
   });
 
   test('from > to → 400', {
-    tag: ['@regression', '@metrics', '@admin'],
+    tag: ['@regression', '@metrics', '@admin', '@edge'],
   }, async ({ api, adminUser }) => {
     const res = await api.adminGetSalesMetricsRaw(adminUser.token, {
       from: isoDaysAgo(1),
@@ -85,7 +85,7 @@ test.describe('admin sales metrics (API)', () => {
   });
 
   test('range longer than 1 year → 400', {
-    tag: ['@regression', '@metrics', '@admin'],
+    tag: ['@regression', '@metrics', '@admin', '@boundary'],
   }, async ({ api, adminUser }) => {
     const res = await api.adminGetSalesMetricsRaw(adminUser.token, {
       from: isoDaysAgo(400),

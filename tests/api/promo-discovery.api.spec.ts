@@ -36,7 +36,7 @@ test.describe('promo discovery (API)', () => {
   });
 
   test('a code below its minimum spend is rejected, and applies once met', {
-    tag: ['@regression', '@promo'],
+    tag: ['@regression', '@promo', '@boundary'],
   }, async ({ api, db, testUser }) => {
     const code = uniqueCode('MINSPEND');
     await db.promoCode.create({
@@ -57,7 +57,7 @@ test.describe('promo discovery (API)', () => {
   });
 
   test('a single-use code is rejected after its redemption limit is reached', {
-    tag: ['@regression', '@promo'],
+    tag: ['@regression', '@promo', '@boundary'],
   }, async ({ api, db, testUser }) => {
     const code = uniqueCode('ONCE');
     const promo = await db.promoCode.create({

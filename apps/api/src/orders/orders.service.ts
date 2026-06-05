@@ -9,6 +9,7 @@ import type { CheckoutDto, PaymentMethod } from './dto';
 import { AuditAction } from './constants';
 import { PromoService, type PromoApplyResult } from './promo.service';
 import { LoyaltyService } from './loyalty.service';
+import { maybeInjectFailure } from '../test/fault-injection';
 
 @Injectable()
 export class OrdersService {
@@ -90,6 +91,12 @@ export class OrdersService {
           );
         }
       }
+
+      // Chaos seam — armed via POST /test/inject-failure?at=stock-decrement
+      // &userId=<u>, gated by ENABLE_TEST_ENDPOINTS. Throwing here rolls
+      // back the entire checkout transaction; in production builds the
+      // call is a no-op. Per-user scoping keeps parallel checkouts safe.
+      maybeInjectFailure('stock-decrement', userId);
 
       const order = await tx.order.create({
         data: {

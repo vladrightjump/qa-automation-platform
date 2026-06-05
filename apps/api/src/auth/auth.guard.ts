@@ -31,10 +31,13 @@ export class AuthGuard implements CanActivate {
     const token = header.slice('Bearer '.length);
     try {
       const payload = this.jwt.verify<{
-        sub: string;
-        email: string;
+        sub?: string;
+        email?: string;
         role?: UserRole;
       }>(token);
+      if (!payload.sub || !payload.email) {
+        throw new UnauthorizedException();
+      }
       req.user = {
         id: payload.sub,
         email: payload.email,

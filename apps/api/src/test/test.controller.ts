@@ -1,4 +1,11 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   prisma,
@@ -10,6 +17,7 @@ import {
 import { TestEndpointsGuard } from './test-endpoints.guard';
 import { BulkSeedProductsDto } from './dto';
 import { CacheService } from '../cache/cache.service';
+import { clearFaultInjection, setFaultStage } from './fault-injection';
 
 @ApiTags('test')
 @UseGuards(TestEndpointsGuard)
@@ -24,6 +32,7 @@ export class TestController {
    */
   @Post('reset')
   async reset() {
+    clearFaultInjection();
     await prisma.auditLog.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
@@ -38,6 +47,29 @@ export class TestController {
     await upsertPromoCodes(prisma);
     this.cache.clear();
     return { ok: true };
+  }
+
+  /**
+   * Arms a one-shot failure injection at the named stage for the given
+   * user. The next call from that user through that stage throws and
+   * auto-clears the entry, so a test that crashes after arming can't
+   * poison the next run. `?at=` (empty) clears the entry for the user.
+   * Per-user scoping lets chaos specs run in parallel with other
+   * checkout-touching specs without cross-contamination.
+   * Currently the only consumer is OrdersService.checkout at the
+   * `stock-decrement` stage.
+   */
+  @Post('inject-failure')
+  injectFailure(
+    @Query('at') at?: string,
+    @Query('userId') userId?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('userId query param is required');
+    }
+    const stage = at && at.length > 0 ? at : null;
+    setFaultStage(userId, stage);
+    return { ok: true, at: stage, userId };
   }
 
   /**

@@ -13,7 +13,7 @@ const CART_GLOB = '**/cart';
 
 test.describe('network mocking (UI)', () => {
   test('500 on add-to-cart surfaces an error toast and leaves cart empty', {
-    tag: ['@regression', '@network', '@cart'],
+    tag: ['@regression', '@network', '@cart', '@negative'],
   }, async ({
     authedPage,
     storefront,
@@ -34,7 +34,7 @@ test.describe('network mocking (UI)', () => {
   });
 
   test('401 on cart redirects authed user to /login', {
-    tag: ['@regression', '@network', '@auth'],
+    tag: ['@regression', '@network', '@auth', '@negative'],
   }, async ({
     authedPage,
   }) => {
@@ -73,7 +73,7 @@ test.describe('network mocking (UI)', () => {
   });
 
   test('contract drift is caught by toMatchContract', {
-    tag: ['@regression', '@network', '@catalog'],
+    tag: ['@regression', '@network', '@catalog', '@negative'],
   }, async ({
     api,
   }) => {

@@ -54,7 +54,7 @@ test.describe('geo (API)', () => {
   });
 
   test('lat/lng boundary values are accepted', {
-    tag: ['@regression', '@geo'],
+    tag: ['@regression', '@geo', '@edge'],
   }, async ({ api }) => {
     // Extremes inside the valid range — the resolver still picks a seeded
     // region (its great-circle nearest neighbour), no validation error.
@@ -65,7 +65,7 @@ test.describe('geo (API)', () => {
   });
 
   test('out-of-range lat/lng → 400', {
-    tag: ['@regression', '@geo'],
+    tag: ['@regression', '@geo', '@edge'],
   }, async ({ api }) => {
     const overLat = await api.resolveGeoRaw(91, 0);
     expect(overLat.status()).toBe(400);
@@ -110,7 +110,7 @@ test.describe('locale preference (API)', () => {
   });
 
   test('unsupported locale → 400 and no DB write', {
-    tag: ['@regression', '@geo'],
+    tag: ['@regression', '@geo', '@edge'],
   }, async ({ api, db, testUser }) => {
     const before = await db.user.findUniqueOrThrow({ where: { id: testUser.id } });
 
@@ -122,7 +122,7 @@ test.describe('locale preference (API)', () => {
   });
 
   test('unauthenticated PATCH /me/locale → 401', {
-    tag: ['@regression', '@geo'],
+    tag: ['@regression', '@geo', '@security'],
   }, async ({ api }) => {
     const res = await api.setLocaleRaw('', 'de-DE');
     expect(res.status()).toBe(401);

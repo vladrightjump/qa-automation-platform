@@ -64,7 +64,7 @@ test.describe('recommendations (API)', () => {
   });
 
   test('unauthenticated → 401', {
-    tag: ['@regression', '@recommendations'],
+    tag: ['@regression', '@recommendations', '@security'],
   }, async ({ api }) => {
     const res = await api.getRecommendationsRaw(undefined);
     expect(res.status()).toBe(401);

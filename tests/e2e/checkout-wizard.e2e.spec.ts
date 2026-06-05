@@ -40,7 +40,7 @@ test.describe('checkout wizard (UI)', () => {
   });
 
   test('invalid promo shows an inline error and does not apply', {
-    tag: ['@regression', '@checkout', '@promo'],
+    tag: ['@regression', '@checkout', '@promo', '@negative'],
   }, async ({
     authedPage,
     api,
@@ -89,7 +89,7 @@ test.describe('checkout wizard (UI)', () => {
   });
 
   test('validation blocks Next on the new-address step when required fields are empty', {
-    tag: ['@regression', '@checkout'],
+    tag: ['@regression', '@checkout', '@negative'],
   }, async ({
     authedPage,
     api,

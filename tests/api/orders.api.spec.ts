@@ -5,14 +5,14 @@ import { UserFactory } from '../factories/user.factory';
 import { API_BASE } from '../support/api-client';
 
 test.describe('orders / checkout', () => {
-  test('checkout with empty cart returns 400', { tag: ['@regression', '@orders'] }, async ({ api, testUser }) => {
+  test('checkout with empty cart returns 400', { tag: ['@regression', '@orders', '@empty'] }, async ({ api, testUser }) => {
     const res = await api.raw().post(`${API_BASE}/orders`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
     });
     expect(res.status()).toBe(400);
   });
 
-  test('checkout an out-of-stock product returns 400', { tag: ['@regression', '@orders'] }, async ({
+  test('checkout an out-of-stock product returns 400', { tag: ['@regression', '@orders', '@boundary'] }, async ({
     api,
     testUser,
   }) => {
@@ -65,7 +65,7 @@ test.describe('orders / checkout', () => {
     for (const o of orders) expect(o.userId).toBe(testUser.id);
   });
 
-  test('get another user order returns 403', { tag: ['@regression', '@orders'] }, async ({ api, db, testUser }) => {
+  test('get another user order returns 403', { tag: ['@regression', '@orders', '@security'] }, async ({ api, db, testUser }) => {
     // Create a second user with their own order.
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5 }),
@@ -82,7 +82,7 @@ test.describe('orders / checkout', () => {
     expect(res.status()).toBe(403);
   });
 
-  test('get a non-existent order returns 404', { tag: ['@regression', '@orders'] }, async ({ api, testUser }) => {
+  test('get a non-existent order returns 404', { tag: ['@regression', '@orders', '@negative'] }, async ({ api, testUser }) => {
     const res = await api.raw().get(`${API_BASE}/orders/does_not_exist`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
     });

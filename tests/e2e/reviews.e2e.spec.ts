@@ -27,7 +27,7 @@ test.describe('reviews (UI)', () => {
   });
 
   test('duplicate review surfaces an error toast', {
-    tag: ['@regression', '@reviews'],
+    tag: ['@regression', '@reviews', '@negative'],
   }, async ({
     authedPage,
     api,

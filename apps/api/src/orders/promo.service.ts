@@ -93,6 +93,11 @@ export class PromoService {
    * Count the redemption and leave a ground-truth audit row, inside the
    * checkout transaction so tests can assert the side-effect without
    * trusting the order payload.
+   *
+   * The increment is done with a conditional UPDATE so concurrent
+   * checkouts cannot squeeze past `maxRedemptions`. previewPromo() does
+   * the same check optimistically for a clean error before the txn opens,
+   * but only this row-locked write is the source of truth.
    */
   async recordRedemption(
     tx: Prisma.TransactionClient,
@@ -100,10 +105,17 @@ export class PromoService {
     promo: PromoApplyResult,
     orderId: string,
   ) {
-    await tx.promoCode.update({
-      where: { id: promo.promoCodeId },
-      data: { timesRedeemed: { increment: 1 } },
-    });
+    const updated = await tx.$executeRaw`
+      UPDATE "PromoCode"
+      SET "timesRedeemed" = "timesRedeemed" + 1
+      WHERE id = ${promo.promoCodeId}
+        AND ("maxRedemptions" IS NULL OR "timesRedeemed" < "maxRedemptions")
+    `;
+    if (updated === 0) {
+      throw new BadRequestException(
+        `Promo code ${promo.code} has been fully redeemed`,
+      );
+    }
     await tx.auditLog.create({
       data: {
         userId,

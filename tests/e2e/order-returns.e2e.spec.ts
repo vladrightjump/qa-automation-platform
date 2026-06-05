@@ -33,7 +33,7 @@ test.describe('order returns (UI)', () => {
   });
 
   test('a cancelled order cannot be returned', {
-    tag: ['@regression', '@returns'],
+    tag: ['@regression', '@returns', '@negative'],
   }, async ({ authedPage, api, db, testUser }) => {
     const order = await seedPaidOrder(api, db, {
       token: testUser.token,

@@ -58,7 +58,7 @@ test.describe('catalog filters', () => {
   });
 
   test('empty state appears when no products match', {
-    tag: ['@regression', '@catalog'],
+    tag: ['@regression', '@catalog', '@empty'],
   }, async ({
     page,
     storefront,

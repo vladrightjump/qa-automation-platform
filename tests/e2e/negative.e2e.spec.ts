@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures';
 
 test.describe('negative paths (UI)', () => {
   test('unauthenticated /cart redirects to /login', {
-    tag: ['@regression', '@auth'],
+    tag: ['@regression', '@auth', '@security'],
   }, async ({ page }) => {
     await page.goto('/cart');
     await expect(page).toHaveURL(/\/login(\?.*)?$/);
@@ -11,7 +11,7 @@ test.describe('negative paths (UI)', () => {
   });
 
   test('out-of-stock product shows disabled "Out of stock" button', {
-    tag: ['@regression', '@catalog'],
+    tag: ['@regression', '@catalog', '@boundary'],
   }, async ({
     authedPage,
   }) => {
@@ -26,7 +26,7 @@ test.describe('negative paths (UI)', () => {
   });
 
   test('login form rejects invalid credentials with a toast', {
-    tag: ['@regression', '@auth'],
+    tag: ['@regression', '@auth', '@negative'],
   }, async ({
     page,
   }) => {
