@@ -51,11 +51,9 @@ test.describe('JWT tamper resistance', () => {
     'token missing sub claim → request fails',
     { tag: ['@security', '@negative', '@regression'] },
     async ({ api, testUser }) => {
-      // AuthGuard's contract is "verify the signature, then mirror payload.sub
-      // into req.user.id." A token without sub passes signature verification
-      // but leaves the downstream id undefined — the request must not
-      // succeed. We assert non-2xx (rather than a specific 401) because the
-      // failure point lives below the guard.
+      // AuthGuard's contract: verify the signature AND require sub + email
+      // on the payload. A signature-valid but sub-less token is rejected at
+      // the guard (401), not allowed to leak into the downstream service.
       const noSub = mintToken(
         { email: testUser.email, role: 'USER' },
         JWT_SECRET,

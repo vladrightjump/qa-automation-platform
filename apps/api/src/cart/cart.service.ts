@@ -1,21 +1,38 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@qa/db';
+import { Prisma, prisma } from '@qa/db';
 
 @Injectable()
 export class CartService {
-  // Cart is 1:1 with User — upsert handles "create on demand".
-  private findOrCreateCart(userId: string) {
-    return prisma.cart.upsert({
-      where: { userId },
-      update: {},
-      create: { userId },
-      include: {
-        items: {
-          include: { product: true },
-          orderBy: [{ position: 'asc' }, { id: 'asc' }],
-        },
+  // Cart is 1:1 with User — upsert handles "create on demand". Two
+  // concurrent first-touch upserts on the same userId can both miss the
+  // SELECT and race on the INSERT; the loser gets P2002, which means the
+  // cart now exists and we can just re-fetch it. Real workload only hits
+  // this on the very first request per user, but the race-conditions
+  // spec drives 50 parallel addToCart on a fresh user and exposes it.
+  private async findOrCreateCart(userId: string) {
+    const include = {
+      items: {
+        include: { product: true },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
       },
-    });
+    } satisfies Prisma.CartInclude;
+    try {
+      return await prisma.cart.upsert({
+        where: { userId },
+        update: {},
+        create: { userId },
+        include,
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        const existing = await prisma.cart.findUnique({ where: { userId }, include });
+        if (existing) return existing;
+      }
+      throw e;
+    }
   }
 
   view(userId: string) {

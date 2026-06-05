@@ -4,9 +4,9 @@
 // This is the platform's transactional-rollback story, written within the
 // existing Playwright stack instead of bolting on Toxiproxy.
 //
-// The flag is process-global on the API side, so this spec runs serial
-// against any other checkout-touching test. The injection auto-clears on
-// fire, and /test/reset clears it explicitly — both safety nets so a
+// The flag is scoped per-userId on the API side so this spec can run in
+// parallel with other checkout-touching tests. The injection auto-clears
+// on fire, and /test/reset clears it explicitly — both safety nets so a
 // crashed-mid-test run can't poison the next case.
 import { test, expect } from '../fixtures';
 import { API_BASE } from '../support/api-client';
@@ -34,10 +34,12 @@ test.describe('fault injection', () => {
         where: { userId: user.id, action: 'ORDER_PAID' },
       });
 
-      // Arm the trap.
+      // Arm the trap for this user only.
       const armed = await api
         .raw()
-        .post(`${API_BASE}/test/inject-failure?at=stock-decrement`);
+        .post(
+          `${API_BASE}/test/inject-failure?at=stock-decrement&userId=${user.id}`,
+        );
       expect(armed.ok()).toBe(true);
 
       // Trigger checkout — the throw inside the txn surfaces as a 5xx.

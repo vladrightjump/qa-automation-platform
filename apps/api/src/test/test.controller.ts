@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   prisma,
@@ -43,17 +50,26 @@ export class TestController {
   }
 
   /**
-   * Arms a one-shot failure injection at the named stage. The next call
-   * through that stage throws and auto-clears the flag, so a test that
-   * crashes after arming can't poison the next run. `?at=` (empty) clears.
+   * Arms a one-shot failure injection at the named stage for the given
+   * user. The next call from that user through that stage throws and
+   * auto-clears the entry, so a test that crashes after arming can't
+   * poison the next run. `?at=` (empty) clears the entry for the user.
+   * Per-user scoping lets chaos specs run in parallel with other
+   * checkout-touching specs without cross-contamination.
    * Currently the only consumer is OrdersService.checkout at the
    * `stock-decrement` stage.
    */
   @Post('inject-failure')
-  injectFailure(@Query('at') at?: string) {
+  injectFailure(
+    @Query('at') at?: string,
+    @Query('userId') userId?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('userId query param is required');
+    }
     const stage = at && at.length > 0 ? at : null;
-    setFaultStage(stage);
-    return { ok: true, at: stage };
+    setFaultStage(userId, stage);
+    return { ok: true, at: stage, userId };
   }
 
   /**

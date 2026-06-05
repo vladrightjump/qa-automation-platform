@@ -3,12 +3,26 @@ import { Prisma, prisma } from '@qa/db';
 
 @Injectable()
 export class WishlistService {
+  // Wishlist is 1:1 with User. Two concurrent first-touch upserts on the
+  // same userId can both miss the SELECT and race on the INSERT; the loser
+  // gets P2002, which means the row now exists and we can re-fetch.
   private async findOrCreate(userId: string) {
-    return prisma.wishlist.upsert({
-      where: { userId },
-      update: {},
-      create: { userId },
-    });
+    try {
+      return await prisma.wishlist.upsert({
+        where: { userId },
+        update: {},
+        create: { userId },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        const existing = await prisma.wishlist.findUnique({ where: { userId } });
+        if (existing) return existing;
+      }
+      throw e;
+    }
   }
 
   async get(userId: string) {
