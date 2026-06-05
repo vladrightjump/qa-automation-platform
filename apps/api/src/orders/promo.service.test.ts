@@ -161,6 +161,21 @@ describe('PromoService', () => {
         expect.objectContaining({ where: expect.objectContaining({ featured: true, active: true }) }),
       );
     });
+
+    it('passes the expiresAt OR-null filter to Prisma and sorts ascending by code', async () => {
+      (prismaMock.promoCode.findMany as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce([] as never);
+      await service.listPromoCodes();
+      const call = (prismaMock.promoCode.findMany as unknown as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as {
+        where: { featured: boolean; active: boolean; OR: { expiresAt: null | { gt: Date } }[] };
+        orderBy: { code: 'asc' | 'desc' };
+      };
+      expect(call.orderBy).toEqual({ code: 'asc' });
+      expect(call.where.featured).toBe(true);
+      expect(call.where.active).toBe(true);
+      expect(call.where.OR).toHaveLength(2);
+      expect(call.where.OR[0]).toEqual({ expiresAt: null });
+      expect(call.where.OR[1]?.expiresAt).toHaveProperty('gt');
+    });
   });
 
   describe('recordRedemption', () => {
@@ -174,7 +189,7 @@ describe('PromoService', () => {
       txMock.auditLog.create.mockReset();
     });
 
-    it('writes the audit row when the conditional UPDATE hits one row', async () => {
+    it('writes the audit row with action/entity/metadata when the UPDATE hits one row', async () => {
       txMock.$executeRaw.mockResolvedValueOnce(1);
       txMock.auditLog.create.mockResolvedValueOnce({} as never);
       await service.recordRedemption(
@@ -183,7 +198,14 @@ describe('PromoService', () => {
         { code: 'DEAL10', discountCents: 200, promoCodeId: 'p_1' },
         'o_1',
       );
-      expect(txMock.auditLog.create).toHaveBeenCalledOnce();
+      const call = txMock.auditLog.create.mock.calls[0]?.[0] as {
+        data: { userId: string; action: string; entity: string; entityId: string; metadata: Record<string, unknown> };
+      };
+      expect(call.data.userId).toBe('u_1');
+      expect(call.data.action).toBe('PROMO_REDEEMED');
+      expect(call.data.entity).toBe('PromoCode');
+      expect(call.data.entityId).toBe('p_1');
+      expect(call.data.metadata).toEqual({ code: 'DEAL10', discountCents: 200, orderId: 'o_1' });
     });
 
     it('throws "fully redeemed" when the conditional UPDATE matched zero rows', async () => {

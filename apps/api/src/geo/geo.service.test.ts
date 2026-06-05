@@ -56,9 +56,33 @@ describe('GeoService.resolve', () => {
     expect(result.country).toBe(expected);
   });
 
-  it('throws ServiceUnavailable when no regions are configured', async () => {
-    (prismaMock.region.findMany as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce([] as never);
+  it('throws ServiceUnavailable with a no-regions message when nothing is configured', async () => {
+    (prismaMock.region.findMany as unknown as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([] as never)
+      .mockResolvedValueOnce([] as never);
     await expect(service.resolve(0, 0)).rejects.toThrow(ServiceUnavailableException);
+    await expect(service.resolve(0, 0)).rejects.toThrow(/no regions configured/i);
+  });
+
+  it('picks the nearer of two adjacent regions — small lat/lng change flips the choice', async () => {
+    // Two regions 2° apart; sample a point on each side of the midpoint.
+    const a: Region = { id: 'r_a', country: 'AA', name: 'A', locale: 'en-AA', currency: 'USD', lat: 0, lng: 0 };
+    const b: Region = { id: 'r_b', country: 'BB', name: 'B', locale: 'en-BB', currency: 'USD', lat: 0, lng: 2 };
+    (prismaMock.region.findMany as unknown as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([a, b] as never)
+      .mockResolvedValueOnce([a, b] as never);
+    // Just east of the midpoint at lng=1.01 — closer to B.
+    await expect(service.resolve(0, 1.01)).resolves.toMatchObject({ country: 'BB' });
+    // Just west of the midpoint at lng=0.99 — closer to A.
+    await expect(service.resolve(0, 0.99)).resolves.toMatchObject({ country: 'AA' });
+  });
+
+  it('breaks ties by returning the first region (no strict-less mutation slips by)', async () => {
+    const a: Region = { id: 'r_a', country: 'AA', name: 'A', locale: 'en-AA', currency: 'USD', lat: 10, lng: 10 };
+    const b: Region = { id: 'r_b', country: 'BB', name: 'B', locale: 'en-BB', currency: 'USD', lat: 10, lng: 10 };
+    (prismaMock.region.findMany as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce([a, b] as never);
+    // d === best for both rows; the strict < in resolve() keeps the first.
+    await expect(service.resolve(10, 10)).resolves.toMatchObject({ country: 'AA' });
   });
 
   it('listRegions returns all rows sorted by country (the order Prisma is asked for)', async () => {

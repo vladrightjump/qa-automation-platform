@@ -172,6 +172,64 @@ describe('OrdersService', () => {
       await service.checkout('u_1');
       expect(loyalty.recordEarn).not.toHaveBeenCalled();
     });
+
+    it('throws "race on stock" when the conditional stock UPDATE matches zero rows', async () => {
+      setCart(cartWith([item('p_1', 1_000, 1, 5)]));
+      const tx = wireTx(prismaMock);
+      (tx.product.updateMany as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ count: 0 } as never);
+      await expect(service.checkout('u_1')).rejects.toThrow(/race on stock/i);
+    });
+
+    it('writes the ORDER_PAID audit row with the metadata payload', async () => {
+      setCart(cartWith([item('p_1', 2_000, 1, 5)]));
+      const tx = wireTx(prismaMock);
+      await service.checkout('u_1', { paymentMethod: 'PAYPAL' });
+
+      const auditCall = (tx.auditLog.create as unknown as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as {
+        data: { action: string; entity: string; entityId: string; metadata: Record<string, unknown> };
+      };
+      expect(auditCall.data.action).toBe('ORDER_PAID');
+      expect(auditCall.data.entity).toBe('Order');
+      expect(auditCall.data.entityId).toBe('o_1');
+      expect(auditCall.data.metadata).toMatchObject({
+        totalCents: 2_000,
+        subtotalCents: 2_000,
+        discountCents: 0,
+        paymentMethod: 'PAYPAL',
+        itemCount: 1,
+        promoCode: null,
+      });
+    });
+
+    it('decrements stock atomically with a guarded updateMany inside the txn', async () => {
+      setCart(cartWith([item('p_1', 1_000, 3, 5)]));
+      const tx = wireTx(prismaMock);
+      await service.checkout('u_1');
+      expect(tx.product.updateMany).toHaveBeenCalledWith({
+        where: { id: 'p_1', stock: { gte: 3 } },
+        data: { stock: { decrement: 3 } },
+      });
+    });
+
+    it('clears the cart in the same txn after the order is recorded', async () => {
+      setCart(cartWith([item('p_1', 1_000, 1, 5)]));
+      const tx = wireTx(prismaMock);
+      await service.checkout('u_1');
+      expect(tx.cartItem.deleteMany).toHaveBeenCalledWith({ where: { cartId: 'c_1' } });
+    });
+  });
+
+  describe('list', () => {
+    it('lists the caller\'s orders newest-first with items included', async () => {
+      const rows = [{ id: 'o_1', userId: 'u_1', items: [] }];
+      (prismaMock.order.findMany as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(rows as never);
+      await expect(service.list('u_1')).resolves.toBe(rows);
+      expect(prismaMock.order.findMany).toHaveBeenCalledWith({
+        where: { userId: 'u_1' },
+        orderBy: { createdAt: 'desc' },
+        include: { items: true },
+      });
+    });
   });
 
   describe('get', () => {
@@ -192,6 +250,13 @@ describe('OrdersService', () => {
       const order = { id: 'o_1', userId: 'u_1', items: [], returns: [] };
       (prismaMock.order.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(order as never);
       await expect(service.get('u_1', 'o_1')).resolves.toBe(order);
+      expect(prismaMock.order.findUnique).toHaveBeenCalledWith({
+        where: { id: 'o_1' },
+        include: {
+          items: true,
+          returns: { orderBy: { createdAt: 'desc' } },
+        },
+      });
     });
   });
 
@@ -212,10 +277,34 @@ describe('OrdersService', () => {
         items: [],
       } as never);
       await service.cancel('u_1', 'o_1');
-      expect(tx.order.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { status: 'CANCELLED' } }),
-      );
-      expect(tx.auditLog.create).toHaveBeenCalled();
+      expect(tx.order.update).toHaveBeenCalledWith({
+        where: { id: 'o_1' },
+        data: { status: 'CANCELLED' },
+        include: { items: true },
+      });
+      const auditCall = (tx.auditLog.create as unknown as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as {
+        data: { action: string; entity: string; entityId: string; userId: string };
+      };
+      expect(auditCall.data).toEqual({
+        userId: 'u_1',
+        action: 'ORDER_CANCELLED',
+        entity: 'Order',
+        entityId: 'o_1',
+      });
+    });
+
+    it('also accepts cancelling a PENDING order', async () => {
+      const order = { id: 'o_1', userId: 'u_1', status: 'PENDING', items: [], returns: [] };
+      (prismaMock.order.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(order as never);
+      const tx = wireTx(prismaMock);
+      (tx.order.update as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'o_1', items: [] } as never);
+      await expect(service.cancel('u_1', 'o_1')).resolves.toBeDefined();
+    });
+
+    it('rejects cancel on a CANCELLED order', async () => {
+      const order = { id: 'o_1', userId: 'u_1', status: 'CANCELLED', items: [], returns: [] };
+      (prismaMock.order.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(order as never);
+      await expect(service.cancel('u_1', 'o_1')).rejects.toThrow(BadRequestException);
     });
   });
 });
