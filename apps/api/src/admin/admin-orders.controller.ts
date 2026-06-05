@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Controller,
+  HttpCode,
   Param,
   Post,
   Query,
@@ -38,6 +39,7 @@ export class AdminOrdersController {
   }
 
   @Post('orders/:id/fulfill')
+  @HttpCode(200)
   fulfill(@Param('id') id: string) {
     return this.orders.fulfill(id);
   }

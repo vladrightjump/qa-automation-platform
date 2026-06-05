@@ -1,7 +1,7 @@
 // Hand-rolled HS256 JWT minter used by tamper-resistance specs. Going via
 // Node's built-in `crypto` keeps the tests workspace free of a runtime JWT
 // dep — the API uses @nestjs/jwt (which pulls jsonwebtoken transitively),
-// but that pulls in @nestjs/common via Jwt​Service, and we don't want any of
+// but that pulls in @nestjs/common via JwtService, and we don't want any of
 // it in the test container.
 //
 // HS256 only — that's what the API uses (JwtModule.register with a string
