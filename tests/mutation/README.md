@@ -8,10 +8,15 @@ committed floor fails CI.
 
 ## Locked invariants
 
-- **Stryker targets only pure helpers** in `packages/contracts/src/`
-  (and `packages/db/src/bulk-seed-rng.ts`). Mutating NestJS services
-  would require Prisma + transaction mocking and is a captured
-  follow-up in `todos/phase-16-mutation-testing.md`.
+- **Stryker mutates two layers**: the pure helpers in
+  `packages/contracts/src/` and `packages/db/src/bulk-seed-rng.ts`,
+  and the three Phase-E-covered NestJS services in
+  `apps/api/src/orders/{orders,promo}.service.ts` and
+  `apps/api/src/geo/geo.service.ts`. The pure helpers stay at 100% on
+  every run; the services sit around 84-87% (some Prisma-call-shape
+  mutants survive at the unit layer and are closed end-to-end by the
+  Playwright API suite). Controllers and DTOs stay out — no logic
+  worth mutating in DI shells.
 - **The committed `minScore`** in [`budget.json`](./budget.json) is the
   CI floor. Stryker's own `break` threshold mirrors it
   (`stryker.config.json`). Two checks, one number.
@@ -32,8 +37,8 @@ pnpm mutate         # exits non-zero if score < budget.json.minScore
 pnpm mutate:open    # also opens reports/mutation/index.html
 ```
 
-Typical local run on this machine: ~5 seconds for 57 mutants across 5
-files.
+Typical local run on this machine: ~14 seconds for 311 mutants across
+the eight pure-helper + service files.
 
 ## Reading the report
 
@@ -47,9 +52,11 @@ enforce the budget.
 
 ## Updating the budget
 
-The current score is **100%** across all five mutation-tested files,
-with the budget pinned at **95%** (five points of headroom for routine
-refactors). To raise it after a real improvement:
+The current measured score is **87.78%** across the eight
+mutation-tested files (100% on the five pure helpers; 84–87% on the
+three NestJS services). The budget is pinned at **82%** — five points
+of honest headroom per the Phase F rule (`gate = floor(score − 5)`).
+To raise it after a real improvement:
 
 1. Run `pnpm mutate` locally and confirm the new score.
 2. Bump `tests/mutation/budget.json#minScore` *and*
@@ -76,7 +83,10 @@ configs. It runs `pnpm mutate`, double-checks the score against
 | `packages/contracts/src/{promo,loyalty,recommendations}-math.ts` | Extracted pure helpers (phase 16a) |
 | `packages/contracts/src/i18n.ts` | FX + format helpers |
 | `packages/db/src/bulk-seed-rng.ts` | Pure RNG + bulk-product row builder |
-| `packages/*/src/**/*.test.ts` | The Vitest verifier suite |
+| `apps/api/src/orders/orders.service.ts` | Checkout orchestration (phase F) |
+| `apps/api/src/orders/promo.service.ts` | Promo validation + atomic redemption (phase F) |
+| `apps/api/src/geo/geo.service.ts` | Haversine nearest-region (phase F) |
+| `packages/*/src/**/*.test.ts` + `apps/api/src/**/*.test.ts` | The Vitest verifier suite |
 
 ## Property-based companion (phase 17)
 
@@ -100,8 +110,14 @@ a bug in its own assertion on the first run.
 
 ## Out of scope
 
-- Mutation testing the NestJS services (Prisma + transaction mocking).
-- Mutation testing the React storefront.
+- Mutation testing the remaining NestJS services without Vitest
+  coverage — `cart.service`, `auth.service`, `admin-products.service`,
+  controllers, DTOs. Mutating uncovered code produces all-surviving
+  mutants and a meaningless score; add Vitest tests first, then
+  extend the mutate glob.
+- Mutation testing the React storefront — RTL coverage exists for the
+  three providers/components (phase E.1), but Stryker's React-side
+  story (JSX-runtime + jsdom + plugin-react) is its own setup phase.
 - Generative SUT-level testing (fast-check journeys for Playwright).
 - Raw line-coverage gates in CI — Stryker subsumes the strongest case
   for coverage.

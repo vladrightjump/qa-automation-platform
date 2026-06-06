@@ -100,9 +100,9 @@ test.describe('cart + checkout boundary cliffs', () => {
     'multi-byte product name survives checkout into the Order',
     { tag: ['@edge', '@boundary', '@checkout', '@regression'] },
     async ({ api, db, testUser }) => {
-      const p = await seedProduct(db, { stock: 1, priceCents: 1_000, name: '📦 Box' });
+      const p = await seedProduct(db, { stock: 1, priceCents: 1_000, name: 'Box 📦' });
       const stored = await db.product.findUnique({ where: { id: p.id } });
-      expect(stored?.name).toBe('📦 Box');
+      expect(stored?.name).toBe('Box 📦');
 
       await withDefaultAddress(api, testUser.token);
       await api.addToCart(testUser.token, p.id, 1);
@@ -112,7 +112,7 @@ test.describe('cart + checkout boundary cliffs', () => {
       // on the Product row referenced from the placed order.
       expect(order.items.some((i) => i.productId === p.id)).toBe(true);
       const afterCheckout = await db.product.findUnique({ where: { id: p.id } });
-      expect(afterCheckout?.name).toBe('📦 Box');
+      expect(afterCheckout?.name).toBe('Box 📦');
     },
   );
 });
