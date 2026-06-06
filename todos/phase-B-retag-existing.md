@@ -117,3 +117,7 @@ Phase A must land first (tag definitions in `tests/TESTING.md`).
 - Splitting one test into two — even when a test does multiple things.
   Those belong in Phase C / D.
 - Removing duplicate or stale tests — separate cleanup.
+
+## Status — ✅ Built
+
+All pre-existing specs retagged in one mechanical pass. As of `main` HEAD: 38 `@negative`, 32 `@edge`, 28 `@boundary`, 14 `@empty`, 27 `@security` usages across the 66 spec files (some additions came later from Phase C/D). `pnpm test:negative` / `:edge` / `:boundary` / `:empty` / `:security` now return non-empty lists. No test bodies were altered, no specs were split or removed.
