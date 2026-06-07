@@ -106,15 +106,26 @@ todos/                        the full build plan, one file per phase
 
 ## Quick start
 
-Prereqs: macOS / Linux / WSL2 · Node 20 LTS · Corepack · either Docker **or** Homebrew (for Postgres).
+**Prerequisites:** macOS · Linux · WSL2 · Node `>=20 <23` (repo pins to 20 via `.nvmrc`) · Corepack (ships with Node, provides pnpm `9.15.4`) · either Docker **or** native Postgres 16 (Homebrew on macOS).
+
+### Running conditions
+
+Before any suite runs, four conditions must hold — CI sets each one explicitly, and so should you locally:
+
+1. **`.env` exists at the repo root** (`cp .env.example .env`). The dotenv-cli wrappers in `apps/api` and `packages/db` read it; missing keys fail loudly.
+2. **`ENABLE_TEST_ENDPOINTS=true` in `.env`** — guards the `/test/reset`, `/test/inject-failure`, and bulk-seed routes that the suite depends on. Disable in any non-test environment.
+3. **Postgres 16 is reachable at `DATABASE_URL`** with the `qa` role and `qa` database — `docker compose up -d db` or the Homebrew path below.
+4. **Workspace deps are built** (`pnpm build`) — `@qa/contracts` and `@qa/db` emit `dist/` that the API + tests import; running tests against a stale `dist/` is a common foot-gun. The Playwright `webServer` config auto-starts `apps/api` and `apps/web` from those builds.
+
+### First-time setup
 
 ```bash
-corepack enable                              # provides pnpm
+corepack enable                              # provides pnpm @ 9.15.4
 pnpm install
 cp .env.example .env                         # adjust DATABASE_URL if needed
 
 # Postgres 16 — pick one:
-docker compose up -d db                      # Docker path (matches CI)
+docker compose up -d db                      # Docker path (matches CI exactly)
 # OR, macOS without Docker:
 brew install postgresql@16 && brew services start postgresql@16
 # and one-time:  /opt/homebrew/opt/postgresql@16/bin/psql -d postgres \
@@ -123,32 +134,38 @@ brew install postgresql@16 && brew services start postgresql@16
 
 pnpm db:migrate                              # apply Prisma migrations
 pnpm db:seed                                 # deterministic seed (idempotent)
+pnpm build                                   # turbo: db → contracts → api → web
 
-# Build the workspace deps the apps consume
-pnpm --filter @qa/db build
-pnpm --filter @qa/contracts build
-pnpm --filter @qa/api build
-pnpm --filter @qa/web build
+pnpm --filter @qa/tests exec playwright install --with-deps chromium  # browsers (one-time)
+```
 
-# Unit pyramid base (Vitest — runs in ~1 s cold across four packages)
-pnpm test:unit                               # 175 tests across contracts/db/web/api
+### Run the layers
 
-# Run the suite (Playwright auto-starts api + web via webServer)
-pnpm --filter @qa/tests exec playwright install chromium   # one-time
-pnpm test                                    # full suite (66 spec files, 249 tests)
+```bash
+# Unit pyramid base (Vitest — ~1 s cold across four packages)
+pnpm test:unit                               # 175 tests (contracts 79 · db 30 · web 24 · api 46)
+
+# Playwright suite (auto-starts api + web via webServer)
+pnpm test                                    # full suite — 249 tests across 66 spec files
 pnpm --filter @qa/tests run test:smoke       # @smoke only (~5 s, 38 tagged)
 pnpm --filter @qa/tests run test:sanity      # @sanity gate (23 tagged)
+pnpm --filter @qa/tests run test:security    # @security ∪ @race fast subset
+pnpm --filter @qa/tests run test:a11y        # axe scans on every major route
 
-# Mutation testing layer (Stryker — ~14 s cold across 8 source files)
-pnpm mutate                                  # exits non-zero if score < budget
+# Mutation testing (Stryker — ~14 s cold across 8 files)
+pnpm mutate                                  # exits non-zero if score < budget (current: 82)
+pnpm mutate:open                             # also opens reports/mutation/index.html
+
+# Perf (Lighthouse + Web Vitals — ~2 min cold; needs the perf-setup project)
+pnpm --filter @qa/tests run perf:all
 
 pnpm lint && pnpm typecheck                  # 10/10 across the monorepo
 
-# After a failure:
+# After a Playwright failure:
 pnpm --filter @qa/tests exec playwright show-report tests/playwright-report
 ```
 
-Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/web dev`.
+Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/web dev` in two shells; the test suite still picks up the running servers via `reuseExistingServer: true` outside CI.
 
 ## Tests
 
