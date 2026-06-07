@@ -4,7 +4,7 @@ A full-stack, monorepo **test automation** portfolio project. A deliberately sma
 
 > Set up state via API → verify hidden side-effects in the database → confirm behavior in the UI — in **one** test, against the **same** Prisma client the API uses.
 
-**Status — Phases 0–14 complete** (Phase 14 adds i18n, geolocation, and a built-in device-emulation matrix). 38 `@smoke` specs green locally · `@sanity` gate covers 16 features end-to-end · CI workflow validated locally.
+**Status — Phases 0–17 and stack-improvement track A–F complete on `main`.** 249 Playwright tests across 66 spec files · 175 Vitest unit/property tests across 16 test files in four packages · Stryker mutation testing scores 87.78 % across 8 source files (gate 82 %, 100 % on the five pure helpers) · 10-job CI pipeline (lint/typecheck · build-once · decide · unit · sanity · security+race · two sharded test jobs · mutation · perf + Lighthouse) running PR + main gates.
 
 ---
 
@@ -77,7 +77,7 @@ A test in the UI layer **doesn't trust the UI** to tell it the operation succeed
 
 ## Stack
 
-pnpm workspaces + Turborepo · TypeScript (strict) · **NestJS 11** + **Prisma 6** + **PostgreSQL 16** · **Next.js 15** (App Router) + React 19 + **Tailwind 4** · **Playwright 1.50+** · **Zod 3.24+** · `@faker-js/faker` 9 · ESLint 9 (flat) + Prettier 3 · GitHub Actions.
+pnpm workspaces + Turborepo · TypeScript (strict) · **NestJS 11** + **Prisma 6** + **PostgreSQL 16** · **Next.js 15** (App Router) + React 19 + **Tailwind 4** · **Playwright 1.50+** + `@axe-core/playwright` + `playwright-lighthouse` · **Vitest 4** + `@testing-library/react` 16 + jsdom + `vitest-mock-extended` (unit pyramid base) · **Stryker 9** with the Vitest runner (mutation) · **fast-check 4** (property-based) · **Zod 3.24+** · `@faker-js/faker` 9 · ESLint 9 (flat) + Prettier 3 · GitHub Actions.
 
 Full pinned versions: [`todos/tech-stack.md`](./todos/tech-stack.md).
 
@@ -106,15 +106,26 @@ todos/                        the full build plan, one file per phase
 
 ## Quick start
 
-Prereqs: macOS / Linux / WSL2 · Node 20 LTS · Corepack · either Docker **or** Homebrew (for Postgres).
+**Prerequisites:** macOS · Linux · WSL2 · Node `>=20 <23` (repo pins to 20 via `.nvmrc`) · Corepack (ships with Node, provides pnpm `9.15.4`) · either Docker **or** native Postgres 16 (Homebrew on macOS).
+
+### Running conditions
+
+Before any suite runs, four conditions must hold — CI sets each one explicitly, and so should you locally:
+
+1. **`.env` exists at the repo root** (`cp .env.example .env`). The dotenv-cli wrappers in `apps/api` and `packages/db` read it; missing keys fail loudly.
+2. **`ENABLE_TEST_ENDPOINTS=true` in `.env`** — guards the `/test/reset`, `/test/inject-failure`, and bulk-seed routes that the suite depends on. Disable in any non-test environment.
+3. **Postgres 16 is reachable at `DATABASE_URL`** with the `qa` role and `qa` database — `docker compose up -d db` or the Homebrew path below.
+4. **Workspace deps are built** (`pnpm build`) — `@qa/contracts` and `@qa/db` emit `dist/` that the API + tests import; running tests against a stale `dist/` is a common foot-gun. The Playwright `webServer` config auto-starts `apps/api` and `apps/web` from those builds.
+
+### First-time setup
 
 ```bash
-corepack enable                              # provides pnpm
+corepack enable                              # provides pnpm @ 9.15.4
 pnpm install
 cp .env.example .env                         # adjust DATABASE_URL if needed
 
 # Postgres 16 — pick one:
-docker compose up -d db                      # Docker path (matches CI)
+docker compose up -d db                      # Docker path (matches CI exactly)
 # OR, macOS without Docker:
 brew install postgresql@16 && brew services start postgresql@16
 # and one-time:  /opt/homebrew/opt/postgresql@16/bin/psql -d postgres \
@@ -123,36 +134,55 @@ brew install postgresql@16 && brew services start postgresql@16
 
 pnpm db:migrate                              # apply Prisma migrations
 pnpm db:seed                                 # deterministic seed (idempotent)
+pnpm build                                   # turbo: db → contracts → api → web
 
-# Build the workspace deps the apps consume
-pnpm --filter @qa/db build
-pnpm --filter @qa/contracts build
-pnpm --filter @qa/api build
-pnpm --filter @qa/web build
+pnpm --filter @qa/tests exec playwright install --with-deps chromium  # browsers (one-time)
+```
 
-# Run the suite (Playwright auto-starts api + web via webServer)
-pnpm --filter @qa/tests exec playwright install chromium   # one-time
-pnpm test                                    # full suite (32 specs)
-pnpm --filter @qa/tests run test:smoke       # @smoke only (~5 s, 9 specs)
+### Run the layers
+
+```bash
+# Unit pyramid base (Vitest — ~1 s cold across four packages)
+pnpm test:unit                               # 175 tests (contracts 79 · db 30 · web 24 · api 46)
+
+# Playwright suite (auto-starts api + web via webServer)
+pnpm test                                    # full suite — 249 tests across 66 spec files
+pnpm --filter @qa/tests run test:smoke       # @smoke only (~5 s, 38 tagged)
+pnpm --filter @qa/tests run test:sanity      # @sanity gate (23 tagged)
+pnpm --filter @qa/tests run test:security    # @security ∪ @race fast subset
+pnpm --filter @qa/tests run test:a11y        # axe scans on every major route
+
+# Mutation testing (Stryker — ~14 s cold across 8 files)
+pnpm mutate                                  # exits non-zero if score < budget (current: 82)
+pnpm mutate:open                             # also opens reports/mutation/index.html
+
+# Perf (Lighthouse + Web Vitals — ~2 min cold; needs the perf-setup project)
+pnpm --filter @qa/tests run perf:all
 
 pnpm lint && pnpm typecheck                  # 10/10 across the monorepo
 
-# After a failure:
+# After a Playwright failure:
 pnpm --filter @qa/tests exec playwright show-report tests/playwright-report
 ```
 
-Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/web dev`.
+Day-to-day dev (hot-reload): `pnpm --filter @qa/api dev` + `pnpm --filter @qa/web dev` in two shells; the test suite still picks up the running servers via `reuseExistingServer: true` outside CI.
 
 ## Tests
 
 | Layer | Files | What it covers |
 |---|---|---|
-| API contracts | `tests/api/*.api.spec.ts` × 17 | status codes, Zod schemas, request/response math |
-| DB side-effects | `tests/api/*.db.spec.ts` × 2 | hidden state changes the API doesn't expose |
-| UI hybrid (POMs + DB ground truth) | `tests/e2e/*.e2e.spec.ts` × 25 | browser flow + DB assertion in the same test |
-| Visual baselines | `tests/e2e/*.visual.spec.ts` × 2 | `toHaveScreenshot` (desktop + tablet) |
+| Unit (pure helpers) | `packages/contracts/src/*.test.ts` · `packages/db/src/*.test.ts` | Math, FX, RNG — 100 % statement + branch coverage, gates `pnpm test:unit` |
+| Unit (services & providers) | `apps/api/src/**/*.test.ts` · `apps/web/lib/*.test.tsx` · `apps/web/components/*.test.tsx` | Mocked-Prisma service orchestration + RTL on three providers/components |
+| Property-based | `packages/contracts/src/*.prop.test.ts` · `packages/db/src/*.prop.test.ts` | fast-check invariants on the same five pure helpers Stryker mutates |
+| Mutation | `stryker.config.json` · `tests/mutation/budget.json` | 8 source files mutated — 5 helpers at 100 %, 3 services at 84-87 %, gate 82 % |
+| API contracts | `tests/api/*.api.spec.ts` (29 files) | status codes, Zod schemas, request/response math, RBAC matrix, JWT tamper |
+| DB side-effects | `tests/api/*.db.spec.ts` (2 files) | hidden state changes the API doesn't expose (race-conditions storm + chaos rollback) |
+| UI hybrid (POMs + DB ground truth) | `tests/e2e/*.e2e.spec.ts` (30 files) | browser flow + DB assertion in the same test, cross-feature locale × payment matrix, empty-state showcase |
+| Accessibility | `tests/e2e/a11y.e2e.spec.ts` | `@axe-core/playwright` scans on every major route |
+| Visual baselines | `tests/e2e/*.visual.spec.ts` (2 files) | `toHaveScreenshot` (desktop + tablet) |
+| Performance | `tests/perf/lighthouse/*.perf.spec.ts` · `tests/perf/web-vitals.perf.spec.ts` | Lighthouse LCP/CLS/TBT per route + Web Vitals on a scripted journey |
 
-Every spec carries a kind tag (`@smoke`/`@regression`) plus one or more feature tags (`@auth`, `@cart`, `@checkout`, `@promo`, `@i18n`, `@geo`, …), and one critical test per feature is tagged `@sanity` to form a fast pre-deploy gate. The full rulebook — assertion conventions, tag taxonomy, and the sanity-suite definition — lives in [`tests/TESTING.md`](./tests/TESTING.md). The signature DB-layer spec ([`tests/api/checkout.db.spec.ts`](./tests/api/checkout.db.spec.ts)) asserts the full transactional side-effect surface of one checkout in one place.
+Every Playwright spec carries a **kind tag** (`@smoke`/`@regression`/`@sanity`), one or more **feature tags** (`@auth`, `@cart`, `@checkout`, `@promo`, `@i18n`, `@geo`, …), and where applicable a **scenario-dimension tag** (`@negative`, `@edge`, `@boundary`, `@empty`, `@security`, `@race`, `@slow`). The full rulebook — assertion conventions, tag taxonomy with mapping rules, and the sanity-suite definition — lives in [`tests/TESTING.md`](./tests/TESTING.md). The signature DB-layer spec ([`tests/api/race-conditions.db.spec.ts`](./tests/api/race-conditions.db.spec.ts)) drives 50 parallel `addToCart` calls and asserts the final cart row is exactly `quantity=50`, end-to-end against a real `PrismaClient` singleton.
 
 ### Device-emulation matrix
 
@@ -176,18 +206,22 @@ The matrix lives in [`tests/support/devices.ts`](./tests/support/devices.ts) so 
 [`.github/workflows/ci.yml`](./.github/workflows/ci.yml):
 
 ```
-lint  ─┐                                                       (fast feedback)
-build ─┴──► sanity (@sanity gate) ──► test (shard 1/2) ──┐
-                                       test (shard 2/2) ──┴──► merge-reports (HTML)
+lint ─┐                          unit (vitest)
+build ─┼─► decide ─► sanity ─► security+race ─► test (shard 1/2) ─┐
+      │                                          test (shard 2/2) ─┴─► merge-reports (HTML)
+      └─► mutation (stryker) [PRs touching stryker config / mutated files]
 ```
 
 - **Postgres 16** as a service container with `pg_isready` healthcheck (mirrors local `docker-compose.yml`).
 - **pnpm store** cached via `actions/setup-node`; **Playwright browsers** cached at `~/.cache/ms-playwright`.
-- **PRs** run `@smoke` only (~5 s wall); **pushes to `main`** run the full suite.
+- The **decide** job picks the test grep: PRs without a `test:*` label → `@smoke` (~5 s); PRs with `test:full` → full suite; pushes to `main` → full suite. Labels `test:sanity` / `test:regression` add to the additive OR.
+- **Sanity** (`@sanity`) + **security+race** subsets run on every PR for fast feedback.
+- **Mutation** workflow (`.github/workflows/mutation.yml`) runs nightly and on PRs touching Stryker config or mutated source.
+- **Perf** workflow (`.github/workflows/perf.yml`) runs nightly and on PRs touching SUT/perf paths — Lighthouse audits one route each + Web Vitals on a scripted journey, gated by `tests/perf/budgets.json`.
 - **Failure artifacts:** per-shard traces, videos, screenshots (7-day). **Merged HTML report:** always (14-day).
 - **Concurrency:** in-flight PR runs are cancelled on new commits; `main` runs queue.
 
-Live CI report: _TBD — populated once the repo is pushed to GitHub._
+Live CI report: [github.com/vladrightjump/qa-automation-platform/actions](https://github.com/vladrightjump/qa-automation-platform/actions).
 
 ## Agentic authoring (Phase 7, optional)
 
@@ -196,5 +230,8 @@ Live CI report: _TBD — populated once the repo is pushed to GitHub._
 ## Further reading
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** — fixture composition, isolation strategy, why API-driven setup, real cross-layer bugs caught.
-- **[todos/](./todos/)** — the original build plan, one file per phase, each with an "as built" status block.
+- **[tests/TESTING.md](./tests/TESTING.md)** — assertion conventions, tag taxonomy (kind / feature / scenario-dimension), how the sanity suite gates CI.
+- **[tests/mutation/README.md](./tests/mutation/README.md)** — Stryker scope, budget semantics, how to interpret the report.
+- **[tests/perf/README.md](./tests/perf/README.md)** — Lighthouse + Web Vitals budgets and how the gate works.
+- **[todos/](./todos/)** — the original build plan, one file per phase, each with an "as built" status block. Phases 0–17 + A–F are complete.
 - **[`apps/api`](./apps/api/) on `:3001/docs`** — Swagger UI when the API is running.

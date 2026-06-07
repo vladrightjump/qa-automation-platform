@@ -126,3 +126,7 @@ None. Foundation phase.
 - Renaming or splitting any feature tag.
 - Changing `@sanity`'s "one per feature" rule.
 - Adding tag-validation lint rules (could be a later phase; not now).
+
+## Status — ✅ Built
+
+Seven scenario-dimension tags (`@negative` · `@edge` · `@boundary` · `@empty` · `@security` · `@race` · `@slow`) added to `tests/TESTING.md` §2 with mapping rules in §2a. Seven `pnpm test:*` scripts added to `tests/package.json` (`--pass-with-no-tests` for the dimensions that Phase A leaves empty until Phase B's retag lands). New CI job `Security + race (fast)` runs `@security|@race` on every PR (`.github/workflows/ci.yml`). No new spec content in this phase — pure organization.

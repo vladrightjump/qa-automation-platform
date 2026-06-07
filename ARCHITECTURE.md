@@ -153,7 +153,19 @@ Fix: `apps/api` runtime stack switched to `ts-node-dev` (which compiles via `tsc
 
 ## 6. Test framework layers (portfolio surface)
 
-The Playwright suite is layered to demonstrate the framework's full surface, not just `click().then(expect())`:
+The suite is layered to demonstrate the framework's full surface, not just `click().then(expect())`. Layers grow upward from cheap-and-many at the base to slow-and-few at the top.
+
+**Unit pyramid base** (Phase E):
+
+| Layer | Where | What it shows off |
+|---|---|---|
+| **Vitest unit tests on pure helpers** | `packages/contracts/src/*.test.ts` · `packages/db/src/*.test.ts` | 100 % statement coverage on extracted math (`promo-math` · `loyalty-math` · `recommendations-math` · `i18n` · `bulk-seed-rng`); no Nest, no Prisma. |
+| **Vitest unit tests on services (mocked Prisma)** | `apps/api/src/{orders,geo}/*.test.ts` | `vitest-mock-extended` deep-mocks `PrismaClient` at the module boundary so checkout orchestration, promo branches, and the nearest-region distance pick are testable in isolation. `OrdersService.checkout` collaborators (`PromoService`, `LoyaltyService`) are stubbed where it consumes them. |
+| **Vitest + RTL on React providers/components** | `apps/web/lib/{auth,i18n}.test.tsx` · `apps/web/components/GeoBanner.test.tsx` | `@vitejs/plugin-react@6` + jsdom + `@testing-library/react@16` + jest-dom; mocked `navigator.geolocation`, `localStorage`/`sessionStorage`, and `fetch`. Validates hydration round-trip, locale resolution chain, and the geo state machine. |
+| **Property-based companions** (Phase 17) | `packages/*/src/*.prop.test.ts` | `fast-check` 4 runs ~100 random inputs per property against the same pure helpers; shrinks failures to a minimal counterexample. |
+| **Mutation testing** (Phase 16 + F) | `stryker.config.json` · `tests/mutation/budget.json` | Stryker 9 with the Vitest runner mutates 8 source files (5 helpers @ 100 %, 3 services @ 84-87 %). Honest gate at `floor(score − 5)`. `pnpm mutate` exits non-zero below budget. |
+
+**Playwright layers** (above):
 
 | Layer | Where | What it shows off |
 |---|---|---|
@@ -197,9 +209,11 @@ The point isn't to use every pattern in every test — it's that each pattern ha
 | Perf budgets (committed source of truth) | [`tests/perf/budgets.json`](./tests/perf/budgets.json) |
 | Lighthouse + Web Vitals perf specs | [`tests/perf/lighthouse/`](./tests/perf/lighthouse/), [`tests/perf/web-vitals.perf.spec.ts`](./tests/perf/web-vitals.perf.spec.ts) |
 | Perf seed seam (bulk products) | [`tests/perf/runner/seed.ts`](./tests/perf/runner/seed.ts), [`apps/api/src/test/test.controller.ts`](./apps/api/src/test/test.controller.ts) |
-| Pure helpers (mutation-tested) | [`packages/contracts/src/{promo,loyalty,recommendations}-math.ts`](./packages/contracts/src/), [`packages/db/src/bulk-seed-rng.ts`](./packages/db/src/bulk-seed-rng.ts) |
-| Vitest unit suite (verifier for Stryker) | [`packages/*/src/**/*.test.ts`](./packages/) |
+| Pure helpers (mutation-tested) | [`packages/contracts/src/{promo,loyalty,recommendations}-math.ts`](./packages/contracts/src/), [`packages/contracts/src/i18n.ts`](./packages/contracts/src/i18n.ts), [`packages/db/src/bulk-seed-rng.ts`](./packages/db/src/bulk-seed-rng.ts) |
+| Services (mutation-tested, mocked-Prisma Vitest verifier) | [`apps/api/src/orders/{orders,promo}.service.ts`](./apps/api/src/orders/), [`apps/api/src/geo/geo.service.ts`](./apps/api/src/geo/geo.service.ts) |
+| Vitest unit suite (Stryker verifier) | [`packages/*/src/**/*.test.ts`](./packages/), [`apps/api/src/**/*.test.ts`](./apps/api/src/), [`apps/web/lib/*.test.tsx`](./apps/web/lib/), [`apps/web/components/*.test.tsx`](./apps/web/components/) |
 | Mutation testing config + budget | [`stryker.config.json`](./stryker.config.json), [`tests/mutation/budget.json`](./tests/mutation/budget.json) |
+| Stack-improvement plan (phases A–F) | [`todos/research-stack-improvements.md`](./todos/research-stack-improvements.md), [`todos/research-stack-improvements-tasks.md`](./todos/research-stack-improvements-tasks.md) |
 | CI workflows | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml), [`.github/workflows/perf.yml`](./.github/workflows/perf.yml), [`.github/workflows/mutation.yml`](./.github/workflows/mutation.yml) |
 | Playwright MCP config | [`.mcp.json`](./.mcp.json) |
 | Build plan — phase by phase, with "as built" status blocks | [`todos/`](./todos/) |
