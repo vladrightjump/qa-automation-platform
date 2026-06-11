@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { prisma } from '@qa/db';
 import type { Prisma } from '@qa/db';
 import type { ListProductsDto, ProductSort } from './dto';
+import { notFoundFor, paginate } from '../common';
 
 const SORT_MAP: Record<ProductSort, Prisma.ProductOrderByWithRelationInput> = {
   name_asc: { name: 'asc' },
@@ -13,9 +14,7 @@ const SORT_MAP: Record<ProductSort, Prisma.ProductOrderByWithRelationInput> = {
 
 @Injectable()
 export class ProductsService {
-  async list(query: ListProductsDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 12;
+  list(query: ListProductsDto) {
     const sort = query.sort ?? 'name_asc';
 
     const where: Prisma.ProductWhereInput = {};
@@ -34,22 +33,15 @@ export class ProductsService {
       if (query.maxPriceCents != null) where.priceCents.lte = query.maxPriceCents;
     }
 
-    const [items, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy: SORT_MAP[sort],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.product.count({ where }),
-    ]);
-
-    return { items, total, page, pageSize };
+    return paginate(prisma.product, query.page, query.pageSize, {
+      where,
+      orderBy: SORT_MAP[sort],
+    });
   }
 
   async get(id: string) {
     const product = await prisma.product.findUnique({ where: { id } });
-    if (!product) throw new NotFoundException(`Product ${id} not found`);
+    if (!product) throw notFoundFor('Product', id);
     return product;
   }
 }
