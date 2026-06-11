@@ -35,6 +35,6 @@ export function validatePassword(password: string, minLength = 8): string | null
   return null;
 }
 
-export function hasErrors(errors: Record<string, string | undefined>): boolean {
+export function hasErrors(errors: object): boolean {
   return Object.values(errors).some((v) => v !== undefined);
 }

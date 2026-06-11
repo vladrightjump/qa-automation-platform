@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api, type Cart } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import Button from '@/components/ui/Button';
-import CartTable from '@/components/CartTable';
+import CartTable from '@/components/features/cart/CartTable';
 import Recommendations from '@/components/features/recommendations/Recommendations';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';

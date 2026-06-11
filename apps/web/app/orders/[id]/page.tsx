@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { api, type Order, type OrderStatus } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
-import OrderSummary from '@/components/OrderSummary';
+import OrderSummary from '@/components/features/cart/OrderSummary';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
