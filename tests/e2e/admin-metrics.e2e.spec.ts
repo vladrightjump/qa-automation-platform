@@ -2,6 +2,17 @@
 import { test, expect } from '../fixtures';
 
 test.describe('admin sales metrics (UI)', () => {
+  // Every test in this describe block seeds a paid order against
+  // prod_widget. The seeded stock (50) is shared across the parallel
+  // suite; cart/checkout specs that run alongside can drain it. Top
+  // it back up so checkout doesn't 400 with "Insufficient stock".
+  test.beforeEach(async ({ db }) => {
+    await db.product.update({
+      where: { id: 'prod_widget' },
+      data: { stock: 50 },
+    });
+  });
+
   test('admin sees revenue cards and the top-products table after a paid order', {
     tag: ['@regression', '@metrics', '@admin'],
   }, async ({ api, testUser, adminPage }) => {

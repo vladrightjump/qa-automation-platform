@@ -15,7 +15,14 @@ test.describe('browse', () => {
 
   test('product detail page loads via card link', { tag: ['@regression', '@catalog'] }, async ({
     authedPage,
+    db,
   }) => {
+    // Top up prod_widget — the assertion below requires its Add-to-cart
+    // button to be enabled, and parallel checkout specs can drain it.
+    await db.product.update({
+      where: { id: 'prod_widget' },
+      data: { stock: 50 },
+    });
     await authedPage.goto('/products/prod_widget');
     await expect(
       authedPage.getByTestId('product-card-prod_widget'),
