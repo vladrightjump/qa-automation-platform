@@ -59,13 +59,13 @@ export default function WishlistPage() {
 
   return (
     <section className="space-y-6" data-testid="wishlist-page">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">Wishlist</h1>
+      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Wishlist</h1>
       {!wishlist && (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="bg-card rounded-2xl border border-line shadow-card p-4"
+              className="bg-card rounded-[10px] border border-line p-4"
             >
               <Skeleton variant="line" width="60%" />
               <Skeleton variant="line" width="30%" className="mt-2" />
@@ -82,7 +82,7 @@ export default function WishlistPage() {
           action={
             <Link
               href="/"
-              className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+              className="inline-flex items-center bg-clay-500 hover:bg-clay-600 text-card text-sm font-medium px-4 py-2 rounded-lg transition-colors active:scale-95"
             >
               Browse products
             </Link>
@@ -95,22 +95,22 @@ export default function WishlistPage() {
             <li
               key={i.id}
               data-testid={`wishlist-item-${i.productId}`}
-              className="animate-fade-in border border-line rounded-2xl p-4 bg-card shadow-card flex items-center justify-between gap-4 hover:shadow-pop transition-shadow"
+              className="animate-fade-in border border-line rounded-[10px] p-4 bg-card flex items-center justify-between gap-4 hover:bg-paper-deep transition-colors duration-150"
             >
               <div className="min-w-0">
                 <Link
                   href={`/products/${i.productId}`}
-                  className="font-medium text-ink hover:text-brand-700 transition-colors"
+                  className="text-[14.5px] font-semibold text-ink hover:text-clay-600 transition-colors"
                 >
                   {i.product.name}
                 </Link>
-                <p className="text-sm text-ink-soft">
+                <p className="text-[12.5px] text-ink-soft tabular-nums">
                   {formatMoney(i.product.priceCents)} · Stock {i.product.stock}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="primary"
+                  variant="accent-outline"
                   size="sm"
                   onClick={() => void moveToCart(i.productId)}
                   disabled={i.product.stock === 0}
@@ -118,14 +118,14 @@ export default function WishlistPage() {
                 >
                   Move to cart
                 </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={() => void remove(i.productId)}
                   data-testid={`wishlist-remove-${i.productId}`}
+                  className="text-[13px] text-ink-faint hover:text-clay-500 transition-colors"
                 >
                   Remove
-                </Button>
+                </button>
               </div>
             </li>
           ))}
