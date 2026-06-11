@@ -4,10 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api, type Order, type OrderStatus } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
-import OrderStatusBadge from '@/components/OrderStatusBadge';
+import OrderCard from '@/components/features/orders/OrderCard';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptyOrders from '@/components/illustrations/EmptyOrders';
+import PageHeader from '@/components/ui/PageHeader';
+import PageSection from '@/components/ui/PageSection';
+import TextInput from '@/components/ui/TextInput';
 
 type Filter = 'all' | OrderStatus;
 
@@ -41,24 +44,20 @@ export default function OrdersPage() {
 
   if (!orders) {
     return (
-      <section className="space-y-4">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
-          Your orders
-        </h1>
+      <PageSection gap={4}>
+        <PageHeader title="Your orders" />
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} variant="block" className="h-16" />
           ))}
         </div>
-      </section>
+      </PageSection>
     );
   }
 
   return (
-    <section className="space-y-5" data-testid="orders-page">
-      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
-        Your orders
-      </h1>
+    <PageSection gap={5} testId="orders-page">
+      <PageHeader title="Your orders" />
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div
@@ -84,13 +83,13 @@ export default function OrdersPage() {
             </button>
           ))}
         </div>
-        <input
+        <TextInput
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search order id…"
           data-testid="orders-search"
-          className="bg-card border border-line-strong rounded-lg px-3.5 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
+          className="w-auto"
         />
       </div>
 
@@ -121,22 +120,10 @@ export default function OrdersPage() {
       {visible && visible.length > 0 && (
         <ul className="space-y-2">
           {visible.map((o) => (
-            <li
-              key={o.id}
-              data-testid={`orders-row-${o.id}`}
-              className="animate-fade-in border border-line rounded-[10px] px-5 py-3.5 flex justify-between items-center bg-card hover:bg-paper-deep transition-colors duration-150"
-            >
-              <Link
-                href={`/orders/${o.id}`}
-                className="font-mono text-[14.5px] font-semibold text-ink hover:text-clay-600 transition-colors"
-              >
-                {o.id}
-              </Link>
-              <OrderStatusBadge status={o.status} />
-            </li>
+            <OrderCard key={o.id} order={o} />
           ))}
         </ul>
       )}
-    </section>
+    </PageSection>
   );
 }

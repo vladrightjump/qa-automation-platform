@@ -2,7 +2,7 @@
 
 import type { Order } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
-import OrderStatusBadge from '@/components/OrderStatusBadge';
+import OrderStatusBadge from '@/components/features/orders/OrderStatusBadge';
 
 export default function OrderSummary({ order }: { order: Order }) {
   const { t, formatMoney } = useLocale();

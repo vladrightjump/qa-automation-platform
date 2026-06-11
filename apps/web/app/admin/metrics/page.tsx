@@ -5,6 +5,9 @@ import { api, type SalesMetrics } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useLocale } from '@/lib/i18n';
 import { useToast } from '@/components/ui/ToastQueue';
+import PageHeader from '@/components/ui/PageHeader';
+import PageSection from '@/components/ui/PageSection';
+import MetricCard from '@/components/features/admin/MetricCard';
 
 function toIsoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -67,23 +70,21 @@ export default function AdminMetricsPage() {
   }
 
   return (
-    <section className="space-y-6" data-testid="admin-metrics">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Admin · Sales metrics</h1>
-        {/* Debug chip — surfaces the X-Cache header from the last
-            response so reviewers (and visual specs) can see the cache
-            state without devtools. The SUT is a test target, so this is
-            always rendered when a value is available. */}
-        {cacheState && (
-          <span
-            data-testid="cache-state-chip"
-            data-cache-state={cacheState}
-            className="text-xs font-mono px-2 py-0.5 rounded-md border border-line bg-paper-deep text-ink-soft uppercase"
-          >
-            X-Cache: {cacheState}
-          </span>
-        )}
-      </div>
+    <PageSection gap={6} testId="admin-metrics">
+      <PageHeader
+        title="Admin · Sales metrics"
+        action={
+          cacheState && (
+            <span
+              data-testid="cache-state-chip"
+              data-cache-state={cacheState}
+              className="text-xs font-mono px-2 py-0.5 rounded-md border border-line bg-paper-deep text-ink-soft uppercase"
+            >
+              X-Cache: {cacheState}
+            </span>
+          )
+        }
+      />
 
       <form
         onSubmit={submit}
@@ -122,17 +123,17 @@ export default function AdminMetricsPage() {
       {metrics && (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Card
+            <MetricCard
               testId="metric-card-revenue"
               label="Total revenue"
               value={formatMoney(metrics.totalRevenueCents)}
             />
-            <Card
+            <MetricCard
               testId="metric-card-orders"
               label="Orders"
               value={String(metrics.orderCount)}
             />
-            <Card
+            <MetricCard
               testId="metric-card-aov"
               label="Average order value"
               value={formatMoney(metrics.averageOrderValueCents)}
@@ -221,24 +222,6 @@ export default function AdminMetricsPage() {
           </div>
         </>
       )}
-    </section>
-  );
-}
-
-interface CardProps {
-  testId: string;
-  label: string;
-  value: string;
-}
-
-function Card({ testId, label, value }: CardProps) {
-  return (
-    <div
-      data-testid={testId}
-      className="bg-card border border-line rounded-[10px] p-5"
-    >
-      <p className="text-[12.5px] text-ink-soft">{label}</p>
-      <p className="mt-1 text-[22px] font-semibold tabular-nums text-ink">{value}</p>
-    </div>
+    </PageSection>
   );
 }

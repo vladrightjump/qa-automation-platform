@@ -6,25 +6,21 @@ import {
   type AdminProductInput,
   type PagedProducts,
   type Product,
-  type ProductCategory,
 } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import Modal from '@/components/ui/Modal';
 import Pagination from '@/components/ui/Pagination';
+import PageHeader from '@/components/ui/PageHeader';
+import PageSection from '@/components/ui/PageSection';
+import ProductTable from '@/components/features/admin/ProductTable';
+import ProductForm, {
+  type ProductFormState,
+} from '@/components/features/admin/ProductForm';
 
-const CATEGORIES: ProductCategory[] = ['gadgets', 'apparel', 'home', 'office'];
 const PAGE_SIZE = 20;
 
-interface FormState {
-  id: string;
-  name: string;
-  description: string;
-  priceCents: number;
-  stock: number;
-  category: ProductCategory;
-  tags: string;
-}
+type FormState = ProductFormState;
 
 const EMPTY_FORM: FormState = {
   id: '',
@@ -135,67 +131,28 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <section className="space-y-4" data-testid="admin-products">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Admin · Products</h1>
-        <button
-          onClick={openCreate}
-          data-testid="admin-new-product"
-          className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
-        >
-          New product
-        </button>
-      </div>
+    <PageSection gap={4} testId="admin-products">
+      <PageHeader
+        title="Admin · Products"
+        action={
+          <button
+            onClick={openCreate}
+            data-testid="admin-new-product"
+            className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
+          >
+            New product
+          </button>
+        }
+      />
 
       {!data && <p className="text-ink-faint">Loading…</p>}
       {data && (
         <>
-          <table className="w-full text-[13.5px] border border-line bg-card rounded-[10px] overflow-hidden">
-            <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
-              <tr>
-                <th className="p-2">ID</th>
-                <th className="p-2">Name</th>
-                <th className="p-2">Category</th>
-                <th className="p-2 text-right">Price</th>
-                <th className="p-2 text-right">Stock</th>
-                <th className="p-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((p) => (
-                <tr
-                  key={p.id}
-                  data-testid={`admin-row-${p.id}`}
-                  className="border-t border-line hover:bg-paper-deep transition-colors"
-                >
-                  <td className="p-2 font-mono text-xs">{p.id}</td>
-                  <td className="p-2">{p.name}</td>
-                  <td className="p-2 capitalize">{p.category}</td>
-                  <td className="p-2 text-right">
-                    ${(p.priceCents / 100).toFixed(2)}
-                  </td>
-                  <td className="p-2 text-right">{p.stock}</td>
-                  <td className="p-2 text-right space-x-2">
-                    <button
-                      onClick={() => openEdit(p)}
-                      data-testid={`admin-edit-${p.id}`}
-                      className="text-clay-600 hover:text-clay-700 font-medium transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(p)}
-                      data-testid={`admin-delete-${p.id}`}
-                      className="text-ink-faint hover:text-danger-500 font-medium transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
+          <ProductTable
+            rows={data.items}
+            onEdit={openEdit}
+            onDelete={setDeleteTarget}
+          />
           {data.total > PAGE_SIZE && (
             <Pagination
               page={data.page}
@@ -214,121 +171,15 @@ export default function AdminProductsPage() {
         title={mode === 'create' ? 'New product' : `Edit ${form.id}`}
         testId="admin-product-modal"
       >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-          className="space-y-3"
-        >
-          {mode === 'create' && (
-            <label className="block text-sm">
-              <span className="text-ink-soft">ID</span>
-              <input
-                required
-                pattern="prod_[a-z0-9_]+"
-                value={form.id}
-                onChange={(e) => setForm({ ...form, id: e.target.value })}
-                data-testid="admin-form-id"
-                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-              />
-            </label>
-          )}
-          <label className="block text-sm">
-            <span className="text-ink-soft">Name</span>
-            <input
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              data-testid="admin-form-name"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-ink-soft">Description</span>
-            <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              data-testid="admin-form-description"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block text-sm">
-              <span className="text-ink-soft">Price (cents)</span>
-              <input
-                required
-                type="number"
-                min={0}
-                value={form.priceCents}
-                onChange={(e) =>
-                  setForm({ ...form, priceCents: Number(e.target.value) })
-                }
-                data-testid="admin-form-price"
-                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="text-ink-soft">Stock</span>
-              <input
-                required
-                type="number"
-                min={0}
-                value={form.stock}
-                onChange={(e) =>
-                  setForm({ ...form, stock: Number(e.target.value) })
-                }
-                data-testid="admin-form-stock"
-                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-              />
-            </label>
-          </div>
-          <label className="block text-sm">
-            <span className="text-ink-soft">Category</span>
-            <select
-              value={form.category}
-              onChange={(e) =>
-                setForm({ ...form, category: e.target.value as ProductCategory })
-              }
-              data-testid="admin-form-category"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm outline-none focus:border-clay-500 transition-colors"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="text-ink-soft">Tags (comma-separated)</span>
-            <input
-              value={form.tags}
-              onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              data-testid="admin-form-tags"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setMode(null)}
-              data-testid="admin-form-cancel"
-              className="px-3 py-2 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              data-testid="admin-form-submit"
-              className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
-            >
-              Save
-            </button>
-          </div>
-        </form>
+        {mode !== null && (
+          <ProductForm
+            mode={mode}
+            value={form}
+            onChange={setForm}
+            onCancel={() => setMode(null)}
+            onSubmit={() => void submit()}
+          />
+        )}
       </Modal>
 
       <Modal
@@ -359,6 +210,6 @@ export default function AdminProductsPage() {
           </button>
         </div>
       </Modal>
-    </section>
+    </PageSection>
   );
 }

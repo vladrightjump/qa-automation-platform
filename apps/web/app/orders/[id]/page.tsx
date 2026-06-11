@@ -3,26 +3,16 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { api, type Order, type OrderStatus } from '@/lib/api';
+import { api, type Order } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import OrderSummary from '@/components/features/cart/OrderSummary';
+import OrderTimeline from '@/components/features/orders/OrderTimeline';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import Textarea from '@/components/ui/Textarea';
 import Toast from '@/components/Toast';
-
-const TIMELINE: { id: OrderStatus; label: string }[] = [
-  { id: 'PENDING', label: 'Pending' },
-  { id: 'PAID', label: 'Paid' },
-  { id: 'FULFILLED', label: 'Fulfilled' },
-];
-
-function stepReached(current: OrderStatus, step: OrderStatus): boolean {
-  if (current === 'CANCELLED') return false;
-  const order: OrderStatus[] = ['PENDING', 'PAID', 'FULFILLED'];
-  return order.indexOf(current) >= order.indexOf(step);
-}
 
 export default function OrderDetailPage() {
   return (
@@ -138,51 +128,7 @@ function OrderDetailInner() {
 
       <OrderSummary order={order} />
 
-      <div
-        data-testid="order-timeline"
-        className="border border-line rounded-[10px] p-5 bg-card"
-      >
-        <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint mb-3">Status</p>
-        <ol className="flex items-center gap-2">
-          {TIMELINE.map((step, idx) => {
-            const reached = stepReached(order.status, step.id);
-            return (
-              <li
-                key={step.id}
-                data-testid={`order-timeline-step-${step.id}`}
-                data-reached={reached}
-                className="flex items-center gap-2"
-              >
-                <span
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold transition-colors ${
-                    reached
-                      ? 'bg-sage-100 text-sage-500'
-                      : 'bg-paper-deep text-ink-faint'
-                  }`}
-                >
-                  {idx + 1}
-                </span>
-                <span
-                  className={`text-[13.5px] ${reached ? 'text-ink font-medium' : 'text-ink-faint'}`}
-                >
-                  {step.label}
-                </span>
-                {idx < TIMELINE.length - 1 && (
-                  <span className="text-line-strong">→</span>
-                )}
-              </li>
-            );
-          })}
-          {order.status === 'CANCELLED' && (
-            <li
-              data-testid="order-timeline-cancelled"
-              className="ml-3 text-danger-500 text-[13.5px] font-medium"
-            >
-              Cancelled
-            </li>
-          )}
-        </ol>
-      </div>
+      <OrderTimeline status={order.status} />
 
       {latestReturn && (
         <div
@@ -261,14 +207,13 @@ function OrderDetailInner() {
         <label htmlFor="return-reason" className="sr-only">
           Return reason
         </label>
-        <textarea
+        <Textarea
           id="return-reason"
           value={returnReason}
           onChange={(e) => setReturnReason(e.target.value)}
           placeholder="Reason for return…"
           data-testid="order-return-reason"
           rows={3}
-          className="w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
         />
         <div className="flex justify-end gap-2 mt-3">
           <Button

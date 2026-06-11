@@ -4,7 +4,8 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import Toast from './Toast';
+import TextInput from '@/components/ui/TextInput';
+import Toast from '@/components/Toast';
 
 export default function AuthForm() {
   const router = useRouter();
@@ -52,16 +53,15 @@ export default function AuthForm() {
           Create account
         </button>
       </div>
-      <input
+      <TextInput
         data-testid="auth-email"
         type="email"
         required
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-3 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
       />
-      <input
+      <TextInput
         data-testid="auth-password"
         type="password"
         required
@@ -69,7 +69,6 @@ export default function AuthForm() {
         placeholder="password (min 8)"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-3 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
       />
       <button
         data-testid="auth-submit"

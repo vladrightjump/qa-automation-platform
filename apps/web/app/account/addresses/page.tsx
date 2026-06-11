@@ -5,6 +5,9 @@ import { api, type Address, type AddressInput } from '@/lib/api';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useToast } from '@/components/ui/ToastQueue';
 import Modal from '@/components/ui/Modal';
+import PageHeader from '@/components/ui/PageHeader';
+import PageSection from '@/components/ui/PageSection';
+import AddressForm from '@/components/features/account/AddressForm';
 
 const EMPTY_FORM: AddressInput = {
   label: '',
@@ -92,17 +95,19 @@ export default function AddressesPage() {
   if (!isHydrated || !token) return <p className="text-ink-faint">Loading…</p>;
 
   return (
-    <section className="space-y-4" data-testid="addresses-page">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Addresses</h1>
-        <button
-          onClick={openCreate}
-          data-testid="addresses-new"
-          className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
-        >
-          Add address
-        </button>
-      </div>
+    <PageSection gap={4} testId="addresses-page">
+      <PageHeader
+        title="Addresses"
+        action={
+          <button
+            onClick={openCreate}
+            data-testid="addresses-new"
+            className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
+          >
+            Add address
+          </button>
+        }
+      />
 
       {!items && <p className="text-ink-faint">Loading…</p>}
       {items && items.length === 0 && (
@@ -169,96 +174,12 @@ export default function AddressesPage() {
         title={mode?.kind === 'edit' ? 'Edit address' : 'New address'}
         testId="address-modal"
       >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-          className="space-y-2 text-sm"
-        >
-          <label className="block">
-            Label
-            <input
-              required
-              value={form.label}
-              onChange={(e) => setForm({ ...form, label: e.target.value })}
-              data-testid="address-form-label"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <label className="block">
-            Full name
-            <input
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              data-testid="address-form-name"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <label className="block">
-            Line 1
-            <input
-              required
-              value={form.line1}
-              onChange={(e) => setForm({ ...form, line1: e.target.value })}
-              data-testid="address-form-line1"
-              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-            />
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            <label className="block col-span-2">
-              City
-              <input
-                required
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                data-testid="address-form-city"
-                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-              />
-            </label>
-            <label className="block">
-              Postal
-              <input
-                required
-                value={form.postalCode}
-                onChange={(e) =>
-                  setForm({ ...form, postalCode: e.target.value })
-                }
-                data-testid="address-form-postal"
-                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
-              />
-            </label>
-          </div>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.isDefault ?? false}
-              onChange={(e) =>
-                setForm({ ...form, isDefault: e.target.checked })
-              }
-              data-testid="address-form-default"
-            />
-            Set as default
-          </label>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setMode(null)}
-              data-testid="address-form-cancel"
-              className="px-3 py-2 border border-line-strong rounded-lg text-ink hover:bg-paper-deep transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              data-testid="address-form-submit"
-              className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card rounded-lg font-medium active:scale-95 transition-colors"
-            >
-              Save
-            </button>
-          </div>
-        </form>
+        <AddressForm
+          value={form}
+          onChange={setForm}
+          onCancel={() => setMode(null)}
+          onSubmit={() => void submit()}
+        />
       </Modal>
 
       <Modal
@@ -287,6 +208,6 @@ export default function AddressesPage() {
           </button>
         </div>
       </Modal>
-    </section>
+    </PageSection>
   );
 }
