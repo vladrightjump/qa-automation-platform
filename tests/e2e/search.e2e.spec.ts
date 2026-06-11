@@ -2,10 +2,21 @@
 // /products/search + /products/suggestions endpoints from the browser.
 import { test, expect } from '../fixtures';
 
+// Navbar SearchBox is `hidden md:block` (visible only at viewport ≥ 768px).
+// Phone projects (Pixel 5, iPhone 14) and the Galaxy Tab S4 in portrait are
+// all narrower than 768, so the search UI is unreachable there. Adding a
+// mobile search affordance is tracked as a follow-up; for now the tests in
+// this describe block skip on sub-md viewports.
+const MD_BREAKPOINT_PX = 768;
+
 test.describe('product search (UI)', () => {
   test('typing in the search box reveals suggestions and Enter navigates to a result', {
     tag: ['@smoke', '@search', '@sanity'],
   }, async ({ page, storefront, search }) => {
+    test.skip(
+      (page.viewportSize()?.width ?? Infinity) < MD_BREAKPOINT_PX,
+      'Navbar SearchBox is hidden below the md (768px) breakpoint; a mobile search affordance is a follow-up.',
+    );
     await storefront.goto();
 
     await search.type('Widge');
