@@ -7,7 +7,6 @@ import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { useToast } from '@/components/ui/ToastQueue';
-import { categoryGradient, initials } from '@/lib/product-visual';
 
 interface ProductCardProps {
   product: Product;
@@ -48,7 +47,7 @@ export default function ProductCard({
       return;
     }
     const previous = inWishlist;
-    setInWishlist(!previous); // optimistic
+    setInWishlist(!previous);
     setPulse(true);
     setTimeout(() => setPulse(false), 300);
     try {
@@ -58,7 +57,7 @@ export default function ProductCard({
         await api.addToWishlist(token, product.id);
       }
     } catch (e) {
-      setInWishlist(previous); // rollback
+      setInWishlist(previous);
       toast.push({
         variant: 'error',
         message: e instanceof Error ? e.message : String(e),
@@ -92,32 +91,28 @@ export default function ProductCard({
 
   const oos = product.stock === 0;
   const lowStock = !oos && product.stock <= 5;
-  const gradient = categoryGradient(product.category);
 
   return (
     <article
       data-testid={`product-card-${product.id}`}
-      className="group relative bg-card border border-line rounded-2xl overflow-hidden flex flex-col shadow-card transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-pop"
+      className="group relative bg-card border border-line rounded-[10px] overflow-hidden flex flex-col transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-pop"
     >
-      {/* Visual placeholder — gradient + initials. No real images yet. */}
       <Link
         href={`/products/${product.id}`}
         aria-label={`Open ${product.name}`}
-        className={`relative h-32 sm:h-40 bg-gradient-to-br ${gradient} flex items-center justify-center text-card/95 font-display text-3xl tracking-wide select-none`}
+        className="relative block aspect-[4/3] bg-paper-deep"
       >
-        <span aria-hidden="true">{initials(product.name)}</span>
         {lowStock && (
-          <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-accent-500 px-2 py-0.5 rounded-full">
+          <span className="absolute top-2.5 left-2.5 text-[11px] font-semibold bg-card/95 text-clay-600 px-2 py-0.5 rounded-md">
             {t('product.lowStock')}
           </span>
         )}
         {oos && (
-          <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] bg-paper/90 text-ink px-2 py-0.5 rounded-full">
+          <span className="absolute top-2.5 left-2.5 text-[11px] font-semibold bg-card/95 text-ink-soft px-2 py-0.5 rounded-md">
             {t('product.soldOut')}
           </span>
         )}
 
-        {/* Quick-view overlay — only shown on hover via group-hover */}
         {onQuickView && (
           <button
             type="button"
@@ -127,79 +122,76 @@ export default function ProductCard({
               onQuickView(product);
             }}
             data-testid={`quick-view-${product.id}`}
-            className="absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-ink/25 text-card text-sm font-medium flex items-center justify-center"
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-ink/20 flex items-center justify-center"
           >
-            <span className="bg-paper/95 text-ink px-3.5 py-1.5 rounded-full tracking-wide">
+            <span className="bg-card text-ink rounded-lg px-3.5 py-1.5 text-sm font-medium">
               Quick view
             </span>
           </button>
         )}
       </Link>
 
-      {/* Wishlist heart — overlays the visual */}
       <button
         type="button"
         onClick={toggleWishlist}
         data-testid={`wishlist-toggle-${product.id}`}
         aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         aria-pressed={inWishlist}
-        className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center text-lg bg-paper/90 backdrop-blur-sm shadow-sm transition-colors ${inWishlist ? 'text-clay-500' : 'text-ink-faint hover:text-clay-500'} ${pulse ? 'animate-pulse-once' : ''}`}
+        className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-card/95 transition-colors ${inWishlist ? 'text-clay-500' : 'text-ink-faint hover:text-clay-500'} ${pulse ? 'animate-pulse-once' : ''}`}
       >
         {inWishlist ? '♥' : '♡'}
       </button>
 
-      <div className="p-4 sm:p-5 flex flex-col gap-2 flex-1">
+      <div className="p-4 sm:p-5 flex flex-col gap-1.5 flex-1">
         <Link
           href={`/products/${product.id}`}
-          className="text-ink hover:text-clay-700 transition-colors"
+          className="text-ink hover:text-clay-600 transition-colors"
         >
-          <h3 className="font-display text-base sm:text-lg leading-snug line-clamp-2">
+          <h3 className="text-[14.5px] font-semibold leading-snug line-clamp-2">
             {product.name}
           </h3>
         </Link>
+        <span
+          data-testid={`product-category-${product.id}`}
+          className="text-[12.5px] text-ink-faint"
+        >
+          {product.category}
+        </span>
         {!compact && (
           <p className="text-xs text-ink-soft line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         )}
 
-        <div className="flex items-center justify-between mt-1">
-          <p
-            data-testid={`product-price-${product.id}`}
-            className="font-display text-lg text-ink tabular-nums"
-          >
-            {formatMoney(product.priceCents)}
-          </p>
-          <span
-            data-testid={`product-category-${product.id}`}
-            className="text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full bg-paper-deep text-ink-soft font-medium"
-          >
-            {product.category}
-          </span>
-        </div>
-
         {!compact && product.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {product.tags.slice(0, 2).map((t) => (
+          <div hidden>
+            {product.tags.slice(0, 2).map((tag) => (
               <span
-                key={t}
-                data-testid={`product-tag-${product.id}-${t}`}
-                className="text-[10px] text-ink-faint border border-line px-1.5 py-0.5 rounded-full"
+                key={tag}
+                data-testid={`product-tag-${product.id}-${tag}`}
               >
-                #{t}
+                {tag}
               </span>
             ))}
           </div>
         )}
 
-        <button
-          onClick={handleAdd}
-          disabled={busy || oos}
-          data-testid={`add-to-cart-${product.id}`}
-          className="mt-auto px-3 py-2 bg-clay-500 hover:bg-clay-600 active:scale-95 text-card text-sm font-medium rounded-full transition-all duration-200 disabled:bg-line disabled:text-ink-faint disabled:active:scale-100"
-        >
-          {oos ? t('product.outOfStock') : busy ? t('product.adding') : t('product.addToCart')}
-        </button>
+        <div className="mt-auto pt-2 flex items-center justify-between gap-3">
+          <p
+            data-testid={`product-price-${product.id}`}
+            className="text-[15px] font-semibold tabular-nums text-ink"
+          >
+            {formatMoney(product.priceCents)}
+          </p>
+          <button
+            onClick={handleAdd}
+            disabled={busy || oos}
+            data-testid={`add-to-cart-${product.id}`}
+            className="border border-clay-200 text-clay-500 hover:bg-clay-50 active:scale-95 text-[13px] font-medium rounded-[7px] px-3 py-1.5 transition-colors disabled:opacity-40 disabled:active:scale-100"
+          >
+            {oos ? t('product.outOfStock') : busy ? t('product.adding') : t('product.addToCart')}
+          </button>
+        </div>
       </div>
     </article>
   );

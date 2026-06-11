@@ -65,13 +65,13 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
             className={`relative h-32 -mx-5 -mt-2 bg-gradient-to-br ${gradient} flex items-center justify-center text-card text-3xl font-bold tracking-wide`}
           >
             <span aria-hidden="true">{initials(product.name)}</span>
-            <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider bg-card/90 text-brand-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="absolute top-2 right-2 text-[11px] bg-card/95 text-ink px-2 py-0.5 rounded-md font-semibold">
               {product.category}
             </span>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-ink">
+            <h3 className="text-[17px] font-semibold text-ink">
               {product.name}
             </h3>
             {product.description && (
@@ -80,7 +80,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-ink">
+            <p className="text-[22px] font-semibold tabular-nums text-ink">
               {formatMoney(product.priceCents)}
             </p>
             <span className="text-xs text-ink-faint">
@@ -88,25 +88,12 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
             </span>
           </div>
 
-          {product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {product.tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-[11px] text-ink-soft bg-paper-deep px-2 py-0.5 rounded-full"
-                >
-                  #{t}
-                </span>
-              ))}
-            </div>
-          )}
-
           <div className="flex items-center gap-2 pt-2">
             <button
               onClick={add}
               disabled={busy || oos}
               data-testid="quick-view-add"
-              className="flex-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:scale-95 text-card text-sm font-medium rounded-full transition-all disabled:bg-line-strong"
+              className="flex-1 px-4 py-2 bg-clay-500 hover:bg-clay-600 active:scale-95 text-card text-sm font-medium rounded-lg transition-colors disabled:bg-line-strong"
             >
               {oos ? 'Out of stock' : busy ? 'Adding…' : 'Add to cart'}
             </button>
@@ -114,7 +101,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
               href={`/products/${product.id}`}
               onClick={onClose}
               data-testid="quick-view-detail"
-              className="px-4 py-2 border border-line hover:border-brand-300 hover:bg-brand-50 text-sm font-medium text-ink-soft rounded-full transition-colors"
+              className="px-4 py-2 border border-line-strong hover:bg-paper-deep text-sm font-medium text-ink rounded-lg transition-colors"
             >
               View details
             </Link>
