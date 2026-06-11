@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus, Prisma, prisma } from '@qa/db';
 import type { CheckoutDto, PaymentMethod } from './dto';
@@ -10,6 +9,7 @@ import { AuditAction } from './constants';
 import { PromoService, type PromoApplyResult } from './promo.service';
 import { LoyaltyService } from './loyalty.service';
 import { maybeInjectFailure } from '../test/fault-injection';
+import { getCartWithItems, notFoundFor } from '../common';
 
 @Injectable()
 export class OrdersService {
@@ -26,10 +26,7 @@ export class OrdersService {
    * still run inside the same transaction.
    */
   async checkout(userId: string, dto: CheckoutDto = {}) {
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-      include: { items: { include: { product: true } } },
-    });
+    const cart = await getCartWithItems(userId);
     if (!cart || cart.items.length === 0) {
       throw new BadRequestException('Cart is empty');
     }
@@ -167,7 +164,7 @@ export class OrdersService {
         returns: { orderBy: { createdAt: 'desc' } },
       },
     });
-    if (!order) throw new NotFoundException(`Order ${id} not found`);
+    if (!order) throw notFoundFor('Order', id);
     if (order.userId !== userId) throw new ForbiddenException();
     return order;
   }

@@ -1,27 +1,18 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { prisma } from '@qa/db';
 import { Prisma } from '@qa/db';
 import type { CreateProductDto, UpdateProductDto } from './dto';
 import { CacheService } from '../cache/cache.service';
+import { conflictFor, notFoundFor, paginate } from '../common';
 
 @Injectable()
 export class AdminProductsService {
   constructor(private readonly cache: CacheService) {}
 
-  async list(page = 1, pageSize = 20) {
-    const [items, total] = await Promise.all([
-      prisma.product.findMany({
-        orderBy: { id: 'asc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.product.count(),
-    ]);
-    return { items, total, page, pageSize };
+  list(page = 1, pageSize = 20) {
+    return paginate(prisma.product, page, pageSize, {
+      orderBy: { id: 'asc' } as Prisma.ProductOrderByWithRelationInput,
+    });
   }
 
   async create(dto: CreateProductDto) {
@@ -45,7 +36,7 @@ export class AdminProductsService {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2002'
       ) {
-        throw new ConflictException(`Product ${dto.id} already exists`);
+        throw conflictFor(`Product ${dto.id} already exists`);
       }
       throw e;
     }
@@ -109,7 +100,7 @@ export class AdminProductsService {
     // can be edited but not removed once an order references them.
     const orderRefs = await prisma.orderItem.count({ where: { productId: id } });
     if (orderRefs > 0) {
-      throw new ConflictException(
+      throw conflictFor(
         `Product ${id} is referenced by ${orderRefs} order item(s)`,
       );
     }
@@ -122,7 +113,7 @@ export class AdminProductsService {
 
   private async ensureExists(id: string) {
     const found = await prisma.product.findUnique({ where: { id } });
-    if (!found) throw new NotFoundException(`Product ${id} not found`);
+    if (!found) throw notFoundFor('Product', id);
     return found;
   }
 }
