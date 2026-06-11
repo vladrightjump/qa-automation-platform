@@ -8,9 +8,11 @@ test.describe('quick-view modal (UI)', () => {
     storefront,
   }) => {
     await storefront.goto();
-    // Pick the first product card on page 1 — its specific id is irrelevant;
-    // the test is about the modal flow.
-    const firstCard = storefront.productCards().first();
+    // Pick the first IN-STOCK product card. The catalog is bulk-seeded
+    // with a long tail of OOS products; `productCards().first()` will
+    // often resolve to one of them, which makes the quick-view "Add"
+    // button disabled and the flow untestable.
+    const firstCard = storefront.inStockProductCards().first();
     await expect(firstCard).toBeVisible();
     await firstCard.scrollIntoViewIfNeeded();
     const productTestId = await firstCard.getAttribute('data-testid');

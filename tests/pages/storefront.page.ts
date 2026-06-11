@@ -100,6 +100,19 @@ export class StorefrontPage {
     return this.page.locator('[data-testid^="product-card-"]');
   }
 
+  /**
+   * Subset of product cards that have an enabled "Add to cart" button —
+   * i.e. in stock. Use this when a test needs to drive an end-to-end
+   * cart flow; the catalog is bulk-seeded with a long tail of OOS
+   * products and `productCards().first()` will often resolve to one
+   * of them.
+   */
+  inStockProductCards(): Locator {
+    return this.page.locator(
+      '[data-testid^="product-card-"]:has([data-testid^="add-to-cart-"]:not([disabled]))',
+    );
+  }
+
   // --- i18n / geo ---
 
   localeSwitcher(): Locator {
