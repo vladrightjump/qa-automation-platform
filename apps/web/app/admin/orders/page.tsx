@@ -69,12 +69,12 @@ export default function AdminOrdersPage() {
 
   return (
     <section className="space-y-6" data-testid="admin-orders">
-      <h1 className="text-2xl font-semibold">Admin · Orders</h1>
+      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Admin · Orders</h1>
 
       <div
         role="tablist"
         data-testid="admin-orders-filter"
-        className="flex gap-1 border border-line rounded-full p-0.5 bg-card w-fit"
+        className="flex gap-1 border border-line rounded-lg p-0.5 bg-card w-fit"
       >
         {TABS.map((t) => (
           <button
@@ -84,7 +84,7 @@ export default function AdminOrdersPage() {
             aria-selected={filter === t.id}
             onClick={() => setFilter(t.id)}
             data-testid={`admin-orders-filter-${t.id}`}
-            className={`px-3 py-1 text-sm rounded-full transition-colors ${
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
               filter === t.id
                 ? 'bg-clay-500 text-card'
                 : 'text-ink-soft hover:bg-paper-deep'
@@ -97,8 +97,8 @@ export default function AdminOrdersPage() {
 
       {!data && <p className="text-ink-faint">Loading…</p>}
       {data && (
-        <table className="w-full text-sm border bg-card rounded">
-          <thead className="bg-paper-deep text-left">
+        <table className="w-full text-[13.5px] border border-line bg-card rounded-[10px] overflow-hidden">
+          <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
             <tr>
               <th className="p-2">Order</th>
               <th className="p-2">Status</th>
@@ -111,7 +111,7 @@ export default function AdminOrdersPage() {
               <tr
                 key={o.id}
                 data-testid={`admin-order-row-${o.id}`}
-                className="border-t"
+                className="border-t border-line hover:bg-paper-deep transition-colors"
               >
                 <td className="p-2 font-mono text-xs">{o.id}</td>
                 <td className="p-2">
@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
                         )
                       }
                       data-testid={`admin-order-fulfill-${o.id}`}
-                      className="text-clay-600 hover:underline"
+                      className="text-clay-600 hover:text-clay-700 font-medium transition-colors"
                     >
                       Fulfill
                     </button>
@@ -143,9 +143,9 @@ export default function AdminOrdersPage() {
 
       {returns.length > 0 && (
         <div className="space-y-2" data-testid="admin-returns">
-          <h2 className="text-lg font-semibold">Returns queue</h2>
-          <table className="w-full text-sm border bg-card rounded">
-            <thead className="bg-paper-deep text-left">
+          <h2 className="text-[16px] font-semibold text-ink">Returns queue</h2>
+          <table className="w-full text-[13.5px] border border-line bg-card rounded-[10px] overflow-hidden">
+            <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
               <tr>
                 <th className="p-2">Order</th>
                 <th className="p-2">Reason</th>
@@ -158,7 +158,7 @@ export default function AdminOrdersPage() {
                 <tr
                   key={ret.id}
                   data-testid={`admin-return-row-${ret.id}`}
-                  className="border-t"
+                  className="border-t border-line hover:bg-paper-deep transition-colors"
                 >
                   <td className="p-2 font-mono text-xs">{ret.orderId}</td>
                   <td className="p-2">{ret.reason}</td>
@@ -178,7 +178,7 @@ export default function AdminOrdersPage() {
                             )
                           }
                           data-testid={`admin-return-approve-${ret.id}`}
-                          className="text-green-600 hover:underline"
+                          className="text-sage-500 hover:text-sage-600 font-medium transition-colors"
                         >
                           Approve
                         </button>
@@ -189,7 +189,7 @@ export default function AdminOrdersPage() {
                             )
                           }
                           data-testid={`admin-return-reject-${ret.id}`}
-                          className="text-red-600 hover:underline"
+                          className="text-ink-faint hover:text-danger-500 font-medium transition-colors"
                         >
                           Reject
                         </button>
@@ -203,7 +203,7 @@ export default function AdminOrdersPage() {
                           )
                         }
                         data-testid={`admin-return-refund-${ret.id}`}
-                        className="text-clay-600 hover:underline"
+                        className="text-clay-600 hover:text-clay-700 font-medium transition-colors"
                       >
                         Refund
                       </button>

@@ -69,7 +69,7 @@ export default function AdminMetricsPage() {
   return (
     <section className="space-y-6" data-testid="admin-metrics">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-semibold">Admin · Sales metrics</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Admin · Sales metrics</h1>
         {/* Debug chip — surfaces the X-Cache header from the last
             response so reviewers (and visual specs) can see the cache
             state without devtools. The SUT is a test target, so this is
@@ -78,7 +78,7 @@ export default function AdminMetricsPage() {
           <span
             data-testid="cache-state-chip"
             data-cache-state={cacheState}
-            className="text-xs font-mono px-2 py-0.5 rounded border border-line bg-paper-deep text-ink-soft uppercase"
+            className="text-xs font-mono px-2 py-0.5 rounded-md border border-line bg-paper-deep text-ink-soft uppercase"
           >
             X-Cache: {cacheState}
           </span>
@@ -87,7 +87,7 @@ export default function AdminMetricsPage() {
 
       <form
         onSubmit={submit}
-        className="flex flex-wrap items-end gap-3 bg-card border border-line rounded-2xl p-4"
+        className="flex flex-wrap items-end gap-3 bg-card border border-line rounded-[10px] p-5"
       >
         <label className="text-sm">
           <span className="block text-ink-soft mb-1">From</span>
@@ -96,7 +96,7 @@ export default function AdminMetricsPage() {
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             data-testid="metrics-from"
-            className="border rounded px-2 py-1"
+            className="bg-card border border-line-strong rounded-lg px-3 py-2 text-sm outline-none focus:border-clay-500 transition-colors"
           />
         </label>
         <label className="text-sm">
@@ -106,14 +106,14 @@ export default function AdminMetricsPage() {
             value={to}
             onChange={(e) => setTo(e.target.value)}
             data-testid="metrics-to"
-            className="border rounded px-2 py-1"
+            className="bg-card border border-line-strong rounded-lg px-3 py-2 text-sm outline-none focus:border-clay-500 transition-colors"
           />
         </label>
         <button
           type="submit"
           data-testid="metrics-submit"
           disabled={loading}
-          className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded disabled:opacity-60"
+          className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 disabled:opacity-60 disabled:active:scale-100 transition-colors"
         >
           {loading ? 'Loading…' : 'Refresh'}
         </button>
@@ -139,12 +139,12 @@ export default function AdminMetricsPage() {
             />
           </div>
 
-          <div className="bg-card border border-line rounded-2xl overflow-hidden">
-            <h2 className="text-sm font-medium px-4 py-3 border-b border-line text-ink-soft uppercase tracking-wider">
+          <div className="bg-card border border-line rounded-[10px] overflow-hidden">
+            <h2 className="text-[11.5px] font-semibold px-5 py-3 border-b border-line text-ink-faint uppercase tracking-[0.06em]">
               Top products
             </h2>
             <table className="w-full text-sm" data-testid="metrics-top-products">
-              <thead className="bg-paper-deep text-left">
+              <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
                 <tr>
                   <th className="p-2">Product</th>
                   <th className="p-2 text-right">Units sold</th>
@@ -182,12 +182,12 @@ export default function AdminMetricsPage() {
             </table>
           </div>
 
-          <div className="bg-card border border-line rounded-2xl overflow-hidden">
-            <h2 className="text-sm font-medium px-4 py-3 border-b border-line text-ink-soft uppercase tracking-wider">
+          <div className="bg-card border border-line rounded-[10px] overflow-hidden">
+            <h2 className="text-[11.5px] font-semibold px-5 py-3 border-b border-line text-ink-faint uppercase tracking-[0.06em]">
               By category
             </h2>
             <table className="w-full text-sm" data-testid="metrics-by-category">
-              <thead className="bg-paper-deep text-left">
+              <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
                 <tr>
                   <th className="p-2">Category</th>
                   <th className="p-2 text-right">Orders</th>
@@ -235,10 +235,10 @@ function Card({ testId, label, value }: CardProps) {
   return (
     <div
       data-testid={testId}
-      className="bg-card border border-line rounded-2xl p-4"
+      className="bg-card border border-line rounded-[10px] p-5"
     >
-      <p className="text-xs uppercase tracking-wider text-ink-soft">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-ink">{value}</p>
+      <p className="text-[12.5px] text-ink-soft">{label}</p>
+      <p className="mt-1 text-[22px] font-semibold tabular-nums text-ink">{value}</p>
     </div>
   );
 }

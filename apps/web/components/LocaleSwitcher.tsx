@@ -14,7 +14,7 @@ export default function LocaleSwitcher() {
         aria-label={t('locale.label')}
         value={locale}
         onChange={(e) => setLocale(e.target.value as Locale)}
-        className="bg-paper-deep text-ink-soft border border-line rounded-full px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-clay-500"
+        className="bg-card text-ink-soft border border-line-strong rounded-md px-2 py-1 text-xs focus:outline-none focus:border-clay-500 transition-colors"
       >
         {SUPPORTED_LOCALES.map((l) => (
           <option key={l} value={l} data-testid={`locale-option-${l}`}>

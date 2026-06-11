@@ -49,7 +49,7 @@ function SearchResults() {
 
   if (err) {
     return (
-      <p data-testid="search-error" className="text-sm text-red-600">
+      <p data-testid="search-error" className="text-sm text-danger-500">
         {err}
       </p>
     );
@@ -103,7 +103,7 @@ function SearchResults() {
             onClick={() =>
               router.push(`/search?q=${encodeURIComponent(q)}&page=${page - 1}`)
             }
-            className="px-3 py-1 border rounded-full disabled:opacity-40"
+            className="px-3 py-1.5 border border-line-strong rounded-lg text-ink hover:bg-paper-deep disabled:opacity-40 transition-colors"
           >
             Prev
           </button>
@@ -116,7 +116,7 @@ function SearchResults() {
             onClick={() =>
               router.push(`/search?q=${encodeURIComponent(q)}&page=${page + 1}`)
             }
-            className="px-3 py-1 border rounded-full disabled:opacity-40"
+            className="px-3 py-1.5 border border-line-strong rounded-lg text-ink hover:bg-paper-deep disabled:opacity-40 transition-colors"
           >
             Next
           </button>

@@ -91,7 +91,7 @@ export default function GeoBanner() {
         data-testid="geo-banner"
         className="max-w-5xl mx-auto px-6 pt-3"
       >
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-clay-50 border border-clay-200 px-4 py-2 text-sm text-clay-700">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] bg-clay-50 border border-clay-200 px-4 py-2 text-sm text-clay-700">
           <span data-testid="geo-suggestion">
             {t('geo.shippingTo', {
               flag: flag(suggestion.country),
@@ -104,7 +104,7 @@ export default function GeoBanner() {
               type="button"
               onClick={accept}
               data-testid="geo-accept"
-              className="px-3 py-1 rounded-full bg-clay-500 text-card text-xs font-medium hover:bg-clay-600 transition-colors"
+              className="px-3 py-1 rounded-lg bg-clay-500 text-card text-xs font-medium hover:bg-clay-600 transition-colors"
             >
               {t('geo.accept')}
             </button>
@@ -128,7 +128,7 @@ export default function GeoBanner() {
         data-testid="geo-fallback"
         className="max-w-5xl mx-auto px-6 pt-3"
       >
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-paper-deep border border-line px-4 py-2 text-sm text-ink-soft">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] bg-paper-deep border border-line px-4 py-2 text-sm text-ink-soft">
           <span>{t('geo.pickRegion')}</span>
           <select
             data-testid="geo-region-select"
@@ -140,7 +140,7 @@ export default function GeoBanner() {
               const r = regions.find((x) => x.country === e.target.value);
               if (r) setLocale(r.locale);
             }}
-            className="bg-card border border-line rounded-full px-2 py-1 text-xs"
+            className="bg-card border border-line-strong rounded-md px-2 py-1 text-xs"
           >
             <option value="" disabled>
               —

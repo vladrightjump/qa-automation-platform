@@ -77,12 +77,12 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={`${testId}-title`}
         data-testid={testId}
-        className="animate-scale-in bg-card rounded-2xl shadow-pop w-full max-w-md p-6 border border-line"
+        className="animate-scale-in bg-card rounded-[10px] shadow-pop w-full max-w-md p-6 border border-line"
       >
         <div className="flex items-center justify-between mb-4">
           <h2
             id={`${testId}-title`}
-            className="font-display text-xl text-ink"
+            className="text-[17px] font-semibold text-ink"
           >
             {title}
           </h2>
@@ -90,7 +90,7 @@ export default function Modal({
             onClick={onClose}
             data-testid={`${testId}-close`}
             aria-label="Close dialog"
-            className="text-ink-faint hover:text-ink hover:bg-paper-deep rounded-full w-8 h-8 flex items-center justify-center text-xl leading-none transition-colors"
+            className="text-ink-faint hover:text-ink hover:bg-paper-deep rounded-lg w-8 h-8 flex items-center justify-center text-xl leading-none transition-colors"
           >
             &times;
           </button>
