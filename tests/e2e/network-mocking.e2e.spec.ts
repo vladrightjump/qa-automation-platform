@@ -17,7 +17,17 @@ test.describe('network mocking (UI)', () => {
   }, async ({
     authedPage,
     storefront,
+    db,
   }) => {
+    // Top up prod_widget so its Add-to-cart button is actionable; the
+    // test then intercepts the POST with 500 and asserts the failure
+    // path. With stock=0 the button is disabled and never reaches the
+    // network layer the test is exercising.
+    await db.product.update({
+      where: { id: 'prod_widget' },
+      data: { stock: 50 },
+    });
+
     await authedPage.route(CART_ITEMS_GLOB, (route) =>
       route.fulfill({
         status: 500,

@@ -28,6 +28,13 @@ test.describe('wishlist (UI)', () => {
     testUser,
     db,
   }) => {
+    // Top up prod_gizmo's stock so the Move-to-cart button isn't
+    // disabled. Parallel checkout / cart specs sometimes drain it
+    // because every spec shares the same seeded product catalog.
+    await db.product.update({
+      where: { id: 'prod_gizmo' },
+      data: { stock: 20 },
+    });
     await api.addToWishlist(testUser.token, 'prod_gizmo');
 
     await authedPage.goto('/wishlist');

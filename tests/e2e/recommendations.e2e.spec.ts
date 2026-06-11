@@ -5,6 +5,16 @@
 import { test, expect } from '../fixtures';
 
 test.describe('recommendations (UI)', () => {
+  // Every test seeds a paid order against prod_widget. Top up its stock
+  // so parallel cart/checkout specs don't starve the checkout calls
+  // below.
+  test.beforeEach(async ({ db }) => {
+    await db.product.update({
+      where: { id: 'prod_widget' },
+      data: { stock: 50 },
+    });
+  });
+
   test('authed user with a paid order sees same-category recommendations on /', {
     tag: ['@regression', '@recommendations'],
   }, async ({ api, testUser, authedPage }) => {

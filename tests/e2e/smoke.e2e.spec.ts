@@ -34,8 +34,15 @@ test('storefront loads with seeded products and an authed user', {
   await expect(authedPage.getByTestId('nav-products')).toBeVisible();
   await expect(authedPage.getByTestId('nav-cart')).toBeVisible();
   await expect(authedPage.getByTestId('cart-count')).toBeVisible();
-  // Signed-in users see the Orders link too.
-  await expect(authedPage.getByTestId('nav-orders')).toBeVisible();
+  // Signed-in users see the Orders link too — but only at sm: (≥640px).
+  // On phone viewports (Pixel 5, iPhone 14) the Navbar collapses
+  // nav-orders behind `hidden sm:inline-flex` to keep the row from
+  // wrapping. Skip the orders-link assertion below the sm breakpoint.
+  const SM_BREAKPOINT_PX = 640;
+  const viewportWidth = authedPage.viewportSize()?.width ?? Infinity;
+  if (viewportWidth >= SM_BREAKPOINT_PX) {
+    await expect(authedPage.getByTestId('nav-orders')).toBeVisible();
+  }
   // Seeded product is reachable via the detail route. The home grid is
   // now paginated so prod_widget isn't necessarily on page 1.
   await authedPage.goto('/products/prod_widget');
