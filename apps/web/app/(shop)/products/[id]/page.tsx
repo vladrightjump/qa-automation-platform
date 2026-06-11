@@ -11,7 +11,7 @@ import {
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/features/catalog/ProductCard';
-import Toast from '@/components/Toast';
+import Toast from '@/components/ui/Toast';
 import Tabs from '@/components/ui/Tabs';
 import StarRating from '@/components/ui/StarRating';
 import Select from '@/components/ui/Select';

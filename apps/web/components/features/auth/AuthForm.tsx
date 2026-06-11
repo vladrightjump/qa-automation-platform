@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import TextInput from '@/components/ui/TextInput';
-import Toast from '@/components/Toast';
+import Toast from '@/components/ui/Toast';
 
 export default function AuthForm() {
   const router = useRouter();

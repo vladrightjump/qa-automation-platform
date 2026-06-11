@@ -12,7 +12,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import Textarea from '@/components/ui/Textarea';
-import Toast from '@/components/Toast';
+import Toast from '@/components/ui/Toast';
 
 export default function OrderDetailPage() {
   return (

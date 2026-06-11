@@ -14,7 +14,7 @@ import {
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useLocale } from '@/lib/i18n';
 import { validateAddress, hasErrors, type AddressErrors } from '@/lib/validators';
-import Toast from '@/components/Toast';
+import Toast from '@/components/ui/Toast';
 import { useToast } from '@/components/ui/ToastQueue';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';

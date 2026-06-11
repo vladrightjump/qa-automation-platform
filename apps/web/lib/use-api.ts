@@ -79,7 +79,6 @@ export function useApi<T>(
     return () => {
       cancelledRef.current = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, hydrationKey, tokenKey, ...deps]);
 
   return { data, loading, error, reload: run };

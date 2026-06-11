@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import LocaleSwitcher from './LocaleSwitcher';
-import SearchBox from './features/catalog/SearchBox';
+import SearchBox from '@/components/features/catalog/SearchBox';
 
 export default function Navbar() {
   const { token, user, cartCount, clear } = useAuth();

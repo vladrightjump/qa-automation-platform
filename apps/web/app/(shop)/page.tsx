@@ -10,9 +10,9 @@ import {
   type ProductSort,
 } from '@/lib/api';
 import ProductCard from '@/components/features/catalog/ProductCard';
-import Toast from '@/components/Toast';
-import Hero from '@/components/Hero';
-import QuickViewModal from '@/components/QuickViewModal';
+import Toast from '@/components/ui/Toast';
+import Hero from '@/components/features/catalog/Hero';
+import QuickViewModal from '@/components/features/catalog/QuickViewModal';
 import Recommendations from '@/components/features/recommendations/Recommendations';
 import Pagination from '@/components/ui/Pagination';
 import PriceRangeSlider from '@/components/ui/PriceRangeSlider';

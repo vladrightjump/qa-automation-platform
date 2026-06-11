@@ -4,8 +4,8 @@ import { Hanken_Grotesk } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth';
 import { LocaleProvider } from '@/lib/i18n';
 import { ToastProvider } from '@/components/ui/ToastQueue';
-import Navbar from '@/components/Navbar';
-import GeoBanner from '@/components/GeoBanner';
+import Navbar from '@/components/features/nav/Navbar';
+import GeoBanner from '@/components/features/geo/GeoBanner';
 
 const hanken = Hanken_Grotesk({
   subsets: ['latin'],
