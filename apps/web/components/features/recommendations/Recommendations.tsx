@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { api, type Recommendation } from '@/lib/api';
 import { getRecent } from '@/lib/recently-viewed';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
+import ProductTile from '@/components/features/catalog/ProductTile';
+import ProductStrip from './ProductStrip';
 import RecentlyViewed from './RecentlyViewed';
 
 interface RecommendationsProps {
@@ -18,9 +19,11 @@ const KIND_LABEL: Record<Recommendation['kind'], string> = {
   'recently-viewed': 'Because you viewed similar',
 };
 
+const KIND_ORDER = ['collaborative', 'same-category', 'recently-viewed'] as const;
+
 // Authed: shows up to three labelled rows (one per kind) sourced from
-// /recommendations. Unauthed or empty: falls back to the existing
-// <RecentlyViewed> strip so the slot is never blank.
+// /recommendations. Unauthed or empty: falls back to <RecentlyViewed> so
+// the slot is never blank.
 export default function Recommendations({ excludeId = null }: RecommendationsProps) {
   const { token } = useAuth();
   const [recs, setRecs] = useState<Recommendation[] | null>(null);
@@ -62,47 +65,27 @@ export default function Recommendations({ excludeId = null }: RecommendationsPro
   if (!grouped || grouped.size === 0) return <RecentlyViewed excludeId={excludeId} />;
 
   return (
-    <section
-      data-testid="recommendations"
-      className="animate-fade-in space-y-5"
-    >
-      {(['collaborative', 'same-category', 'recently-viewed'] as const).map((kind) => {
+    <section data-testid="recommendations" className="animate-fade-in space-y-5">
+      {KIND_ORDER.map((kind) => {
         const rows = grouped.get(kind);
         if (!rows || rows.length === 0) return null;
         return (
-          <div
+          <ProductStrip
             key={kind}
-            data-testid={`recommendation-row-${kind}`}
-            className="space-y-3"
-          >
-            <h2 className="text-[11.5px] font-semibold text-ink-faint uppercase tracking-[0.06em]">
-              {KIND_LABEL[kind]}
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
-              {rows.map((rec) => {
-                const p = rec.product;
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.id}`}
-                    data-testid={`recommendation-item-${p.id}`}
-                    title={rec.reason}
-                    className="snap-start shrink-0 w-40 bg-card rounded-[10px] overflow-hidden border border-line hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
-                  >
-                    <div className="h-20 bg-paper-deep" />
-                    <div className="p-2.5">
-                      <p className="text-xs font-semibold text-ink truncate">
-                        {p.name}
-                      </p>
-                      <p className="text-xs text-ink-soft mt-0.5 tabular-nums">
-                        {formatMoney(p.priceCents)}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+            testId={`recommendation-row-${kind}`}
+            title={KIND_LABEL[kind]}
+            items={rows}
+            renderItem={(rec) => (
+              <ProductTile
+                key={rec.product.id}
+                href={`/products/${rec.product.id}`}
+                name={rec.product.name}
+                priceLabel={formatMoney(rec.product.priceCents)}
+                thumb={<div className="h-20 bg-paper-deep" />}
+                testId={`recommendation-item-${rec.product.id}`}
+              />
+            )}
+          />
         );
       })}
     </section>

@@ -10,15 +10,15 @@ import {
   type ReviewSummary,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import ProductCard from '@/components/ProductCard';
+import ProductCard from '@/components/features/catalog/ProductCard';
 import Toast from '@/components/Toast';
 import Tabs from '@/components/ui/Tabs';
 import StarRating from '@/components/ui/StarRating';
 import Select from '@/components/ui/Select';
 import Skeleton from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastQueue';
-import RecentlyViewed from '@/components/RecentlyViewed';
-import RelatedProducts from '@/components/RelatedProducts';
+import RecentlyViewed from '@/components/features/recommendations/RecentlyViewed';
+import RelatedProducts from '@/components/features/recommendations/RelatedProducts';
 import { pushRecent } from '@/lib/recently-viewed';
 
 const SORT_OPTIONS: { value: ReviewSort; label: string }[] = [

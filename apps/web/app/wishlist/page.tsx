@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptyWishlist from '@/components/illustrations/EmptyWishlist';
-import RecentlyViewed from '@/components/RecentlyViewed';
+import RecentlyViewed from '@/components/features/recommendations/RecentlyViewed';
 import { useLocale } from '@/lib/i18n';
 
 export default function WishlistPage() {

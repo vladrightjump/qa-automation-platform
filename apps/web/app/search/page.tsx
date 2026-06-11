@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, type PagedSearch } from '@/lib/api';
-import ProductCard from '@/components/ProductCard';
+import ProductCard from '@/components/features/catalog/ProductCard';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import EmptySearch from '@/components/illustrations/EmptySearch';
