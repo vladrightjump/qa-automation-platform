@@ -33,7 +33,7 @@ export default function Pagination({
           disabled={!canPrev}
           onClick={() => onChange(page - 1)}
           data-testid={`${testId}-prev`}
-          className="px-3.5 py-1 border border-line rounded-full text-ink hover:bg-paper-deep disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="px-3.5 py-1 border border-line rounded-lg text-ink hover:bg-paper-deep disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           Prev
         </button>
@@ -42,7 +42,7 @@ export default function Pagination({
           disabled={!canNext}
           onClick={() => onChange(page + 1)}
           data-testid={`${testId}-next`}
-          className="px-3.5 py-1 border border-line rounded-full text-ink hover:bg-paper-deep disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="px-3.5 py-1 border border-line rounded-lg text-ink hover:bg-paper-deep disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           Next
         </button>

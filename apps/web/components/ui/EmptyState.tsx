@@ -22,16 +22,16 @@ export default function EmptyState({
   return (
     <div
       data-testid={testId}
-      className="animate-fade-in border border-line rounded-2xl p-10 bg-card text-center flex flex-col items-center gap-3 shadow-card"
+      className="animate-fade-in border border-line rounded-[10px] p-10 bg-card text-center flex flex-col items-center gap-2"
     >
-      {icon && <div className="text-clay-400 mb-1">{icon}</div>}
-      <h2 className="font-display text-xl text-ink">{title}</h2>
+      {icon && <div className="text-ink-faint mb-1">{icon}</div>}
+      <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
       {description && (
-        <p className="text-sm text-ink-soft max-w-sm leading-relaxed">
+        <p className="text-[13.5px] text-ink-soft max-w-sm leading-relaxed">
           {description}
         </p>
       )}
-      {action && <div className="pt-2">{action}</div>}
+      {action && <div className="pt-3">{action}</div>}
     </div>
   );
 }

@@ -24,18 +24,12 @@ interface ToastValue {
 
 const ToastContext = createContext<ToastValue | null>(null);
 
-const DEFAULT_DURATION_MS = 4000;
-const VARIANT_CLASSES: Record<ToastVariant, string> = {
-  success: 'bg-green-50 border-green-200 text-green-800 border-l-4 border-l-green-500',
-  error: 'bg-red-50 border-red-200 text-red-800 border-l-4 border-l-red-500',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 border-l-4 border-l-yellow-500',
-  info: 'bg-clay-50 border-clay-200 text-clay-700 border-l-4 border-l-clay-500',
-};
-const VARIANT_GLYPH: Record<ToastVariant, string> = {
-  success: '✓',
-  error: '✕',
-  warning: '!',
-  info: 'i',
+const DEFAULT_DURATION_MS = 2200;
+const VARIANT_DOT: Record<ToastVariant, string> = {
+  success: 'bg-sage-500',
+  error: 'bg-danger-500',
+  warning: 'bg-accent-500',
+  info: 'bg-clay-500',
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -64,27 +58,25 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         data-testid="toast-queue"
         aria-live="polite"
-        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2"
       >
         {toasts.map((t) => (
           <div
             key={t.id}
             data-testid={`toast-${t.variant}`}
             role="status"
-            className={`animate-slide-up border rounded-lg pl-2 pr-3 py-2 text-sm shadow-md flex items-center gap-2 min-w-[16rem] ${VARIANT_CLASSES[t.variant]}`}
+            className="animate-slide-up bg-ink text-paper rounded-lg px-5 py-3 text-[13.5px] shadow-pop flex items-center gap-3 min-w-[16rem]"
           >
             <span
               aria-hidden="true"
-              className="w-5 h-5 rounded-full bg-card/60 flex items-center justify-center text-xs font-bold"
-            >
-              {VARIANT_GLYPH[t.variant]}
-            </span>
+              className={`w-1.5 h-1.5 rounded-full ${VARIANT_DOT[t.variant]}`}
+            />
             <span className="flex-1">{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
               data-testid={`toast-dismiss-${t.id}`}
               aria-label="Dismiss"
-              className="text-current opacity-60 hover:opacity-100 transition-opacity"
+              className="text-paper/60 hover:text-paper transition-opacity"
             >
               &times;
             </button>

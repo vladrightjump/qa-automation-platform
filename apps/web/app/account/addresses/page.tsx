@@ -94,11 +94,11 @@ export default function AddressesPage() {
   return (
     <section className="space-y-4" data-testid="addresses-page">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Addresses</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Addresses</h1>
         <button
           onClick={openCreate}
           data-testid="addresses-new"
-          className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
+          className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
         >
           Add address
         </button>
@@ -108,7 +108,7 @@ export default function AddressesPage() {
       {items && items.length === 0 && (
         <p
           data-testid="addresses-empty"
-          className="border rounded p-6 bg-card text-center text-ink-soft"
+          className="border border-line rounded-[10px] p-6 bg-card text-center text-ink-soft"
         >
           No saved addresses yet.
         </p>
@@ -119,7 +119,7 @@ export default function AddressesPage() {
             <li
               key={a.id}
               data-testid={`address-card-${a.id}`}
-              className="border rounded p-3 bg-card text-sm"
+              className="border border-line rounded-[10px] p-4 bg-card text-sm hover:bg-paper-deep transition-colors"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -128,7 +128,7 @@ export default function AddressesPage() {
                     {a.isDefault && (
                       <span
                         data-testid={`address-default-${a.id}`}
-                        className="ml-2 text-xs text-green-700"
+                        className="ml-2 text-xs text-sage-500"
                       >
                         default
                       </span>
@@ -152,7 +152,7 @@ export default function AddressesPage() {
                   <button
                     onClick={() => setDeleteTarget(a)}
                     data-testid={`address-delete-${a.id}`}
-                    className="text-red-600 hover:underline"
+                    className="text-ink-faint hover:text-danger-500 transition-colors"
                   >
                     Delete
                   </button>
@@ -183,7 +183,7 @@ export default function AddressesPage() {
               value={form.label}
               onChange={(e) => setForm({ ...form, label: e.target.value })}
               data-testid="address-form-label"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <label className="block">
@@ -193,7 +193,7 @@ export default function AddressesPage() {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               data-testid="address-form-name"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <label className="block">
@@ -203,7 +203,7 @@ export default function AddressesPage() {
               value={form.line1}
               onChange={(e) => setForm({ ...form, line1: e.target.value })}
               data-testid="address-form-line1"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -214,7 +214,7 @@ export default function AddressesPage() {
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 data-testid="address-form-city"
-                className="mt-1 w-full border rounded px-2 py-1"
+                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
               />
             </label>
             <label className="block">
@@ -226,7 +226,7 @@ export default function AddressesPage() {
                   setForm({ ...form, postalCode: e.target.value })
                 }
                 data-testid="address-form-postal"
-                className="mt-1 w-full border rounded px-2 py-1"
+                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
               />
             </label>
           </div>
@@ -246,14 +246,14 @@ export default function AddressesPage() {
               type="button"
               onClick={() => setMode(null)}
               data-testid="address-form-cancel"
-              className="px-3 py-1.5 border rounded"
+              className="px-3 py-2 border border-line-strong rounded-lg text-ink hover:bg-paper-deep transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               data-testid="address-form-submit"
-              className="px-3 py-1.5 bg-clay-500 text-card rounded"
+              className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card rounded-lg font-medium active:scale-95 transition-colors"
             >
               Save
             </button>
@@ -274,14 +274,14 @@ export default function AddressesPage() {
           <button
             onClick={() => setDeleteTarget(null)}
             data-testid="address-delete-cancel"
-            className="px-3 py-1.5 border rounded text-sm"
+            className="px-3 py-2 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => void confirmDelete()}
             data-testid="address-delete-confirm"
-            className="px-3 py-1.5 bg-red-600 text-card rounded text-sm"
+            className="px-3 py-2 bg-danger-500 hover:bg-danger-600 text-card rounded-lg text-sm font-medium transition-colors"
           >
             Delete
           </button>

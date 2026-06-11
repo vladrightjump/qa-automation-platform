@@ -6,7 +6,6 @@ import { api, type Recommendation } from '@/lib/api';
 import { getRecent } from '@/lib/recently-viewed';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
-import { categoryGradient, initials } from '@/lib/product-visual';
 import RecentlyViewed from './RecentlyViewed';
 
 interface RecommendationsProps {
@@ -76,31 +75,26 @@ export default function Recommendations({ excludeId = null }: RecommendationsPro
             data-testid={`recommendation-row-${kind}`}
             className="space-y-3"
           >
-            <h2 className="text-sm font-medium text-ink-soft uppercase tracking-wider">
+            <h2 className="text-[11.5px] font-semibold text-ink-faint uppercase tracking-[0.06em]">
               {KIND_LABEL[kind]}
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
               {rows.map((rec) => {
                 const p = rec.product;
-                const gradient = categoryGradient(p.category);
                 return (
                   <Link
                     key={p.id}
                     href={`/products/${p.id}`}
                     data-testid={`recommendation-item-${p.id}`}
                     title={rec.reason}
-                    className="snap-start shrink-0 w-40 bg-card rounded-2xl overflow-hidden border border-line shadow-card hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
+                    className="snap-start shrink-0 w-40 bg-card rounded-[10px] overflow-hidden border border-line hover:-translate-y-0.5 hover:shadow-pop transition-all duration-200"
                   >
-                    <div
-                      className={`h-20 bg-gradient-to-br ${gradient} flex items-center justify-center text-card font-bold`}
-                    >
-                      {initials(p.name)}
-                    </div>
+                    <div className="h-20 bg-paper-deep" />
                     <div className="p-2.5">
-                      <p className="text-xs font-medium text-ink truncate">
+                      <p className="text-xs font-semibold text-ink truncate">
                         {p.name}
                       </p>
-                      <p className="text-xs text-ink-soft mt-0.5">
+                      <p className="text-xs text-ink-soft mt-0.5 tabular-nums">
                         {formatMoney(p.priceCents)}
                       </p>
                     </div>

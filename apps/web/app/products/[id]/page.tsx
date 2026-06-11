@@ -49,7 +49,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="max-w-2xl space-y-4">
-        <div className="bg-card rounded-2xl border border-line overflow-hidden shadow-card">
+        <div className="bg-card rounded-[10px] border border-line overflow-hidden">
           <Skeleton variant="block" className="h-36 rounded-none" />
           <div className="p-4 space-y-3">
             <Skeleton variant="line" width="60%" />
@@ -156,9 +156,9 @@ function StockAlertButton({ productId }: { productId: string }) {
   return (
     <div
       data-testid="stock-alert"
-      className="border border-amber-100 bg-amber-50 rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+      className="border border-line bg-paper-deep rounded-[10px] px-4 py-3 flex items-center justify-between gap-3"
     >
-      <p className="text-sm text-amber-800">
+      <p className="text-[13.5px] text-ink">
         {subscribed
           ? 'You’ll be notified when this item is back in stock.'
           : 'Out of stock — get notified when it returns.'}
@@ -169,7 +169,7 @@ function StockAlertButton({ productId }: { productId: string }) {
         disabled={busy}
         data-testid="stock-alert-toggle"
         data-subscribed={subscribed}
-        className="shrink-0 px-3 py-1.5 border border-amber-400 hover:bg-amber-100 disabled:opacity-50 text-amber-800 rounded-full text-sm font-medium transition-colors"
+        className="shrink-0 px-3 py-1.5 border border-clay-200 hover:bg-clay-50 disabled:opacity-50 text-clay-500 rounded-[7px] text-sm font-medium transition-colors"
       >
         {subscribed ? 'Cancel alert' : 'Notify me'}
       </button>
@@ -246,7 +246,7 @@ function ReviewsTab({ productId }: { productId: string }) {
             void submit();
           }}
           data-testid="review-form"
-          className="border rounded p-3 bg-card space-y-2"
+          className="border border-line rounded-[10px] p-4 bg-card space-y-2"
         >
           <p className="text-sm font-medium">Write a review</p>
           <StarRating
@@ -260,7 +260,7 @@ function ReviewsTab({ productId }: { productId: string }) {
             placeholder="Title"
             data-testid="review-form-title"
             required
-            className="w-full border rounded px-2 py-1 text-sm"
+            className="w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
           />
           <textarea
             value={draft.body}
@@ -268,13 +268,13 @@ function ReviewsTab({ productId }: { productId: string }) {
             placeholder="Tell others what you think…"
             data-testid="review-form-body"
             required
-            className="w-full border rounded px-2 py-1 text-sm"
+            className="w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
           />
           <button
             type="submit"
             disabled={submitting}
             data-testid="review-form-submit"
-            className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded disabled:bg-line-strong"
+            className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 disabled:bg-line-strong disabled:active:scale-100 transition-colors"
           >
             {submitting ? 'Posting…' : 'Post review'}
           </button>
@@ -304,7 +304,7 @@ function ReviewsTab({ productId }: { productId: string }) {
           <li
             key={r.id}
             data-testid={`review-${r.id}`}
-            className="border rounded p-3 bg-card"
+            className="border border-line rounded-[10px] p-4 bg-card"
           >
             <div className="flex items-center gap-2">
               <StarRating
@@ -329,7 +329,7 @@ function ReviewsTab({ productId }: { productId: string }) {
                     );
                 }}
                 data-testid={`review-${r.id}-delete`}
-                className="mt-2 text-xs text-red-600 hover:underline"
+                className="mt-2 text-xs text-ink-faint hover:text-danger-500 transition-colors"
               >
                 Delete
               </button>

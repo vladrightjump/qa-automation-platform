@@ -2,9 +2,10 @@ export default function Toast({ message }: { message: string }) {
   return (
     <div
       data-testid="toast-error"
-      className="bg-[#f6e2da] border border-[#e0ab9b] text-[#8a3b2a] px-4 py-3 rounded-xl text-sm"
+      className="bg-ink text-paper rounded-lg px-4 py-3 text-[13.5px] shadow-pop inline-flex items-center gap-3"
     >
-      {message}
+      <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-danger-500" />
+      <span>{message}</span>
     </div>
   );
 }

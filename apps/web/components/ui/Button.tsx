@@ -3,20 +3,26 @@
 import Link, { type LinkProps } from 'next/link';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger'
+  | 'accent-outline';
 export type ButtonSize = 'sm' | 'md';
 
-// Shared button skin: the clay/outline/ghost/danger pills were hand-rolled with
-// near-identical Tailwind strings across the storefront. One definition now.
 const BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-full font-medium transition-colors active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed';
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-brand-600 hover:bg-brand-700 text-card disabled:bg-line-strong',
   secondary:
-    'border border-line text-ink hover:bg-paper-deep disabled:opacity-40',
+    'border border-line-strong text-ink hover:bg-paper-deep disabled:opacity-40',
   ghost: 'text-ink-soft hover:bg-paper-deep disabled:opacity-40',
-  danger: 'bg-red-600 hover:bg-red-700 text-card disabled:bg-line-strong',
+  danger:
+    'bg-danger-500 hover:bg-danger-600 text-card disabled:bg-line-strong',
+  'accent-outline':
+    'border border-clay-200 text-clay-500 hover:bg-clay-50 rounded-[7px] disabled:opacity-40',
 };
 
 const SIZES: Record<ButtonSize, string> = {

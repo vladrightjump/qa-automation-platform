@@ -93,14 +93,14 @@ export default function SearchBox() {
         aria-autocomplete="list"
         aria-controls="search-suggestions"
         aria-expanded={open && items.length > 0}
-        className="w-full bg-paper-deep border border-line rounded-full px-4 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-clay-500/40"
+        className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-1.5 text-sm placeholder:text-ink-faint focus:outline-none focus:border-clay-500 transition-colors"
       />
       {open && value.trim() && (
         <ul
           id="search-suggestions"
           role="listbox"
           data-testid="search-suggestions"
-          className="absolute left-0 right-0 mt-1 z-40 bg-card border border-line rounded-2xl shadow-pop overflow-hidden text-sm"
+          className="absolute left-0 right-0 mt-1 z-40 bg-card border border-line rounded-[10px] shadow-pop overflow-hidden text-sm"
         >
           {items.length === 0 ? (
             <li

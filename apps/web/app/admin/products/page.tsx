@@ -137,11 +137,11 @@ export default function AdminProductsPage() {
   return (
     <section className="space-y-4" data-testid="admin-products">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admin · Products</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">Admin · Products</h1>
         <button
           onClick={openCreate}
           data-testid="admin-new-product"
-          className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
+          className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
         >
           New product
         </button>
@@ -150,8 +150,8 @@ export default function AdminProductsPage() {
       {!data && <p className="text-ink-faint">Loading…</p>}
       {data && (
         <>
-          <table className="w-full text-sm border bg-card rounded">
-            <thead className="bg-paper-deep text-left">
+          <table className="w-full text-[13.5px] border border-line bg-card rounded-[10px] overflow-hidden">
+            <thead className="bg-paper-deep text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
               <tr>
                 <th className="p-2">ID</th>
                 <th className="p-2">Name</th>
@@ -166,7 +166,7 @@ export default function AdminProductsPage() {
                 <tr
                   key={p.id}
                   data-testid={`admin-row-${p.id}`}
-                  className="border-t"
+                  className="border-t border-line hover:bg-paper-deep transition-colors"
                 >
                   <td className="p-2 font-mono text-xs">{p.id}</td>
                   <td className="p-2">{p.name}</td>
@@ -179,14 +179,14 @@ export default function AdminProductsPage() {
                     <button
                       onClick={() => openEdit(p)}
                       data-testid={`admin-edit-${p.id}`}
-                      className="text-clay-600 hover:underline"
+                      className="text-clay-600 hover:text-clay-700 font-medium transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(p)}
                       data-testid={`admin-delete-${p.id}`}
-                      className="text-red-600 hover:underline"
+                      className="text-ink-faint hover:text-danger-500 font-medium transition-colors"
                     >
                       Delete
                     </button>
@@ -230,7 +230,7 @@ export default function AdminProductsPage() {
                 value={form.id}
                 onChange={(e) => setForm({ ...form, id: e.target.value })}
                 data-testid="admin-form-id"
-                className="mt-1 w-full border rounded px-2 py-1"
+                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
               />
             </label>
           )}
@@ -241,7 +241,7 @@ export default function AdminProductsPage() {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               data-testid="admin-form-name"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <label className="block text-sm">
@@ -252,7 +252,7 @@ export default function AdminProductsPage() {
                 setForm({ ...form, description: e.target.value })
               }
               data-testid="admin-form-description"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -267,7 +267,7 @@ export default function AdminProductsPage() {
                   setForm({ ...form, priceCents: Number(e.target.value) })
                 }
                 data-testid="admin-form-price"
-                className="mt-1 w-full border rounded px-2 py-1"
+                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
               />
             </label>
             <label className="block text-sm">
@@ -281,7 +281,7 @@ export default function AdminProductsPage() {
                   setForm({ ...form, stock: Number(e.target.value) })
                 }
                 data-testid="admin-form-stock"
-                className="mt-1 w-full border rounded px-2 py-1"
+                className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
               />
             </label>
           </div>
@@ -293,7 +293,7 @@ export default function AdminProductsPage() {
                 setForm({ ...form, category: e.target.value as ProductCategory })
               }
               data-testid="admin-form-category"
-              className="mt-1 w-full border rounded px-2 py-1 bg-card"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm outline-none focus:border-clay-500 transition-colors"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -308,7 +308,7 @@ export default function AdminProductsPage() {
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
               data-testid="admin-form-tags"
-              className="mt-1 w-full border rounded px-2 py-1"
+              className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
             />
           </label>
           <div className="flex justify-end gap-2 pt-2">
@@ -316,14 +316,14 @@ export default function AdminProductsPage() {
               type="button"
               onClick={() => setMode(null)}
               data-testid="admin-form-cancel"
-              className="px-3 py-1.5 border rounded text-sm"
+              className="px-3 py-2 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               data-testid="admin-form-submit"
-              className="px-3 py-1.5 bg-clay-500 text-card text-sm rounded"
+              className="px-3 py-2 bg-clay-500 hover:bg-clay-600 text-card text-sm rounded-lg font-medium active:scale-95 transition-colors"
             >
               Save
             </button>
@@ -346,14 +346,14 @@ export default function AdminProductsPage() {
           <button
             onClick={() => setDeleteTarget(null)}
             data-testid="admin-delete-cancel"
-            className="px-3 py-1.5 border rounded text-sm"
+            className="px-3 py-2 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => void confirmDelete()}
             data-testid="admin-delete-confirm"
-            className="px-3 py-1.5 bg-red-600 text-card text-sm rounded"
+            className="px-3 py-2 bg-danger-500 hover:bg-danger-600 text-card text-sm rounded-lg font-medium transition-colors"
           >
             Delete
           </button>

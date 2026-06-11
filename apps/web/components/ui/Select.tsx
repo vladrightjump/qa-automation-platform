@@ -31,7 +31,7 @@ export default function Select<T extends string = string>({
           onChange(e.target.value as T)
         }
         data-testid={testId}
-        className="border border-line rounded-full px-3 py-1.5 bg-card text-ink focus:border-clay-400 focus:ring-2 focus:ring-clay-100 outline-none transition-shadow"
+        className="bg-card border border-line-strong rounded-lg px-3 py-2 text-sm text-ink focus:border-clay-500 outline-none transition-colors"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

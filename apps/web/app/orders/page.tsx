@@ -42,7 +42,7 @@ export default function OrdersPage() {
   if (!orders) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
           Your orders
         </h1>
         <div className="space-y-2">
@@ -56,7 +56,7 @@ export default function OrdersPage() {
 
   return (
     <section className="space-y-5" data-testid="orders-page">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">
+      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
         Your orders
       </h1>
 
@@ -64,7 +64,7 @@ export default function OrdersPage() {
         <div
           role="tablist"
           data-testid="orders-filter-tabs"
-          className="flex gap-1 border border-line rounded-full p-0.5 bg-card shadow-sm"
+          className="flex gap-1 border border-line rounded-lg p-0.5 bg-card"
         >
           {TABS.map((t) => (
             <button
@@ -74,9 +74,9 @@ export default function OrdersPage() {
               aria-selected={filter === t.id}
               onClick={() => setFilter(t.id)}
               data-testid={`orders-filter-${t.id}`}
-              className={`px-3 py-1 text-sm rounded-full transition-all duration-150 ${
+              className={`px-3 py-1 text-sm rounded-md transition-colors duration-150 ${
                 filter === t.id
-                  ? 'bg-brand-600 text-card shadow-sm'
+                  ? 'bg-ink text-card'
                   : 'text-ink-soft hover:bg-paper-deep'
               }`}
             >
@@ -90,7 +90,7 @@ export default function OrdersPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search order id…"
           data-testid="orders-search"
-          className="border border-line rounded-full px-3 py-1.5 text-sm bg-card focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-shadow"
+          className="bg-card border border-line-strong rounded-lg px-3.5 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
         />
       </div>
 
@@ -110,7 +110,7 @@ export default function OrdersPage() {
             orders.length === 0 ? (
               <Link
                 href="/"
-                className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+                className="inline-flex items-center bg-clay-500 hover:bg-clay-600 text-card text-sm font-medium px-4 py-2 rounded-lg transition-colors active:scale-95"
               >
                 Browse products
               </Link>
@@ -124,11 +124,11 @@ export default function OrdersPage() {
             <li
               key={o.id}
               data-testid={`orders-row-${o.id}`}
-              className="animate-fade-in border border-line rounded-2xl px-4 py-3 flex justify-between items-center bg-card shadow-card hover:shadow-pop hover:-translate-y-0.5 transition-all duration-200"
+              className="animate-fade-in border border-line rounded-[10px] px-5 py-3.5 flex justify-between items-center bg-card hover:bg-paper-deep transition-colors duration-150"
             >
               <Link
                 href={`/orders/${o.id}`}
-                className="font-mono text-sm text-ink-soft hover:text-brand-700 transition-colors"
+                className="font-mono text-[14.5px] font-semibold text-ink hover:text-clay-600 transition-colors"
               >
                 {o.id}
               </Link>

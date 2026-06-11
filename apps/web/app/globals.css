@@ -1,67 +1,78 @@
 @import 'tailwindcss';
 
 /* -------------------------------------------------------------------------- */
-/* Design tokens                                                              */
+/* Design tokens — "Arden" minimal redesign                                   */
+/*                                                                            */
+/* Drop-in replacement for apps/web/app/globals.css.                          */
+/* Token NAMES are unchanged (paper, ink, clay-*, brand-*, sage-*, line…)     */
+/* so every existing `bg-paper` / `text-ink` / `bg-clay-500` utility in the   */
+/* codebase re-skins automatically. Only the VALUES change.                   */
 /* -------------------------------------------------------------------------- */
 @theme {
-  /* — Warm boutique palette ————————————————————————————————————————
-     Cream paper, warm ink, clay accent, sage secondary, gold highlight.
-     `brand-*` is intentionally aliased to the clay ramp so every existing
-     `brand-*` utility re-skins to the new identity for free. */
-  --color-paper: #f4ede2; /* base surface / page */
-  --color-paper-deep: #ece1ce; /* recessed panels, table heads */
-  --color-card: #fcf8f1; /* raised cards, modals */
-  --color-ink: #2b241d; /* primary text — warm near-black */
-  --color-ink-soft: #6d6256; /* secondary text */
-  --color-ink-faint: #9c9081; /* tertiary / placeholders */
-  --color-line: #e2d6c2; /* hairline borders */
-  --color-line-strong: #d4c4aa;
+  /* — Neutral surfaces: warm-gray instead of cream ————————————————— */
+  --color-paper: #fcfcfb; /* base surface / page */
+  --color-paper-deep: #f5f3f0; /* recessed panels, hovers, table heads */
+  --color-card: #ffffff; /* raised cards, modals */
+  --color-ink: #2b2520; /* primary text — warm near-black */
+  --color-ink-soft: #6b6560; /* secondary text */
+  --color-ink-faint: #9b958e; /* tertiary / placeholders */
+  --color-line: #eceae6; /* hairline borders */
+  --color-line-strong: #e2ded8; /* input borders, stronger rules */
 
-  /* Clay — primary accent ramp (also the brand alias) */
-  --color-clay-50: #f8efe7;
-  --color-clay-100: #f0dccd;
-  --color-clay-200: #e3c0aa;
-  --color-clay-400: #c47b58;
-  --color-clay-500: #b25c3c;
-  --color-clay-600: #9a4a2e;
-  --color-clay-700: #7d3b25;
+  /* Clay — toned-down primary accent ramp (also the brand alias) */
+  --color-clay-50: #faf3f0;
+  --color-clay-100: #f3e3dc;
+  --color-clay-200: #e6d4cb;
+  --color-clay-400: #b87a60;
+  --color-clay-500: #a8674d;
+  --color-clay-600: #96573f;
+  --color-clay-700: #7e4834;
 
-  --color-brand-50: #f8efe7;
-  --color-brand-100: #f0dccd;
-  --color-brand-200: #e3c0aa;
-  --color-brand-400: #c47b58;
-  --color-brand-500: #c47b58;
-  --color-brand-600: #b25c3c;
-  --color-brand-700: #9a4a2e;
+  --color-brand-50: #faf3f0;
+  --color-brand-100: #f3e3dc;
+  --color-brand-200: #e6d4cb;
+  --color-brand-400: #b87a60;
+  --color-brand-500: #a8674d;
+  --color-brand-600: #96573f;
+  --color-brand-700: #7e4834;
 
-  /* Sage — calm secondary (success / active) */
-  --color-sage-100: #e3e5d8;
+  /* Sage — calm secondary (success / "in stock" / shipped badges) */
+  --color-sage-100: #eef0e6;
   --color-sage-500: #6e7256;
   --color-sage-600: #585c42;
 
-  /* Gold — sparing highlight (ratings, deals) */
-  --color-accent-400: #cda94f;
-  --color-accent-500: #b8862f;
+  /* Gold — demoted to ratings only; muted to sit with the new neutrals */
+  --color-accent-400: #bfa05c;
+  --color-accent-500: #a08442;
 
-  --color-surface: #f4ede2;
+  /* Danger — muted brick instead of saturated red-600 */
+  --color-danger-500: #b3492f;
+  --color-danger-600: #9c3c25;
 
-  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --color-surface: #fcfcfb;
+
+  /* Typography: sans-serif everywhere — display aliases to the body sans.
+     Fraunces can be removed from layout.tsx (see README). */
+  --font-display:
+    var(--font-hanken), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-sans:
     var(--font-hanken), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
+  /* Shadows: neutral, soft, no clay tint */
   --shadow-card:
-    0 1px 2px rgb(43 36 29 / 0.05), 0 12px 28px -18px rgb(43 36 29 / 0.22);
+    0 1px 2px rgb(43 37 32 / 0.04), 0 10px 24px -16px rgb(43 37 32 / 0.1);
   --shadow-pop:
-    0 22px 48px -22px rgb(178 92 60 / 0.34),
-    0 6px 16px -10px rgb(43 36 29 / 0.16);
+    0 10px 28px -14px rgb(43 37 32 / 0.2);
 }
 
 /* -------------------------------------------------------------------------- */
 /* Keyframes + utilities                                                      */
+/* Entrances animate transform only — content is never opacity:0 at rest,    */
+/* so screenshots / printing / paused animations never show blank UI.        */
 /* -------------------------------------------------------------------------- */
 @keyframes fade-in {
   from {
-    opacity: 0;
+    opacity: 0.001;
   }
   to {
     opacity: 1;
@@ -69,31 +80,25 @@
 }
 @keyframes scale-in {
   from {
-    opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.97);
   }
   to {
-    opacity: 1;
     transform: scale(1);
   }
 }
 @keyframes slide-up {
   from {
-    opacity: 0;
     transform: translateY(8px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
 @keyframes slide-in-right {
   from {
-    opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(16px);
   }
   to {
-    opacity: 1;
     transform: translateX(0);
   }
 }
@@ -102,7 +107,7 @@
     transform: scale(1);
   }
   30% {
-    transform: scale(1.25);
+    transform: scale(1.2);
   }
   100% {
     transform: scale(1);
@@ -118,74 +123,56 @@
 }
 @keyframes check-pop {
   0% {
-    opacity: 0;
-    transform: scale(0) rotate(-25deg);
+    transform: scale(0.4);
   }
   60% {
-    opacity: 1;
-    transform: scale(1.1) rotate(5deg);
+    transform: scale(1.08);
   }
   100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-}
-@keyframes confetti-fall {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, -10vh, 0) rotate(0);
-  }
-  10% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(0, 80vh, 0) rotate(720deg);
+    transform: scale(1);
   }
 }
 
-/* Soft, slow boutique easing — unhurried reveals. */
+/* Quick, quiet easing — professional, not theatrical. */
 .animate-fade-in {
-  animation: fade-in 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: fade-in 320ms ease both;
 }
 .animate-scale-in {
-  animation: scale-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: scale-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .animate-slide-up {
-  animation: slide-up 560ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: slide-up 360ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 .animate-slide-in-right {
-  animation: slide-in-right 460ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: slide-in-right 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 .animate-pulse-once {
-  animation: pulse-once 300ms ease-in-out 1;
+  animation: pulse-once 280ms ease-in-out 1;
 }
 .animate-check-pop {
-  animation: check-pop 450ms cubic-bezier(0.2, 1.2, 0.2, 1) both;
+  animation: check-pop 320ms cubic-bezier(0.2, 1.1, 0.3, 1) both;
 }
 
-/* Skeleton shimmer background */
+/* Skeleton shimmer — re-skinned to the new neutrals */
 .skeleton {
-  background-color: #e7dcc8;
+  background-color: #eceae6;
   background-image: linear-gradient(
     90deg,
-    rgba(252, 248, 241, 0) 0,
-    rgba(252, 248, 241, 0.75) 40%,
-    rgba(252, 248, 241, 0) 80%
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0) 80%
   );
   background-size: 400px 100%;
   background-repeat: no-repeat;
   animation: shimmer 1.6s infinite linear;
 }
 
-/* Confetti piece */
-.confetti-piece {
-  position: absolute;
-  width: 8px;
-  height: 14px;
-  border-radius: 2px;
-  top: 0;
-  animation: confetti-fall 2.4s linear forwards;
+/* Removed in the redesign: .confetti-piece + confetti-fall keyframes
+   (delete components/Confetti.tsx — see README), .grain-overlay,
+   .rule-clay is now a plain neutral hairline: */
+.rule-clay {
+  height: 1px;
+  background: var(--color-line);
 }
 
 /* Respect prefers-reduced-motion */
@@ -196,73 +183,28 @@
   .animate-slide-in-right,
   .animate-pulse-once,
   .animate-check-pop,
-  .skeleton,
-  .confetti-piece {
+  .skeleton {
     animation: none !important;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* Base typography + atmosphere                                               */
+/* Base typography                                                            */
 /* -------------------------------------------------------------------------- */
 body {
   background-color: var(--color-surface);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  /* Layered warm wash so the page never reads as flat cream. */
-  background-image:
-    radial-gradient(
-      120% 80% at 100% 0%,
-      rgba(178, 92, 60, 0.06) 0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      90% 70% at 0% 100%,
-      rgba(110, 114, 86, 0.07) 0%,
-      transparent 50%
-    );
-  background-attachment: fixed;
+  /* No background wash, no grain — flat, calm surface. */
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Fraunces for display headings — characterful, soft-serif voice. */
+/* Headings: same sans family, tightened tracking carries the hierarchy. */
 h1,
 h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
-}
-
-/* Optical/soft axis Fraunces only shines large; ride it on big display. */
-.font-display {
-  font-optical-sizing: auto;
-}
-
-/* Fine paper-grain overlay, fixed above the wash, below content. */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.5;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-}
-
-/* A thin clay rule used as a decorative divider. */
-.rule-clay {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-line-strong) 12%,
-    var(--color-line-strong) 88%,
-    transparent
-  );
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body {
-    background-attachment: scroll;
-  }
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }

@@ -34,19 +34,20 @@ export default function AuthForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-sm space-y-3">
-      <div className="flex gap-3 text-sm">
+    <form onSubmit={handleSubmit} className="w-full max-w-[380px] mx-auto space-y-4">
+      <div className="flex justify-center gap-4 text-[13.5px]">
         <button
           type="button"
           onClick={() => setMode('login')}
-          className={mode === 'login' ? 'font-semibold' : 'text-ink-faint'}
+          className={mode === 'login' ? 'font-semibold text-ink' : 'text-ink-faint hover:text-ink'}
         >
           Sign in
         </button>
+        <span aria-hidden="true" className="text-ink-faint">·</span>
         <button
           type="button"
           onClick={() => setMode('register')}
-          className={mode === 'register' ? 'font-semibold' : 'text-ink-faint'}
+          className={mode === 'register' ? 'font-semibold text-ink' : 'text-ink-faint hover:text-ink'}
         >
           Create account
         </button>
@@ -58,7 +59,7 @@ export default function AuthForm() {
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full border rounded p-2"
+        className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-3 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
       />
       <input
         data-testid="auth-password"
@@ -68,12 +69,12 @@ export default function AuthForm() {
         placeholder="password (min 8)"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full border rounded p-2"
+        className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-3 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
       />
       <button
         data-testid="auth-submit"
         disabled={busy}
-        className="px-4 py-2 bg-clay-500 text-card rounded disabled:bg-line-strong"
+        className="w-full px-4 py-2.5 bg-clay-500 hover:bg-clay-600 text-card rounded-lg font-medium active:scale-95 disabled:bg-line-strong disabled:active:scale-100 transition-colors"
       >
         {busy ? '…' : mode === 'login' ? 'Sign in' : 'Register'}
       </button>

@@ -207,7 +207,7 @@ function HomePageInner() {
               onChange={(e) => setSearchInput(e.target.value)}
               data-testid="catalog-search"
               placeholder="Find products…"
-              className="w-full border border-line rounded-full px-3 py-2 text-sm bg-card focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-shadow outline-none"
+              className="w-full bg-card border border-line-strong rounded-lg px-3.5 py-2 text-sm placeholder:text-ink-faint focus:outline-none focus:border-clay-500 transition-colors"
             />
           </div>
 
@@ -249,7 +249,7 @@ function HomePageInner() {
               type="button"
               onClick={clearFilters}
               data-testid="catalog-clear"
-              className="text-sm text-brand-600 hover:text-brand-700 hover:underline transition-colors"
+              className="text-sm text-clay-600 hover:text-clay-700 font-medium transition-colors"
             >
               Clear filters
             </button>
@@ -278,7 +278,7 @@ function HomePageInner() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-card rounded-2xl overflow-hidden border border-line shadow-card"
+                  className="bg-card rounded-[10px] overflow-hidden border border-line"
                 >
                   <Skeleton variant="block" className="h-32 sm:h-36 rounded-none" />
                   <div className="p-4 space-y-2">
@@ -304,7 +304,7 @@ function HomePageInner() {
                 <button
                   onClick={clearFilters}
                   data-testid="catalog-empty-clear"
-                  className="inline-flex items-center bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+                  className="inline-flex items-center bg-clay-500 hover:bg-clay-600 text-card text-sm font-medium px-4 py-2 rounded-lg transition-colors active:scale-95"
                 >
                   Clear filters
                 </button>
