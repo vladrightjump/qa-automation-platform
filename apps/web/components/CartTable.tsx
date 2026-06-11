@@ -88,14 +88,14 @@ export default function CartTable({
   }
 
   return (
-    <div className="space-y-3">
-      <table className="w-full text-sm">
-        <thead className="border-b text-left text-ink-soft">
+    <div className="space-y-4">
+      <table className="w-full text-[14.5px]">
+        <thead className="border-b border-line text-left text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint">
           <tr>
-            <th className="py-2" />
-            <th className="py-2">{t('cart.item')}</th>
-            <th className="py-2">{t('cart.qty')}</th>
-            <th className="py-2">{t('cart.subtotal')}</th>
+            <th className="py-2.5" />
+            <th className="py-2.5">{t('cart.item')}</th>
+            <th className="py-2.5">{t('cart.qty')}</th>
+            <th className="py-2.5">{t('cart.subtotal')}</th>
             <th />
           </tr>
         </thead>
@@ -108,21 +108,24 @@ export default function CartTable({
               onDragStart={onDragStart(i.productId)}
               onDragOver={onDragOver}
               onDrop={onDrop(i.productId)}
-              className="border-b"
+              className="border-b border-line"
             >
-              <td className="py-2 text-ink-faint cursor-grab" data-testid={`cart-drag-${i.productId}`}>
-                ⠿
+              <td className="py-3 pr-3 text-ink-faint cursor-grab" data-testid={`cart-drag-${i.productId}`}>
+                <div className="flex items-center gap-3">
+                  <span aria-hidden="true">⠿</span>
+                  <span className="block w-[72px] h-[72px] rounded-lg bg-paper-deep" />
+                </div>
               </td>
-              <td className="py-2">{i.product.name}</td>
-              <td className="py-2">
-                <div className="inline-flex items-center gap-1">
+              <td className="py-3 font-semibold text-ink">{i.product.name}</td>
+              <td className="py-3">
+                <div className="inline-flex items-center border border-line-strong rounded-lg overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setQuantity(i.productId, i.quantity - 1)}
                     disabled={i.quantity <= 1}
                     data-testid={`cart-qty-dec-${i.productId}`}
                     aria-label="Decrease quantity"
-                    className="px-2 border rounded disabled:opacity-40"
+                    className="px-2.5 py-1.5 text-ink hover:bg-paper-deep disabled:opacity-40"
                   >
                     −
                   </button>
@@ -136,7 +139,7 @@ export default function CartTable({
                       void setQuantity(i.productId, n);
                     }}
                     data-testid={`cart-qty-input-${i.productId}`}
-                    className="w-12 text-center border rounded px-1 py-0.5"
+                    className="w-10 text-center bg-card border-x border-line-strong tabular-nums py-1.5"
                   />
                   <button
                     type="button"
@@ -144,22 +147,22 @@ export default function CartTable({
                     disabled={i.quantity >= i.product.stock}
                     data-testid={`cart-qty-inc-${i.productId}`}
                     aria-label="Increase quantity"
-                    className="px-2 border rounded disabled:opacity-40"
+                    className="px-2.5 py-1.5 text-ink hover:bg-paper-deep disabled:opacity-40"
                   >
                     +
                   </button>
                 </div>
               </td>
-              <td className="py-2">
+              <td className="py-3 font-semibold tabular-nums text-ink">
                 <span data-testid={`cart-line-subtotal-${i.productId}`}>
                   {formatMoney(i.product.priceCents * i.quantity)}
                 </span>
               </td>
-              <td className="py-2 text-right">
+              <td className="py-3 text-right">
                 <button
                   onClick={() => setConfirmRemove(i.productId)}
                   data-testid={`cart-remove-${i.productId}`}
-                  className="text-red-600 hover:underline"
+                  className="text-[13px] text-ink-faint hover:text-clay-500 transition-colors"
                 >
                   {t('cart.remove')}
                 </button>
@@ -168,15 +171,17 @@ export default function CartTable({
           ))}
         </tbody>
       </table>
-      <p className="font-semibold" data-testid="cart-subtotal">
-        {t('cart.subtotal')}: {formatMoney(subtotal)}
-      </p>
-      <p
-        className="text-[10px] uppercase tracking-[0.15em] text-ink-faint"
-        data-testid="cart-currency-affordance"
-      >
-        {t('cart.pricesIn', { currency })}
-      </p>
+      <div className="pt-2 flex items-baseline justify-between">
+        <span
+          className="text-[12.5px] uppercase tracking-[0.06em] text-ink-faint"
+          data-testid="cart-currency-affordance"
+        >
+          {t('cart.pricesIn', { currency })}
+        </span>
+        <span className="font-semibold tabular-nums text-ink" data-testid="cart-subtotal">
+          {t('cart.subtotal')}: {formatMoney(subtotal)}
+        </span>
+      </div>
 
       <Modal
         open={confirmRemove !== null}
@@ -184,12 +189,12 @@ export default function CartTable({
         title="Remove from cart?"
         testId="cart-remove-modal"
       >
-        <p className="text-sm mb-3">This will remove the item from your cart.</p>
+        <p className="text-sm mb-3 text-ink-soft">This will remove the item from your cart.</p>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setConfirmRemove(null)}
             data-testid="cart-remove-cancel"
-            className="px-3 py-1.5 border rounded text-sm"
+            className="px-3 py-1.5 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep"
           >
             Cancel
           </button>
@@ -199,7 +204,7 @@ export default function CartTable({
               setConfirmRemove(null);
             }}
             data-testid="cart-remove-confirm"
-            className="px-3 py-1.5 bg-red-600 text-card rounded text-sm"
+            className="px-3 py-1.5 bg-danger-500 hover:bg-danger-600 text-card rounded-lg text-sm"
           >
             Remove
           </button>

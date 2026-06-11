@@ -190,9 +190,11 @@ export default function CheckoutPage() {
     }
   }
 
+  const currentIdx = STEPS.findIndex((s) => s.id === step);
+
   return (
     <section className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">
+      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
         Checkout
       </h1>
 
@@ -200,22 +202,27 @@ export default function CheckoutPage() {
       <div className="space-y-4 min-w-0">
       <ol
         data-testid="checkout-steps"
-        className="flex items-center gap-2 text-sm"
+        className="flex items-center gap-2 text-[13px]"
       >
-        {STEPS.map((s) => (
-          <li
-            key={s.id}
-            data-testid={`checkout-step-${s.id}`}
-            data-active={s.id === step}
-            className={`px-3 py-1 rounded-full transition-all duration-150 ${
-              s.id === step
-                ? 'bg-brand-600 text-card shadow-sm'
-                : 'bg-card border border-line text-ink-soft'
-            }`}
-          >
-            {s.label}
-          </li>
-        ))}
+        {STEPS.map((s, idx) => {
+          const active = idx === currentIdx;
+          const done = idx < currentIdx;
+          const cls = active
+            ? 'bg-ink text-card'
+            : done
+              ? 'bg-sage-100 text-sage-500'
+              : 'bg-paper-deep text-ink-faint';
+          return (
+            <li
+              key={s.id}
+              data-testid={`checkout-step-${s.id}`}
+              data-active={active}
+              className={`px-3 py-1 rounded-md font-medium transition-colors duration-150 ${cls}`}
+            >
+              {s.label}
+            </li>
+          );
+        })}
       </ol>
 
       {step === 'address' && (
@@ -236,7 +243,7 @@ export default function CheckoutPage() {
               {addresses.map((a) => (
                 <label
                   key={a.id}
-                  className="flex items-start gap-3 border rounded p-3 cursor-pointer hover:bg-paper-deep"
+                  className="flex items-start gap-3 border border-line-strong rounded-lg p-3 cursor-pointer hover:bg-paper-deep"
                   data-testid={`checkout-address-${a.id}`}
                 >
                   <input
@@ -276,7 +283,7 @@ export default function CheckoutPage() {
           )}
 
           {(useNewAddress || (addresses !== null && addresses.length === 0)) && (
-            <form className="space-y-2 border rounded p-3 bg-paper-deep">
+            <form className="space-y-2 border border-line rounded-lg p-4 bg-paper-deep">
               <h3 className="text-sm font-medium">New address</h3>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-sm">
@@ -287,7 +294,7 @@ export default function CheckoutPage() {
                       setNewAddress({ ...newAddress, label: e.target.value })
                     }
                     data-testid="checkout-new-label"
-                    className="mt-1 w-full border rounded px-2 py-1"
+                    className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                   />
                 </label>
                 <label className="block text-sm">
@@ -298,12 +305,12 @@ export default function CheckoutPage() {
                       setNewAddress({ ...newAddress, name: e.target.value })
                     }
                     data-testid="checkout-new-name"
-                    className="mt-1 w-full border rounded px-2 py-1"
+                    className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                   />
                   {addressErrors.name && (
                     <span
                       data-testid="checkout-new-name-error"
-                      className="text-xs text-red-600"
+                      className="text-[13px] text-danger-500"
                     >
                       {addressErrors.name}
                     </span>
@@ -318,12 +325,12 @@ export default function CheckoutPage() {
                     setNewAddress({ ...newAddress, line1: e.target.value })
                   }
                   data-testid="checkout-new-line1"
-                  className="mt-1 w-full border rounded px-2 py-1"
+                  className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                 />
                 {addressErrors.line1 && (
                   <span
                     data-testid="checkout-new-line1-error"
-                    className="text-xs text-red-600"
+                    className="text-[13px] text-danger-500"
                   >
                     {addressErrors.line1}
                   </span>
@@ -338,12 +345,12 @@ export default function CheckoutPage() {
                       setNewAddress({ ...newAddress, city: e.target.value })
                     }
                     data-testid="checkout-new-city"
-                    className="mt-1 w-full border rounded px-2 py-1"
+                    className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                   />
                   {addressErrors.city && (
                     <span
                       data-testid="checkout-new-city-error"
-                      className="text-xs text-red-600"
+                      className="text-[13px] text-danger-500"
                     >
                       {addressErrors.city}
                     </span>
@@ -360,12 +367,12 @@ export default function CheckoutPage() {
                       })
                     }
                     data-testid="checkout-new-postal"
-                    className="mt-1 w-full border rounded px-2 py-1"
+                    className="mt-1 w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                   />
                   {addressErrors.postalCode && (
                     <span
                       data-testid="checkout-new-postal-error"
-                      className="text-xs text-red-600"
+                      className="text-[13px] text-danger-500"
                     >
                       {addressErrors.postalCode}
                     </span>
@@ -393,7 +400,7 @@ export default function CheckoutPage() {
           {(['CARD', 'PAYPAL', 'COD'] as PaymentMethod[]).map((m) => (
             <label
               key={m}
-              className="flex items-center gap-2 border rounded p-2"
+              className="flex items-center gap-2 border border-line-strong rounded-lg p-3 cursor-pointer hover:bg-paper-deep"
               data-testid={`checkout-payment-${m}`}
             >
               <input
@@ -408,24 +415,24 @@ export default function CheckoutPage() {
           {paymentMethod === 'CARD' && (
             <div
               data-testid="checkout-card-fields"
-              className="border rounded p-3 bg-paper-deep text-sm space-y-2"
+              className="border border-line rounded-lg p-4 bg-paper-deep text-sm space-y-2"
             >
               <p className="text-ink-faint">Card details (not stored)</p>
               <input
                 placeholder="Card number"
                 data-testid="checkout-card-number"
-                className="w-full border rounded px-2 py-1"
+                className="w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
               />
               <div className="grid grid-cols-2 gap-2">
                 <input
                   placeholder="MM/YY"
                   data-testid="checkout-card-expiry"
-                  className="border rounded px-2 py-1"
+                  className="bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                 />
                 <input
                   placeholder="CVC"
                   data-testid="checkout-card-cvc"
-                  className="border rounded px-2 py-1"
+                  className="bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                 />
               </div>
             </div>
@@ -437,7 +444,7 @@ export default function CheckoutPage() {
         <div className="space-y-3" data-testid="checkout-step-review-panel">
           <h2 className="font-medium">Review &amp; place order</h2>
           {cart && (
-            <ul className="border rounded divide-y bg-card">
+            <ul className="border border-line rounded-lg divide-y divide-line bg-card">
               {cart.items.map((i) => (
                 <li
                   key={i.id}
@@ -457,7 +464,7 @@ export default function CheckoutPage() {
 
           {!promo && deals && deals.length > 0 && (
             <div
-              className="border rounded p-3 bg-amber-50"
+              className="border border-line rounded-lg p-4 bg-paper-deep"
               data-testid="promo-deals"
             >
               <p className="text-sm font-medium">🎁 Available deals</p>
@@ -486,7 +493,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => void applyPromo(d.code)}
                           data-testid={`promo-deal-apply-${d.code}`}
-                          className="px-2 py-0.5 border rounded text-xs hover:bg-amber-100"
+                          className="px-2 py-0.5 border border-line-strong rounded-md text-xs text-ink hover:bg-card"
                         >
                           Apply
                         </button>
@@ -498,13 +505,13 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="border rounded p-3 bg-paper-deep">
+          <div className="border border-line rounded-lg p-4 bg-paper-deep">
             <label className="text-sm font-medium">Promo code</label>
             {promo ? (
               <div className="mt-1 flex items-center gap-2 text-sm">
                 <span
                   data-testid="checkout-promo-applied"
-                  className="text-green-700 font-mono"
+                  className="text-sage-500 font-mono"
                 >
                   {promo.code} (-{formatMoney(promo.discountCents)})
                 </span>
@@ -524,13 +531,13 @@ export default function CheckoutPage() {
                   onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                   data-testid="checkout-promo-input"
                   placeholder="WELCOME10"
-                  className="flex-1 border rounded px-2 py-1 text-sm"
+                  className="flex-1 bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint"
                 />
                 <button
                   type="button"
                   onClick={() => void applyPromo()}
                   data-testid="checkout-promo-apply"
-                  className="px-3 py-1 border rounded text-sm"
+                  className="px-3 py-2 border border-line-strong rounded-lg text-sm text-ink hover:bg-paper-deep"
                 >
                   Apply
                 </button>
@@ -539,7 +546,7 @@ export default function CheckoutPage() {
             {promoErr && (
               <span
                 data-testid="checkout-promo-error"
-                className="block mt-1 text-xs text-red-600"
+                className="block mt-1 text-[13px] text-danger-500"
               >
                 {promoErr}
               </span>
@@ -572,16 +579,15 @@ export default function CheckoutPage() {
             Next <span aria-hidden="true">→</span>
           </Button>
         ) : (
-          <Button
-            variant="primary"
-            size="md"
+          <button
             type="button"
             onClick={() => void placeOrder()}
             disabled={busy}
             data-testid="checkout-submit"
+            className="inline-flex items-center gap-2 bg-ink hover:bg-[#443c34] text-card rounded-lg px-5 py-2 text-sm font-medium active:scale-95 disabled:bg-line-strong disabled:cursor-not-allowed disabled:active:scale-100 transition-colors"
           >
-            {busy ? 'Placing…' : 'Place order'}
-          </Button>
+            {busy ? 'Placing…' : `Place order · ${formatMoney(totalCents)}`}
+          </button>
         )}
       </div>
       </div>
@@ -591,11 +597,11 @@ export default function CheckoutPage() {
         <section
           data-testid="checkout-summary"
           aria-label="Order summary"
-          className="border border-line bg-card rounded-2xl p-4 shadow-card text-sm space-y-3"
+          className="border border-line bg-card rounded-[10px] p-5 text-sm space-y-3"
         >
-          <div className="flex items-center justify-between border-b pb-2">
+          <div className="flex items-center justify-between border-b border-line pb-2">
             <span className="font-semibold text-ink">Order summary</span>
-            <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-paper-deep text-ink-soft px-2 py-0.5 rounded-md font-medium">
               Step {STEPS.findIndex((s) => s.id === step) + 1}/{STEPS.length}
             </span>
           </div>
@@ -616,7 +622,7 @@ export default function CheckoutPage() {
               ))}
             </ul>
           )}
-          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t pt-2 text-ink-soft">
+          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-line pt-2 text-[13.5px] text-ink-soft">
             <dt>{t('checkout.subtotal')}</dt>
             <dd
               data-testid="checkout-summary-subtotal"
@@ -636,18 +642,18 @@ export default function CheckoutPage() {
                 <dt>{t('checkout.loyalty')}</dt>
                 <dd
                   data-testid="checkout-summary-loyalty"
-                  className="font-mono text-right text-amber-700"
+                  className="font-mono text-right text-clay-600"
                 >
                   -{formatMoney(redeemCents)}
                 </dd>
               </>
             )}
-            <dt className="col-start-1 border-t pt-1.5 mt-1 font-semibold text-ink">
+            <dt className="col-start-1 border-t border-line pt-1.5 mt-1 font-semibold text-ink">
               {t('checkout.total')}
             </dt>
             <dd
               data-testid="checkout-summary-total"
-              className="col-start-2 border-t pt-1.5 mt-1 font-mono font-semibold text-ink text-right"
+              className="col-start-2 border-t border-line pt-1.5 mt-1 font-mono font-semibold text-ink text-right"
             >
               {formatMoney(totalCents)}
             </dd>
@@ -656,7 +662,7 @@ export default function CheckoutPage() {
           {loyaltyBalance > 0 && (
             <label
               data-testid="checkout-loyalty"
-              className="flex items-center gap-2 border-t pt-3 text-sm text-ink-soft cursor-pointer"
+              className="flex items-center gap-2 border-t border-line pt-3 text-sm text-ink-soft cursor-pointer"
             >
               <input
                 type="checkbox"

@@ -26,13 +26,13 @@ export default function CartPage() {
   if (!cart) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
           Your cart
         </h1>
-        <div className="bg-card rounded-2xl border border-line shadow-card p-4 space-y-3">
+        <div className="bg-card rounded-[10px] border border-line p-4 space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4">
-              <Skeleton variant="circle" width={48} height={48} />
+              <Skeleton variant="block" width={48} height={48} />
               <div className="flex-1 space-y-2">
                 <Skeleton variant="line" width="60%" />
                 <Skeleton variant="line" width="30%" />
@@ -49,7 +49,7 @@ export default function CartPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">
+      <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-ink">
         Your cart
       </h1>
       {isEmpty ? (
@@ -64,7 +64,7 @@ export default function CartPage() {
           }
         />
       ) : (
-        <div className="bg-card rounded-2xl border border-line shadow-card p-4">
+        <div className="bg-card rounded-[10px] border border-line p-5">
           <CartTable cart={cart} onChange={load} />
         </div>
       )}

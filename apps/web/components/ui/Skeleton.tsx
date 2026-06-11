@@ -5,8 +5,8 @@ type Variant = 'line' | 'block' | 'circle' | 'card';
 const VARIANT_CLASSES: Record<Variant, string> = {
   line: 'h-3 rounded',
   block: 'h-24 rounded-lg',
-  circle: 'rounded-full',
-  card: 'h-56 rounded-2xl',
+  circle: 'rounded-lg',
+  card: 'h-56 rounded-[10px]',
 };
 
 interface SkeletonProps {

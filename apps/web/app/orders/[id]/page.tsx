@@ -10,7 +10,6 @@ import OrderSummary from '@/components/OrderSummary';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
-import Confetti from '@/components/Confetti';
 import Toast from '@/components/Toast';
 
 const TIMELINE: { id: OrderStatus; label: string }[] = [
@@ -44,13 +43,6 @@ function OrderDetailInner() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
   const [returnReason, setReturnReason] = useState('');
-  const [showConfetti, setShowConfetti] = useState(justPlaced);
-
-  useEffect(() => {
-    if (!justPlaced) return;
-    const handle = setTimeout(() => setShowConfetti(false), 2800);
-    return () => clearTimeout(handle);
-  }, [justPlaced]);
 
   useEffect(() => {
     if (!token || !params.id) return;
@@ -107,38 +99,36 @@ function OrderDetailInner() {
 
   return (
     <div className="space-y-5">
-      {justPlaced && showConfetti && <Confetti />}
-
       {justPlaced && (
         <section
           data-testid="order-confirmation-hero"
-          className="animate-fade-in border border-green-100 bg-gradient-to-br from-green-50 via-white to-brand-50 rounded-2xl p-6 text-center shadow-card"
+          className="animate-fade-in text-center py-8"
         >
-          <div className="mx-auto w-16 h-16 rounded-full bg-green-500 text-card flex items-center justify-center text-3xl shadow-pop animate-check-pop">
+          <div className="mx-auto w-13 h-13 rounded-full bg-sage-100 text-sage-500 flex items-center justify-center text-2xl animate-check-pop" style={{ width: 52, height: 52 }}>
             ✓
           </div>
           <h1
             data-testid="order-confirmation-title"
-            className="mt-3 text-2xl font-bold tracking-tight text-ink"
+            className="mt-4 text-[28px] font-semibold tracking-[-0.02em] text-ink"
           >
-            Order confirmed!
+            Order confirmed
           </h1>
-          <p className="text-sm text-ink-soft mt-1">
+          <p className="text-[13.5px] text-ink-soft mt-1.5">
             Order{' '}
             <span className="font-mono text-ink">{order.id}</span> is on
             its way. A receipt is below.
           </p>
-          <div className="flex items-center justify-center gap-2 pt-4">
+          <div className="flex items-center justify-center gap-2 pt-5">
             <Link
               href="/"
               data-testid="order-confirmation-continue"
-              className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-card text-sm font-medium px-4 py-2 rounded-full transition-colors active:scale-95"
+              className="inline-flex items-center gap-1.5 bg-clay-500 hover:bg-clay-600 text-card text-sm font-medium px-4 py-2 rounded-lg transition-colors active:scale-95"
             >
               Continue shopping <span aria-hidden="true">→</span>
             </Link>
             <Link
               href="/orders"
-              className="px-4 py-2 border border-line hover:border-line-strong hover:bg-paper-deep text-sm rounded-full transition-colors"
+              className="px-4 py-2 border border-line-strong hover:bg-paper-deep text-sm text-ink rounded-lg transition-colors"
             >
               View all orders
             </Link>
@@ -150,9 +140,9 @@ function OrderDetailInner() {
 
       <div
         data-testid="order-timeline"
-        className="border border-line rounded-2xl p-4 bg-card shadow-card"
+        className="border border-line rounded-[10px] p-5 bg-card"
       >
-        <p className="text-sm font-semibold text-ink-soft mb-3">Status</p>
+        <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-faint mb-3">Status</p>
         <ol className="flex items-center gap-2">
           {TIMELINE.map((step, idx) => {
             const reached = stepReached(order.status, step.id);
@@ -164,16 +154,16 @@ function OrderDetailInner() {
                 className="flex items-center gap-2"
               >
                 <span
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold transition-colors ${
                     reached
-                      ? 'bg-brand-600 text-card shadow-sm'
+                      ? 'bg-sage-100 text-sage-500'
                       : 'bg-paper-deep text-ink-faint'
                   }`}
                 >
                   {idx + 1}
                 </span>
                 <span
-                  className={`text-sm ${reached ? 'text-ink font-medium' : 'text-ink-faint'}`}
+                  className={`text-[13.5px] ${reached ? 'text-ink font-medium' : 'text-ink-faint'}`}
                 >
                   {step.label}
                 </span>
@@ -186,7 +176,7 @@ function OrderDetailInner() {
           {order.status === 'CANCELLED' && (
             <li
               data-testid="order-timeline-cancelled"
-              className="ml-3 text-red-600 text-sm font-medium"
+              className="ml-3 text-danger-500 text-[13.5px] font-medium"
             >
               Cancelled
             </li>
@@ -198,10 +188,10 @@ function OrderDetailInner() {
         <div
           data-testid="order-return-status"
           data-status={latestReturn.status}
-          className="border border-amber-100 bg-amber-50 rounded-2xl px-4 py-3 text-sm"
+          className="border border-line bg-paper-deep rounded-[10px] px-4 py-3 text-[13.5px]"
         >
-          <span className="font-semibold text-amber-800">Return</span>{' '}
-          <span className="text-amber-700">{latestReturn.status}</span>
+          <span className="font-semibold text-ink">Return</span>{' '}
+          <span className="text-clay-600">{latestReturn.status}</span>
           <span className="text-ink-soft"> — {latestReturn.reason}</span>
         </div>
       )}
@@ -212,7 +202,7 @@ function OrderDetailInner() {
             type="button"
             onClick={() => setConfirmCancel(true)}
             data-testid="order-cancel"
-            className="px-4 py-1.5 border border-red-300 hover:border-red-500 hover:bg-red-50 text-red-600 rounded-full text-sm font-medium transition-colors"
+            className="px-4 py-1.5 border border-line-strong hover:bg-paper-deep text-danger-500 rounded-lg text-sm font-medium transition-colors"
           >
             Cancel order
           </button>
@@ -222,7 +212,7 @@ function OrderDetailInner() {
             type="button"
             onClick={() => setReturnOpen(true)}
             data-testid="order-return"
-            className="px-4 py-1.5 border border-amber-300 hover:border-amber-500 hover:bg-amber-50 text-amber-700 rounded-full text-sm font-medium transition-colors"
+            className="px-4 py-1.5 border border-line-strong hover:bg-paper-deep text-ink rounded-lg text-sm font-medium transition-colors"
           >
             Request return
           </button>
@@ -278,7 +268,7 @@ function OrderDetailInner() {
           placeholder="Reason for return…"
           data-testid="order-return-reason"
           rows={3}
-          className="w-full border border-line rounded-xl px-3 py-2 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-shadow"
+          className="w-full bg-card border border-line-strong rounded-lg px-3 py-2 text-sm placeholder:text-ink-faint outline-none focus:border-clay-500 transition-colors"
         />
         <div className="flex justify-end gap-2 mt-3">
           <Button
@@ -289,14 +279,15 @@ function OrderDetailInner() {
           >
             Cancel
           </Button>
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => void submitReturn()}
             disabled={returnReason.trim().length < 3}
             data-testid="order-return-submit"
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-card rounded-full text-sm font-medium transition-colors"
           >
             Submit request
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
