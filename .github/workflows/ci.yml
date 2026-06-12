@@ -12,11 +12,11 @@ concurrency:
 
 env:
   PNPM_VERSION: '9.15.4'
-  NODE_VERSION: '20'
-  # Opt in to the Node.js 24 runtime for JavaScript actions ahead of the
-  # 2026-06-16 forced upgrade. checkout@v4, setup-node@v4, and
-  # pnpm/action-setup@v4 still ship with a node20 entry; this env var
-  # tells the runner to execute them under node24 instead.
+  NODE_VERSION: '24'
+  # Opt in to the Node.js 24 runtime for the JS actions themselves
+  # (checkout, setup-node, pnpm/action-setup) ahead of the 2026-06-16
+  # forced upgrade. Independent of NODE_VERSION, which is what
+  # setup-node installs onto the runner for our scripts.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   DATABASE_URL: 'postgresql://qa:qa@localhost:5432/qa?schema=public'
   API_PORT: '3001'

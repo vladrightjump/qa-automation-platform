@@ -9,7 +9,7 @@ A focused **test automation** portfolio. A minimal e-commerce storefront
 
 ## Run it locally
 
-Requires Node 20 + pnpm 9 + Docker.
+Requires Node 24 + pnpm 9 + Docker.
 
 ```sh
 cp .env.example .env
