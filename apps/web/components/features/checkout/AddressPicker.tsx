@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { Address, AddressInput } from '@/lib/api';
 import type { AddressErrors } from '@/lib/validators';
 import FormField from '@/components/ui/FormField';
@@ -32,16 +31,7 @@ export default function AddressPicker({
 
   return (
     <div className="space-y-4" data-testid="checkout-step-address-panel">
-      <div className="flex items-center justify-between">
-        <h2 className="font-medium">Shipping address</h2>
-        <Link
-          href="/account/addresses"
-          data-testid="checkout-manage-addresses"
-          className="text-sm text-clay-600 hover:underline"
-        >
-          Manage addresses
-        </Link>
-      </div>
+      <h2 className="font-medium">Shipping address</h2>
       {addresses === null && <p className="text-ink-faint">Loading…</p>}
       {addresses !== null && addresses.length > 0 && !useNewAddress && (
         <div className="space-y-2">

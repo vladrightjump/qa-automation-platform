@@ -1,21 +1,39 @@
 import { test, expect } from '../fixtures';
 
+test.describe('browse', () => {
+  test('product list shows seeded products', {
+    tag: ['@smoke', '@catalog'],
+  }, async ({ authedPage, storefront }) => {
+    await storefront.goto();
+    await expect(storefront.productCards().first()).toBeVisible();
+    await expect(storefront.resultCount()).toContainText(/\d+ results?/);
+    await expect(storefront.paginationInfo()).toContainText('Page 1');
+  });
+
+  test('product detail page loads via card link', {
+    tag: ['@regression', '@catalog'],
+  }, async ({ authedPage, db }) => {
+    await db.product.update({
+      where: { id: 'prod_widget' },
+      data: { stock: 50 },
+    });
+    await authedPage.goto('/products/prod_widget');
+    await expect(authedPage.getByTestId('product-card-prod_widget')).toBeVisible();
+    await expect(authedPage.getByTestId('add-to-cart-prod_widget')).toBeEnabled();
+  });
+});
+
 test.describe('catalog filters', () => {
   test('search filters products by name (debounced) and persists in URL', {
     tag: ['@smoke', '@catalog', '@sanity'],
-  }, async ({
-    page,
-    storefront,
-  }) => {
+  }, async ({ page, storefront }) => {
     await storefront.goto();
-    // "Thingamajig" is a unique seed name (no factory products collide).
     await storefront.search('Thingamajig');
 
     await page.waitForURL(/q=Thingamajig/, { timeout: 2000 });
     await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
     await expect(storefront.productCard('prod_gizmo')).toHaveCount(0);
 
-    // reload preserves filter
     await page.reload();
     await expect(storefront.searchInput()).toHaveValue('Thingamajig');
     await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
@@ -23,13 +41,8 @@ test.describe('catalog filters', () => {
 
   test('category filter narrows results and writes ?category=', {
     tag: ['@regression', '@catalog'],
-  }, async ({
-    page,
-    storefront,
-  }) => {
+  }, async ({ page, storefront }) => {
     await storefront.goto();
-    // Narrow with a search before applying the filter so the assertion
-    // is independent of bulk perf-seed products that may dominate page 1.
     await storefront.search('Basic Tee');
     await page.waitForURL(/q=/);
     await storefront.toggleCategory('apparel');
@@ -41,14 +54,8 @@ test.describe('catalog filters', () => {
 
   test('sort=price_asc shows cheapest first in a filtered set', {
     tag: ['@regression', '@catalog'],
-  }, async ({
-    page,
-    storefront,
-  }) => {
+  }, async ({ page, storefront }) => {
     await storefront.goto();
-    // Narrow with the seeded product's distinctive name so bulk perf-seed
-    // products (priceCents 500–9999) can't undercut the assertion about
-    // which is cheapest. The filter is still category-scoped.
     await storefront.search('Gel Pen');
     await page.waitForURL(/q=/);
     await storefront.toggleCategory('office');
@@ -56,8 +63,6 @@ test.describe('catalog filters', () => {
     await storefront.setSort('price_asc');
     await page.waitForURL(/sort=price_asc/);
 
-    // prod_pen_gel ($5.99) is the cheapest office item with "Gel Pen" in
-    // the name; bulk products don't share the substring.
     const firstCard = storefront.productCards().first();
     await expect(firstCard).toHaveAttribute(
       'data-testid',
@@ -66,11 +71,8 @@ test.describe('catalog filters', () => {
   });
 
   test('empty state appears when no products match', {
-    tag: ['@regression', '@catalog', '@empty'],
-  }, async ({
-    page,
-    storefront,
-  }) => {
+    tag: ['@regression', '@catalog'],
+  }, async ({ page, storefront }) => {
     await storefront.goto();
     await storefront.search('definitelydoesnotexist');
     await page.waitForURL(/q=definitelydoesnotexist/);
@@ -85,10 +87,7 @@ test.describe('catalog filters', () => {
 
   test('pagination advances pages and result count is stable', {
     tag: ['@regression', '@catalog'],
-  }, async ({
-    page,
-    storefront,
-  }) => {
+  }, async ({ page, storefront }) => {
     await storefront.goto();
 
     await expect(storefront.paginationInfo()).toContainText('Page 1');

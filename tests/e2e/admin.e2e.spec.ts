@@ -83,27 +83,16 @@ test.describe('admin/products UI', () => {
     await api.adminDeleteProduct(adminUser.token, input.id);
   });
 
-  test('non-admin user is redirected away from /admin/products', {
+  test('non-admin sees no Admin link and is redirected away from /admin/products', {
     tag: ['@regression', '@admin', '@security'],
-  }, async ({
-    authedPage,
-  }) => {
+  }, async ({ authedPage }) => {
+    await authedPage.goto('/');
+    await expect(authedPage.getByTestId('nav-admin')).toHaveCount(0);
     await authedPage.goto('/admin/products');
-    // Wait for the redirect effect to fire, then assert we left the admin route.
     await expect
       .poll(() => new URL(authedPage.url()).pathname)
       .not.toBe('/admin/products');
-    // Admin-only table never rendered.
     await expect(authedPage.getByTestId('admin-products')).toHaveCount(0);
-  });
-
-  test('non-admin user does not see the Admin link', {
-    tag: ['@regression', '@admin', '@security'],
-  }, async ({
-    authedPage,
-  }) => {
-    await authedPage.goto('/');
-    await expect(authedPage.getByTestId('nav-admin')).toHaveCount(0);
   });
 
   test('delete modal can be cancelled (ESC) without removing row', {

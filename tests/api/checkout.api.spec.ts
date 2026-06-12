@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import { API_BASE } from '../support/api-client';
 import { AddressFactory } from '../factories/address.factory';
+import { ProductFactory } from '../factories/product.factory';
 
 test.describe('addresses', () => {
   test('authed user can CRUD their addresses', { tag: ['@smoke', '@addresses'] }, async ({
@@ -85,5 +86,75 @@ test.describe('addresses', () => {
       data: { label: '', name: '', line1: '', city: '', postalCode: '' },
     });
     expect(res.status()).toBe(400);
+  });
+});
+
+test.describe('checkout side-effects (DB layer)', () => {
+  test('checkout decrements stock, writes audit log, and clears cart', {
+    tag: ['@smoke', '@checkout'],
+  }, async ({ api, db, testUser }) => {
+    const product = await db.product.create({
+      data: ProductFactory.build({ stock: 10, priceCents: 2000 }),
+    });
+
+    await api.addToCart(testUser.token, product.id, 3);
+    const order = await api.checkout(testUser.token);
+
+    const updatedProduct = await db.product.findUniqueOrThrow({
+      where: { id: product.id },
+    });
+    expect(updatedProduct.stock).toBe(7);
+
+    const dbOrder = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(dbOrder.status).toBe('PAID');
+    expect(dbOrder.totalCents).toBe(6000);
+
+    const audits = await db.auditLog.findMany({
+      where: { entityId: order.id, action: 'ORDER_PAID' },
+    });
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.entity).toBe('Order');
+    expect(audits[0]?.userId).toBe(testUser.id);
+
+    const cartItems = await db.cartItem.findMany({
+      where: { cart: { userId: testUser.id } },
+    });
+    expect(cartItems).toHaveLength(0);
+    const cart = await db.cart.findUnique({ where: { userId: testUser.id } });
+    expect(cart).not.toBeNull();
+  });
+
+  test('checkout is transactional — failure rolls back stock', {
+    tag: ['@regression', '@checkout', '@negative'],
+  }, async ({ api, db, testUser }) => {
+    const ok = await db.product.create({
+      data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
+    });
+    const willFail = await db.product.create({
+      data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
+    });
+
+    await api.addToCart(testUser.token, ok.id, 2);
+    await api.addToCart(testUser.token, willFail.id, 2);
+
+    await db.product.update({
+      where: { id: willFail.id },
+      data: { stock: 0 },
+    });
+
+    let failed = false;
+    try {
+      await api.checkout(testUser.token);
+    } catch {
+      failed = true;
+    }
+    expect(failed).toBe(true);
+
+    const okAfter = await db.product.findUniqueOrThrow({ where: { id: ok.id } });
+    expect(okAfter.stock).toBe(5);
+    const audits = await db.auditLog.findMany({
+      where: { userId: testUser.id, action: 'ORDER_PAID' },
+    });
+    expect(audits).toHaveLength(0);
   });
 });
