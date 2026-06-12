@@ -42,7 +42,7 @@ export class AdminProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    const existing = await this.ensureExists(id);
+    await this.ensureExists(id);
     const data: Prisma.ProductUpdateInput = {
       ...(dto.name !== undefined ? { name: dto.name } : {}),
       ...(dto.description !== undefined ? { description: dto.description } : {}),
