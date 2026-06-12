@@ -2,10 +2,8 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import { Hanken_Grotesk } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth';
-import { LocaleProvider } from '@/lib/i18n';
 import { ToastProvider } from '@/components/ui/ToastQueue';
 import Navbar from '@/components/features/nav/Navbar';
-import GeoBanner from '@/components/features/geo/GeoBanner';
 
 const hanken = Hanken_Grotesk({
   subsets: ['latin'],
@@ -25,13 +23,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-paper text-ink antialiased">
         <ToastProvider>
           <AuthProvider>
-            <LocaleProvider>
-              <Navbar />
-              <GeoBanner />
-              <main className="relative z-10 max-w-5xl mx-auto px-6 py-10">
-                {children}
-              </main>
-            </LocaleProvider>
+            <Navbar />
+            <main className="relative z-10 max-w-5xl mx-auto px-6 py-10">
+              {children}
+            </main>
           </AuthProvider>
         </ToastProvider>
       </body>

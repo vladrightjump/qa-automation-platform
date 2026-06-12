@@ -12,15 +12,11 @@ import {
 import ProductCard from '@/components/features/catalog/ProductCard';
 import Toast from '@/components/ui/Toast';
 import Hero from '@/components/features/catalog/Hero';
-import QuickViewModal from '@/components/features/catalog/QuickViewModal';
-import Recommendations from '@/components/features/recommendations/Recommendations';
 import Pagination from '@/components/ui/Pagination';
 import PriceRangeSlider from '@/components/ui/PriceRangeSlider';
 import Select from '@/components/ui/Select';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import EmptySearch from '@/components/illustrations/EmptySearch';
-import type { Product } from '@/lib/api';
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: 'gadgets', label: 'Gadgets' },
@@ -112,7 +108,6 @@ function HomePageInner() {
   const [result, setResult] = useState<PagedProducts | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(filters.q);
-  const [quickView, setQuickView] = useState<Product | null>(null);
   const reqRef = useRef(0);
 
   useEffect(() => {
@@ -192,7 +187,6 @@ function HomePageInner() {
   return (
     <section className="space-y-8">
       <Hero />
-      <Recommendations excludeId={null} />
       {err && <Toast message={err} />}
 
       <div id="catalog" className="grid gap-6 md:grid-cols-[240px_1fr]">
@@ -297,7 +291,6 @@ function HomePageInner() {
           {result && items.length === 0 && (
             <EmptyState
               testId="catalog-empty"
-              icon={<EmptySearch />}
               title="No products match these filters"
               description="Try a broader search or remove a filter to see more results."
               action={
@@ -314,11 +307,7 @@ function HomePageInner() {
           {items.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onQuickView={setQuickView}
-                />
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           )}
@@ -334,7 +323,6 @@ function HomePageInner() {
         </div>
       </div>
 
-      <QuickViewModal product={quickView} onClose={() => setQuickView(null)} />
     </section>
   );
 }

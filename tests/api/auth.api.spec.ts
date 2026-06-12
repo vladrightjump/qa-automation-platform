@@ -1,19 +1,19 @@
 import { test, expect } from '../fixtures';
 import { UserFactory } from '../factories/user.factory';
 import { AuthResultSchema } from '@qa/contracts';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 
 test.describe('auth', () => {
   test('register issues a token + Zod-conformant user', { tag: ['@smoke', '@auth'] }, async ({ api }) => {
     const creds = UserFactory.build();
-    const result = await api.register(creds.email, creds.password);
+    const result = await api.auth.register(creds.email, creds.password);
     expect(AuthResultSchema.safeParse(result).success).toBe(true);
     expect(result.user.email).toBe(creds.email);
     expect(result.token.length).toBeGreaterThan(20);
   });
 
   test('login round-trips the same credentials', { tag: ['@smoke', '@auth'] }, async ({ api, testUser }) => {
-    const result = await api.login(testUser.email, testUser.password);
+    const result = await api.auth.login(testUser.email, testUser.password);
     expect(result.user.id).toBe(testUser.id);
     expect(result.token.length).toBeGreaterThan(20);
   });

@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
-import LocaleSwitcher from './LocaleSwitcher';
-import SearchBox from '@/components/features/catalog/SearchBox';
 
 export default function Navbar() {
   const { token, user, cartCount, clear } = useAuth();
@@ -38,12 +36,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:block flex-1 mx-6">
-          <SearchBox />
-        </div>
-
         <div className="flex items-center gap-1 text-sm">
-          <LocaleSwitcher />
           <Link
             href="/cart"
             data-testid="nav-cart"
@@ -62,13 +55,6 @@ export default function Navbar() {
           {token ? (
             <>
               <Link
-                href="/wishlist"
-                data-testid="nav-wishlist"
-                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
-              >
-                {t('nav.wishlist')}
-              </Link>
-              <Link
                 href="/orders"
                 data-testid="nav-orders"
                 className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-ink-soft hover:text-ink hover:bg-paper-deep transition-colors"
@@ -76,22 +62,13 @@ export default function Navbar() {
                 {t('nav.orders')}
               </Link>
               {user?.role === 'ADMIN' && (
-                <>
-                  <Link
-                    href="/admin/products"
-                    data-testid="nav-admin"
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-clay-600 font-medium hover:bg-paper-deep transition-colors"
-                  >
-                    {t('nav.admin')}
-                  </Link>
-                  <Link
-                    href="/admin/metrics"
-                    data-testid="nav-admin-metrics"
-                    className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-clay-600 hover:bg-paper-deep transition-colors"
-                  >
-                    Metrics
-                  </Link>
-                </>
+                <Link
+                  href="/admin/products"
+                  data-testid="nav-admin"
+                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-clay-600 font-medium hover:bg-paper-deep transition-colors"
+                >
+                  {t('nav.admin')}
+                </Link>
               )}
               <button
                 onClick={clear}

@@ -6,24 +6,15 @@ import {
 import { OrderStatus, Prisma, prisma } from '@qa/db';
 import type { CheckoutDto, PaymentMethod } from './dto';
 import { AuditAction } from './constants';
-import { PromoService, type PromoApplyResult } from './promo.service';
-import { LoyaltyService } from './loyalty.service';
 import { maybeInjectFailure } from '../test/fault-injection';
 import { getCartWithItems, notFoundFor } from '../common';
 
 @Injectable()
 export class OrdersService {
-  constructor(
-    private readonly promo: PromoService,
-    private readonly loyalty: LoyaltyService,
-  ) {}
-
   /**
    * Checkout the user's cart. Wrapped in a single transaction so the
    * order, stock decrement, audit log row, and cart clear either all
    * land or none do — this is the side-effect surface tests assert on.
-   * Promo and loyalty side-effects are delegated to their collaborators but
-   * still run inside the same transaction.
    */
   async checkout(userId: string, dto: CheckoutDto = {}) {
     const cart = await getCartWithItems(userId);
@@ -50,30 +41,10 @@ export class OrdersService {
       }
     }
 
-    // Optional promo — re-validates server-side; the client-applied
-    // discount is not trusted.
-    let promoResult: PromoApplyResult | null = null;
-    if (dto.promoCode) {
-      promoResult = await this.promo.previewPromo(userId, dto.promoCode);
-    }
-
-    const subtotalCents = cart.items.reduce(
+    const totalCents = cart.items.reduce(
       (sum, i) => sum + i.product.priceCents * i.quantity,
       0,
     );
-    const discountCents = promoResult?.discountCents ?? 0;
-    const afterPromoCents = Math.max(0, subtotalCents - discountCents);
-
-    // Optional loyalty redemption — re-validated server-side against the
-    // ledger balance; we only ever redeem what the order actually needs.
-    const redeemCents = await this.loyalty.prepareRedemption(
-      userId,
-      dto.redeemPoints,
-      afterPromoCents,
-    );
-
-    const totalCents = Math.max(0, afterPromoCents - redeemCents);
-    const earnedPoints = this.loyalty.earnedPoints(totalCents);
     const paymentMethod: PaymentMethod = dto.paymentMethod ?? 'CARD';
 
     return prisma.$transaction(async (tx) => {
@@ -92,7 +63,7 @@ export class OrdersService {
       // Chaos seam — armed via POST /test/inject-failure?at=stock-decrement
       // &userId=<u>, gated by ENABLE_TEST_ENDPOINTS. Throwing here rolls
       // back the entire checkout transaction; in production builds the
-      // call is a no-op. Per-user scoping keeps parallel checkouts safe.
+      // call is a no-op.
       maybeInjectFailure('stock-decrement', userId);
 
       const order = await tx.order.create({
@@ -100,10 +71,8 @@ export class OrdersService {
           userId,
           status: OrderStatus.PAID,
           totalCents,
-          discountCents,
           paymentMethod,
           shippingAddressId: dto.addressId ?? null,
-          promoCodeId: promoResult?.promoCodeId ?? null,
           items: {
             create: cart.items.map((i) => ({
               productId: i.productId,
@@ -123,24 +92,11 @@ export class OrdersService {
           entityId: order.id,
           metadata: {
             totalCents,
-            subtotalCents,
-            discountCents,
             paymentMethod,
-            promoCode: promoResult?.code ?? null,
             itemCount: cart.items.length,
           } as Prisma.InputJsonValue,
         },
       });
-
-      if (promoResult) {
-        await this.promo.recordRedemption(tx, userId, promoResult, order.id);
-      }
-      if (redeemCents > 0) {
-        await this.loyalty.recordRedeem(tx, userId, order.id, redeemCents);
-      }
-      if (earnedPoints > 0) {
-        await this.loyalty.recordEarn(tx, userId, order.id, earnedPoints);
-      }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
@@ -159,10 +115,7 @@ export class OrdersService {
   async get(userId: string, id: string) {
     const order = await prisma.order.findUnique({
       where: { id },
-      include: {
-        items: true,
-        returns: { orderBy: { createdAt: 'desc' } },
-      },
+      include: { items: true },
     });
     if (!order) throw notFoundFor('Order', id);
     if (order.userId !== userId) throw new ForbiddenException();

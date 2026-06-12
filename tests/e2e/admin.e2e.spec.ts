@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { AdminProductFactory } from '../factories/admin-product.factory';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 
 test.describe('admin/products UI', () => {
   test('admin sees the Admin link and can create + delete a product', {
@@ -37,13 +37,13 @@ test.describe('admin/products UI', () => {
     // Ground truth: the API confirms the product exists. The row may sit on
     // a later page once the catalog accumulates factory products across
     // parallel specs — that's the admin pagination story, not this test's.
-    const created = await api.getProduct(input.id);
+    const created = await api.products.get(input.id);
     expect(created.name).toBe('E2E Admin Created');
 
     // Delete via confirmation modal — opening it works the same regardless
     // of which page the row is on (we hit the API directly to start delete
     // dialog after refresh).
-    await api.adminDeleteProduct(adminUser.token, input.id);
+    await api.admin.deleteProduct(adminUser.token, input.id);
     const after = await api
       .raw()
       .get(`${API_BASE}/products/${input.id}`);
@@ -64,7 +64,7 @@ test.describe('admin/products UI', () => {
       priceCents: 500,
       stock: 1,
     });
-    await api.adminCreateProduct(adminUser.token, input);
+    await api.admin.createProduct(adminUser.token, input);
 
     // Drive the edit flow entirely through the UI. revealRow pages to the
     // row deterministically even when parallel specs have pushed it past
@@ -75,35 +75,24 @@ test.describe('admin/products UI', () => {
     await adminProducts.fillForm({ priceCents: 999, stock: 42 });
     await adminProducts.submit();
 
-    const fresh = await api.getProduct(input.id);
+    const fresh = await api.products.get(input.id);
     expect(fresh.priceCents).toBe(999);
     expect(fresh.stock).toBe(42);
 
     // cleanup
-    await api.adminDeleteProduct(adminUser.token, input.id);
+    await api.admin.deleteProduct(adminUser.token, input.id);
   });
 
-  test('non-admin user is redirected away from /admin/products', {
+  test('non-admin sees no Admin link and is redirected away from /admin/products', {
     tag: ['@regression', '@admin', '@security'],
-  }, async ({
-    authedPage,
-  }) => {
+  }, async ({ authedPage }) => {
+    await authedPage.goto('/');
+    await expect(authedPage.getByTestId('nav-admin')).toHaveCount(0);
     await authedPage.goto('/admin/products');
-    // Wait for the redirect effect to fire, then assert we left the admin route.
     await expect
       .poll(() => new URL(authedPage.url()).pathname)
       .not.toBe('/admin/products');
-    // Admin-only table never rendered.
     await expect(authedPage.getByTestId('admin-products')).toHaveCount(0);
-  });
-
-  test('non-admin user does not see the Admin link', {
-    tag: ['@regression', '@admin', '@security'],
-  }, async ({
-    authedPage,
-  }) => {
-    await authedPage.goto('/');
-    await expect(authedPage.getByTestId('nav-admin')).toHaveCount(0);
   });
 
   test('delete modal can be cancelled (ESC) without removing row', {
@@ -117,7 +106,7 @@ test.describe('admin/products UI', () => {
     const input = AdminProductFactory.build({
       id: `prod_aaa_esc_${Date.now()}`,
     });
-    await api.adminCreateProduct(adminUser.token, input);
+    await api.admin.createProduct(adminUser.token, input);
 
     // Page to our own row deterministically, then exercise the cancel flow.
     await adminProducts.goto();
@@ -126,9 +115,9 @@ test.describe('admin/products UI', () => {
     await adminPage.keyboard.press('Escape');
     await expect(adminPage.getByTestId('admin-delete-modal')).toHaveCount(0);
     // Ground truth: the targeted product still exists in the API.
-    const still = await api.getProduct(input.id);
+    const still = await api.products.get(input.id);
     expect(still.id).toBe(input.id);
 
-    await api.adminDeleteProduct(adminUser.token, input.id);
+    await api.admin.deleteProduct(adminUser.token, input.id);
   });
 });

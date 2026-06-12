@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { CartSchema } from '@qa/contracts';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 
 test.describe('cart', () => {
   test('GET /cart without token returns 401', { tag: ['@regression', '@cart', '@security'] }, async ({ api }) => {
@@ -12,7 +12,7 @@ test.describe('cart', () => {
     api,
     testUser,
   }) => {
-    const cart = await api.addToCart(testUser.token, 'prod_widget', 2);
+    const cart = await api.cart.addItem(testUser.token, 'prod_widget', 2);
     expect(CartSchema.safeParse(cart).success).toBe(true);
     expect(cart.items).toHaveLength(1);
     expect(cart.items[0]?.productId).toBe('prod_widget');
@@ -24,8 +24,8 @@ test.describe('cart', () => {
     api,
     testUser,
   }) => {
-    await api.addToCart(testUser.token, 'prod_widget', 1);
-    const cart = await api.addToCart(testUser.token, 'prod_widget', 3);
+    await api.cart.addItem(testUser.token, 'prod_widget', 1);
+    const cart = await api.cart.addItem(testUser.token, 'prod_widget', 3);
     expect(cart.items).toHaveLength(1);
     expect(cart.items[0]?.quantity).toBe(4);
   });
@@ -47,8 +47,8 @@ test.describe('cart', () => {
   });
 
   test('remove item drops that line', { tag: ['@regression', '@cart'] }, async ({ api, testUser }) => {
-    await api.addToCart(testUser.token, 'prod_widget', 1);
-    const cart = await api.removeFromCart(testUser.token, 'prod_widget');
+    await api.cart.addItem(testUser.token, 'prod_widget', 1);
+    const cart = await api.cart.removeItem(testUser.token, 'prod_widget');
     expect(cart.items.find((i) => i.productId === 'prod_widget')).toBeUndefined();
   });
 });

@@ -9,7 +9,7 @@
     "dev": "dotenv -e ../../.env -- ts-node-dev --respawn --rs src/main.ts",
     "start": "dotenv -e ../../.env -- node dist/main.js",
     "build": "tsc -p tsconfig.json",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.24",

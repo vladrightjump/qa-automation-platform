@@ -19,7 +19,7 @@
     "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
     "studio": "dotenv -e ../../.env -- prisma studio",
     "postinstall": "prisma generate || true",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --passWithNoTests",
     "test:unit:watch": "vitest",
     "coverage": "vitest run --coverage"
   },

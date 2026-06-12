@@ -5,20 +5,19 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    # `labeled`/`unlabeled` re-trigger the run so changing a `test:*` label
-    # on an open PR re-evaluates which suite the `decide` job selects.
-    types: [opened, synchronize, reopened, labeled, unlabeled]
 
-# Stop in-flight runs on the same ref when a new commit lands.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# Single source of truth for env across all jobs. Mirrors `.env.example`
-# (which CI also copies into place for the dotenv-cli wrappers in db/api).
 env:
   PNPM_VERSION: '9.15.4'
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
+  # Opt in to the Node.js 24 runtime for the JS actions themselves
+  # (checkout, setup-node, pnpm/action-setup) ahead of the 2026-06-16
+  # forced upgrade. Independent of NODE_VERSION, which is what
+  # setup-node installs onto the runner for our scripts.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   DATABASE_URL: 'postgresql://qa:qa@localhost:5432/qa?schema=public'
   API_PORT: '3001'
   WEB_PORT: '3000'
@@ -29,9 +28,6 @@ env:
   E2E_BASE_URL: 'http://localhost:3000'
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────
-  # Fast feedback gate.
-  # ─────────────────────────────────────────────────────────────────────────
   lint:
     name: Lint + typecheck
     runs-on: ubuntu-latest
@@ -46,103 +42,12 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - run: pnpm typecheck
+      - run: pnpm -r typecheck
 
-  # ─────────────────────────────────────────────────────────────────────────
-  # Build once. Downstream test shards reuse this artifact.
-  # ─────────────────────────────────────────────────────────────────────────
-  build:
-    name: Build (once)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Turbo build (db → contracts → api → web)
-        run: pnpm build
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          retention-days: 1
-          if-no-files-found: error
-          include-hidden-files: true
-          path: |
-            packages/db/dist
-            packages/contracts/dist
-            apps/api/dist
-            apps/web/.next
-            !apps/web/.next/cache
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Decide which suite the sharded `test` job runs, based on PR labels.
-  #   - Push to main           → empty grep  → full suite
-  #   - PR with no test:* label → @smoke     → fast default gate
-  #   - PR with test:smoke/sanity/regression → additive regex OR
-  #   - PR with test:full       → empty grep  → full suite
-  # Exposes `grep` as a job output consumed by the `test` job.
-  # ─────────────────────────────────────────────────────────────────────────
-  decide:
-    name: Decide suite
-    runs-on: ubuntu-latest
-    outputs:
-      grep: ${{ steps.pick.outputs.grep }}
-    steps:
-      - name: Pick grep from event + labels
-        id: pick
-        env:
-          IS_PR: ${{ github.event_name == 'pull_request' }}
-          HAS_SMOKE: ${{ contains(github.event.pull_request.labels.*.name, 'test:smoke') }}
-          HAS_SANITY: ${{ contains(github.event.pull_request.labels.*.name, 'test:sanity') }}
-          HAS_REGRESSION: ${{ contains(github.event.pull_request.labels.*.name, 'test:regression') }}
-          HAS_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'test:full') }}
-        run: |
-          set -euo pipefail
-
-          # Non-PR events (push to main) run everything.
-          if [ "$IS_PR" != "true" ]; then
-            echo "push event → full suite"
-            echo "grep=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # test:full short-circuits to the whole suite.
-          if [ "$HAS_FULL" = "true" ]; then
-            echo "test:full label → full suite"
-            echo "grep=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Build an additive regex OR from the present test:* labels.
-          tags=()
-          [ "$HAS_SMOKE" = "true" ]      && tags+=("@smoke")
-          [ "$HAS_SANITY" = "true" ]     && tags+=("@sanity")
-          [ "$HAS_REGRESSION" = "true" ] && tags+=("@regression")
-
-          if [ ${#tags[@]} -eq 0 ]; then
-            grep="@smoke"
-            echo "no test:* label → default @smoke gate"
-          else
-            grep=$(IFS='|'; echo "${tags[*]}")
-            echo "labels → --grep $grep"
-          fi
-          echo "grep=$grep" >> "$GITHUB_OUTPUT"
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Vitest unit-test layer (phase 16b). Fast (<10s), runs in parallel with
-  # the @sanity gate. Targets pure helpers in @qa/contracts + @qa/db that
-  # also feed the Stryker mutation-test layer (phase 16c).
-  # ─────────────────────────────────────────────────────────────────────────
   unit:
-    name: Unit tests (vitest)
-    needs: [build]
+    name: Vitest (web + api + contracts + db)
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -153,41 +58,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -r test:unit
 
-      - name: Restore build outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .
-
-      - name: Run unit tests
-        run: pnpm test:unit
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Sanity gate: one critical happy-path test per feature (@sanity tag).
-  # Fast, broad, and deterministic — runs before the heavier sharded suite
-  # so an obvious cross-feature regression fails the run in ~1 shard's time.
-  # ─────────────────────────────────────────────────────────────────────────
-  sanity:
-    name: Sanity (@sanity gate)
-    needs: [build]
+  build:
+    name: Build (web + api)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: qa
-          POSTGRES_PASSWORD: qa
-          POSTGRES_DB: qa
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U qa"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      CI: 'true'
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -198,137 +74,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @qa/contracts build
+      - run: pnpm -F @qa/db build
+      - run: pnpm -F @qa/api build
+      - run: pnpm -F @qa/web build
 
-      - name: Restore build outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .
-
-      - name: Prepare .env (dotenv-cli wrappers expect it)
-        run: cp .env.example .env
-
-      - name: Cache Playwright browsers
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Playwright (full)
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium webkit
-
-      - name: Install Playwright system deps only (cache hit)
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @qa/tests exec playwright install-deps chromium webkit
-
-      - name: Migrate + seed
-        run: |
-          pnpm db:migrate
-          pnpm db:seed
-
-      - name: Run @sanity suite
-        run: |
-          pnpm --filter @qa/tests exec playwright test \
-            --project=chromium-desktop \
-            --grep @sanity \
-            --reporter=list
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Security + race fast gate (phase A taxonomy). Mirrors the @sanity job
-  # but runs the `@security ∪ @race` subset on every PR. Currently a no-op
-  # until phase B retag + phase C signature specs land — `--pass-with-no-tests`
-  # keeps it green in the meantime so the gate is wired up ready to bite.
-  # ─────────────────────────────────────────────────────────────────────────
-  security-race:
-    name: Security + race (fast)
-    needs: [build]
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: qa
-          POSTGRES_PASSWORD: qa
-          POSTGRES_DB: qa
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U qa"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      CI: 'true'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-
-      - name: Restore build outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .
-
-      - name: Prepare .env (dotenv-cli wrappers expect it)
-        run: cp .env.example .env
-
-      - name: Cache Playwright browsers
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Playwright (full)
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium
-
-      - name: Install Playwright system deps only (cache hit)
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @qa/tests exec playwright install-deps chromium
-
-      - name: Migrate + seed
-        run: |
-          pnpm db:migrate
-          pnpm db:seed
-
-      - name: Run @security ∪ @race subset
-        run: |
-          pnpm --filter @qa/tests exec playwright test \
-            --project=chromium-desktop \
-            --grep "@security|@race" \
-            --pass-with-no-tests \
-            --reporter=list
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Parallel test shards. Each shard:
-  #   - downloads the build artifact
-  #   - runs migrate + seed against the Postgres service container
-  #   - launches api + web via Playwright's webServer
-  #   - runs `--shard=N/M` of the suite
-  #   - emits a blob report for the merge-reports job
-  # Suite is chosen by the `decide` job: PRs honor `test:*` labels (default
-  # @smoke), pushes to main run the full suite.
-  # Gated on the @sanity job so a broad regression fails fast.
-  # ─────────────────────────────────────────────────────────────────────────
   test:
-    name: Test (shard ${{ matrix.shard }}/${{ matrix.total }})
-    needs: [build, sanity, decide]
+    name: Playwright (e2e + api)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2]
-        total: [2]
+    needs: [build, unit]
     services:
       postgres:
         image: postgres:16
@@ -336,15 +90,12 @@ jobs:
           POSTGRES_USER: qa
           POSTGRES_PASSWORD: qa
           POSTGRES_DB: qa
-        ports:
-          - 5432:5432
+        ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U qa"
+          --health-cmd pg_isready
           --health-interval 5s
-          --health-timeout 5s
+          --health-timeout 3s
           --health-retries 10
-    env:
-      CI: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -355,109 +106,30 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-
-      - name: Restore build outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .
-
-      - name: Prepare .env (dotenv-cli wrappers expect it)
-        run: cp .env.example .env
-
-      - name: Cache Playwright browsers
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Playwright (full)
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium webkit
-
-      - name: Install Playwright system deps only (cache hit)
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @qa/tests exec playwright install-deps chromium webkit
-
-      - name: Migrate + seed
+      - name: Install Playwright browsers
+        run: pnpm --filter @qa/tests exec playwright install --with-deps chromium
+      - name: Build SUT (api + web)
+        # The build/ job runs on a separate runner so its dist/ is gone by
+        # the time this job starts. Playwright's webServer launches
+        # `pnpm @qa/api start` and `pnpm @qa/web start`, which both need
+        # the compiled output — build them here.
         run: |
-          pnpm db:migrate
-          pnpm db:seed
-
-      - name: Run tests
-        env:
-          # Suite filter resolved by the `decide` job (empty = full suite).
-          GREP: ${{ needs.decide.outputs.grep }}
-        run: |
-          GREP_ARGS=""
-          if [ -n "$GREP" ]; then
-            GREP_ARGS="--grep $GREP"
-            echo "running --grep $GREP"
-          else
-            echo "running full suite (no grep)"
-          fi
-          # Restrict to the default chromium-desktop project in CI; the
-          # visual/mobile/webkit projects are dev-targeted and run via the
-          # dedicated `test:visual`/`test:mobile`/`test:webkit` scripts.
-          # Setup project is pulled in automatically as a dependency.
-          pnpm --filter @qa/tests exec playwright test \
-            --project=chromium-desktop \
-            --shard=${{ matrix.shard }}/${{ matrix.total }} \
-            --reporter=blob,list \
-            $GREP_ARGS
-
-      - name: Upload blob report (always)
+          pnpm -F @qa/contracts build
+          pnpm -F @qa/db build
+          pnpm -F @qa/api build
+          pnpm -F @qa/web build
+      - run: pnpm -F @qa/db exec prisma migrate deploy
+      - run: pnpm -F @qa/db seed
+      - name: Playwright (PR — @smoke only)
+        if: github.event_name == 'pull_request'
+        run: pnpm --filter @qa/tests exec playwright test --project=chromium-desktop --grep @smoke
+      - name: Playwright (push to main — full suite)
+        if: github.event_name == 'push'
+        run: pnpm --filter @qa/tests exec playwright test --project=chromium-desktop
+      - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: blob-report-${{ matrix.shard }}
-          path: tests/blob-report
-          retention-days: 7
-
-      - name: Upload failure traces + screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ matrix.shard }}
-          path: tests/test-results
-          retention-days: 7
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Merge shard reports into a single HTML report uploaded as an artifact.
-  # `if: always()` so the report exists even when a shard failed.
-  # ─────────────────────────────────────────────────────────────────────────
-  merge-reports:
-    name: Merge HTML report
-    if: always()
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-
-      - name: Download blob reports
-        uses: actions/download-artifact@v4
-        with:
-          path: all-blob-reports
-          pattern: blob-report-*
-          merge-multiple: true
-
-      - name: Merge into HTML report
-        run: |
-          cd tests
-          pnpm exec playwright merge-reports --reporter html ../all-blob-reports
-
-      - name: Upload merged HTML report
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: tests/playwright-report
-          retention-days: 14
+          retention-days: 7

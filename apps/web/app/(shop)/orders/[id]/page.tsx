@@ -11,7 +11,6 @@ import OrderTimeline from '@/components/features/orders/OrderTimeline';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
-import Textarea from '@/components/ui/Textarea';
 import Toast from '@/components/ui/Toast';
 
 export default function OrderDetailPage() {
@@ -31,8 +30,6 @@ function OrderDetailInner() {
   const [order, setOrder] = useState<Order | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const [returnOpen, setReturnOpen] = useState(false);
-  const [returnReason, setReturnReason] = useState('');
 
   useEffect(() => {
     if (!token || !params.id) return;
@@ -54,20 +51,6 @@ function OrderDetailInner() {
     }
   }
 
-  async function submitReturn() {
-    if (!token || !order) return;
-    try {
-      await api.requestReturn(token, order.id, returnReason.trim());
-      const refreshed = await api.getOrder(token, order.id);
-      setOrder(refreshed);
-      setReturnOpen(false);
-      setReturnReason('');
-      toast.push({ variant: 'success', message: 'Return requested' });
-    } catch (e) {
-      toast.push({ variant: 'error', message: (e as Error).message });
-    }
-  }
-
   if (err) return <Toast message={err} />;
   if (!order) {
     return (
@@ -79,13 +62,6 @@ function OrderDetailInner() {
   }
 
   const cancellable = order.status === 'PENDING' || order.status === 'PAID';
-  const latestReturn = order.returns?.[0] ?? null;
-  const hasOpenReturn = (order.returns ?? []).some(
-    (r) => r.status !== 'REJECTED',
-  );
-  const returnable =
-    (order.status === 'PAID' || order.status === 'FULFILLED') &&
-    !hasOpenReturn;
 
   return (
     <div className="space-y-5">
@@ -94,7 +70,10 @@ function OrderDetailInner() {
           data-testid="order-confirmation-hero"
           className="animate-fade-in text-center py-8"
         >
-          <div className="mx-auto w-13 h-13 rounded-full bg-sage-100 text-sage-500 flex items-center justify-center text-2xl animate-check-pop" style={{ width: 52, height: 52 }}>
+          <div
+            className="mx-auto w-13 h-13 rounded-full bg-sage-100 text-sage-500 flex items-center justify-center text-2xl animate-check-pop"
+            style={{ width: 52, height: 52 }}
+          >
             ✓
           </div>
           <h1
@@ -104,8 +83,7 @@ function OrderDetailInner() {
             Order confirmed
           </h1>
           <p className="text-[13.5px] text-ink-soft mt-1.5">
-            Order{' '}
-            <span className="font-mono text-ink">{order.id}</span> is on
+            Order <span className="font-mono text-ink">{order.id}</span> is on
             its way. A receipt is below.
           </p>
           <div className="flex items-center justify-center gap-2 pt-5">
@@ -130,20 +108,8 @@ function OrderDetailInner() {
 
       <OrderTimeline status={order.status} />
 
-      {latestReturn && (
-        <div
-          data-testid="order-return-status"
-          data-status={latestReturn.status}
-          className="border border-line bg-paper-deep rounded-[10px] px-4 py-3 text-[13.5px]"
-        >
-          <span className="font-semibold text-ink">Return</span>{' '}
-          <span className="text-clay-600">{latestReturn.status}</span>
-          <span className="text-ink-soft"> — {latestReturn.reason}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-2">
-        {cancellable && (
+      {cancellable && (
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setConfirmCancel(true)}
@@ -152,18 +118,8 @@ function OrderDetailInner() {
           >
             Cancel order
           </button>
-        )}
-        {returnable && (
-          <button
-            type="button"
-            onClick={() => setReturnOpen(true)}
-            data-testid="order-return"
-            className="px-4 py-1.5 border border-line-strong hover:bg-paper-deep text-ink rounded-lg text-sm font-medium transition-colors"
-          >
-            Request return
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <Modal
         open={confirmCancel}
@@ -190,48 +146,6 @@ function OrderDetailInner() {
             data-testid="order-cancel-confirm"
           >
             Cancel order
-          </Button>
-        </div>
-      </Modal>
-
-      <Modal
-        open={returnOpen}
-        onClose={() => setReturnOpen(false)}
-        title="Request a return"
-        testId="order-return-modal"
-      >
-        <p className="text-sm mb-3 text-ink-soft">
-          Tell us why you’re returning this order. An admin will review the
-          request.
-        </p>
-        <label htmlFor="return-reason" className="sr-only">
-          Return reason
-        </label>
-        <Textarea
-          id="return-reason"
-          value={returnReason}
-          onChange={(e) => setReturnReason(e.target.value)}
-          placeholder="Reason for return…"
-          data-testid="order-return-reason"
-          rows={3}
-        />
-        <div className="flex justify-end gap-2 mt-3">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setReturnOpen(false)}
-            data-testid="order-return-cancel"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => void submitReturn()}
-            disabled={returnReason.trim().length < 3}
-            data-testid="order-return-submit"
-          >
-            Submit request
           </Button>
         </div>
       </Modal>

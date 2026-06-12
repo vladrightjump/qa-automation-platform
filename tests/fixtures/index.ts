@@ -10,28 +10,25 @@
 //   - `adminPage`    same, for the admin user
 //
 // Page Objects:
-//   - `storefront`, `cart`, `checkout`, `addresses`, `adminProducts`
+//   - `auth`, `catalog`, `cart`, `checkout`, `orders`, `adminProducts`
 //     each takes `page` and surfaces intent-revealing helpers.
 //
 // Auth is orthogonal to POs: a spec opts into auth by *also* destructuring
 // `authedPage` / `adminPage` (they mutate the shared `page` with an init
 // script before navigation). Public-flow specs simply destructure the PO.
-//
-// Specs `import { test, expect } from '../fixtures'` and request only the
-// fixtures they need; unused ones are never built.
 import { test as base } from '@playwright/test';
 import { expect } from '../support/matchers';
 import { prisma, ADMIN_EMAIL, ADMIN_PASSWORD, type PrismaClient } from '@qa/db';
 import type { UserRole } from '@qa/contracts';
-import { ApiClient } from '../support/api-client';
+import { ApiClient } from '../api-clients';
 import { TOKEN_KEY, USER_KEY } from '../support/keys';
 import { UserFactory } from '../factories/user.factory';
-import { StorefrontPage } from '../pages/storefront.page';
+import { AuthPage } from '../pages/auth.page';
+import { CatalogPage } from '../pages/catalog.page';
 import { CartPage } from '../pages/cart.page';
 import { CheckoutPage } from '../pages/checkout.page';
-import { AddressesPage } from '../pages/addresses.page';
+import { OrdersPage } from '../pages/orders.page';
 import { AdminProductsPage } from '../pages/admin.page';
-import { SearchPage } from '../pages/search.page';
 
 interface AuthedTestUser {
   id: string;
@@ -47,12 +44,12 @@ interface Fixtures {
   adminUser: AuthedTestUser;
   authedPage: import('@playwright/test').Page;
   adminPage: import('@playwright/test').Page;
-  storefront: StorefrontPage;
+  auth: AuthPage;
+  catalog: CatalogPage;
   cart: CartPage;
   checkout: CheckoutPage;
-  addresses: AddressesPage;
+  orders: OrdersPage;
   adminProducts: AdminProductsPage;
-  search: SearchPage;
 }
 
 interface WorkerFixtures {
@@ -77,7 +74,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
 
   testUser: async ({ api }, use) => {
     const creds = UserFactory.build();
-    const { token, user } = await api.register(creds.email, creds.password);
+    const { token, user } = await api.auth.register(creds.email, creds.password);
     await use({
       id: user.id,
       email: user.email,
@@ -88,8 +85,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
   },
 
   adminUser: async ({ api }, use) => {
-    // The deterministic admin is seeded (and re-seeded by /test/reset).
-    const { token, user } = await api.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    const { token, user } = await api.auth.login(ADMIN_EMAIL, ADMIN_PASSWORD);
     await use({
       id: user.id,
       email: user.email,
@@ -109,11 +105,11 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
     await use(page);
   },
 
-  // Page Object fixtures. Each depends on `page` only — auth is opted into
-  // by also requesting `authedPage` / `adminPage`, which mutate the shared
-  // page before navigation.
-  storefront: async ({ page }, use) => {
-    await use(new StorefrontPage(page));
+  auth: async ({ page }, use) => {
+    await use(new AuthPage(page));
+  },
+  catalog: async ({ page }, use) => {
+    await use(new CatalogPage(page));
   },
   cart: async ({ page }, use) => {
     await use(new CartPage(page));
@@ -121,14 +117,11 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
   checkout: async ({ page }, use) => {
     await use(new CheckoutPage(page));
   },
-  addresses: async ({ page }, use) => {
-    await use(new AddressesPage(page));
+  orders: async ({ page }, use) => {
+    await use(new OrdersPage(page));
   },
   adminProducts: async ({ page }, use) => {
     await use(new AdminProductsPage(page));
-  },
-  search: async ({ page }, use) => {
-    await use(new SearchPage(page));
   },
 });
 

@@ -1,82 +1,43 @@
 // Typed fetch wrapper for the SUT API. Entity types are imported from
 // @qa/contracts — the single Zod-defined source of truth that the test client
 // also consumes — so the web app and the API contract can never silently drift.
-// Only genuinely web-local request shapes are declared in this file.
 import type {
   Address,
   AuthResult,
   Cart,
   CartItem,
-  LoyaltyBalance,
-  LoyaltyTransaction,
-  LoyaltyType,
   Order,
   OrderItem,
   OrderStatus,
   PagedOrders,
   PagedProducts,
-  PagedReviews,
-  PagedSearch,
   PaymentMethod,
   Product,
   ProductCategory,
   ProductSort,
-  PromoCode,
-  PromoPreview,
-  Recommendation,
-  Return as OrderReturn,
-  SalesMetrics,
-  ReturnStatus,
-  Review,
-  ReviewSummary,
-  StockAlert,
-  Suggestion,
   User,
   UserRole,
-  Wishlist,
-  WishlistItem,
 } from '@qa/contracts';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-// Re-export the contract types so existing `@/lib/api` imports across web
-// modules keep resolving from here — no call-site churn.
 export type {
   Address,
   AuthResult,
   Cart,
   CartItem,
-  LoyaltyBalance,
-  LoyaltyTransaction,
-  LoyaltyType,
   Order,
   OrderItem,
   OrderStatus,
-  OrderReturn,
   PagedOrders,
   PagedProducts,
-  PagedReviews,
-  PagedSearch,
   PaymentMethod,
   Product,
   ProductCategory,
   ProductSort,
-  PromoCode,
-  PromoPreview,
-  Recommendation,
-  ReturnStatus,
-  SalesMetrics,
-  Review,
-  ReviewSummary,
-  StockAlert,
-  Suggestion,
   User,
   UserRole,
-  Wishlist,
-  WishlistItem,
 };
-
-// ---- web-local request shapes (not part of the response contract) ----
 
 export interface ListProductsQuery {
   q?: string;
@@ -102,11 +63,7 @@ export interface AddressInput {
 export interface CheckoutInput {
   addressId?: string;
   paymentMethod?: PaymentMethod;
-  promoCode?: string;
-  redeemPoints?: number;
 }
-
-export type ReviewSort = 'newest' | 'highest' | 'lowest';
 
 export interface AdminProductInput {
   id?: string;
@@ -170,85 +127,6 @@ export const api = {
     request<PagedProducts>(`/products${buildProductsQuery(query)}`),
   getProduct: (id: string) => request<Product>(`/products/${id}`),
 
-  // Full-text search + autocomplete (phase 15a).
-  searchProducts: (q: string, page = 1, pageSize = 12) => {
-    const params = new URLSearchParams({ q, page: String(page), pageSize: String(pageSize) });
-    return request<PagedSearch>(`/products/search?${params.toString()}`);
-  },
-  suggestProducts: (q: string, limit = 8) => {
-    const params = new URLSearchParams({ q, limit: String(limit) });
-    return request<Suggestion[]>(`/products/suggestions?${params.toString()}`);
-  },
-
-  // Admin sales metrics (phase 15c). Returns the body + the X-Cache
-// header so the dev-only "cache state" chip on /admin/metrics can show
-// hit/miss for reviewers.
-  adminGetSalesMetricsWithCache: async (
-    token: string,
-    fromIso?: string,
-    toIso?: string,
-  ): Promise<{ data: SalesMetrics; cacheState: string | null }> => {
-    const params = new URLSearchParams();
-    if (fromIso) params.set('from', fromIso);
-    if (toIso) params.set('to', toIso);
-    const qs = params.toString();
-    const url = `${BASE}/admin/metrics/sales${qs ? `?${qs}` : ''}`;
-    // Intentionally NOT using `cache: 'no-store'` here: the browser
-    // translates that into a request `Cache-Control: no-cache` header,
-    // which the server-side CacheInterceptor honours by serving
-    // `X-Cache: bypass`. We want the natural miss → hit progression so
-    // the dev-only chip can demonstrate the cache contract end-to-end.
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const text = await res.text();
-    const body: unknown = text ? JSON.parse(text) : null;
-    if (!res.ok) {
-      const msg =
-        (body as { message?: string | string[] } | null)?.message ??
-        `${res.status} ${res.statusText}`;
-      throw new ApiError(
-        Array.isArray(msg) ? msg.join(', ') : String(msg),
-        res.status,
-      );
-    }
-    return {
-      data: body as SalesMetrics,
-      cacheState: res.headers.get('x-cache'),
-    };
-  },
-
-  // Recommendations (phase 15b). Authed; reads recently-viewed IDs from the
-  // X-Recently-Viewed header so the server can union them with same-category
-  // + collaborative signals.
-  getRecommendations: (token: string, recentlyViewed: string[] = []) => {
-    const headers: Record<string, string> = {};
-    if (recentlyViewed.length > 0) {
-      headers['X-Recently-Viewed'] = recentlyViewed.join(',');
-    }
-    return request<Recommendation[]>(
-      '/recommendations',
-      { headers },
-      token,
-    );
-  },
-
-  // ---- back-in-stock alerts ----
-  subscribeStockAlert: (token: string, productId: string) =>
-    request<StockAlert>(
-      `/products/${productId}/stock-alert`,
-      { method: 'POST' },
-      token,
-    ),
-  unsubscribeStockAlert: (token: string, productId: string) =>
-    request<{ ok: true }>(
-      `/products/${productId}/stock-alert`,
-      { method: 'DELETE' },
-      token,
-    ),
-  listStockAlerts: (token: string) =>
-    request<StockAlert[]>('/stock-alerts', {}, token),
-
   register: (email: string, password: string) =>
     request<AuthResult>('/auth/register', {
       method: 'POST',
@@ -281,14 +159,6 @@ export const api = {
       { method: 'PATCH', body: JSON.stringify({ order }) },
       token,
     ),
-  cancelOrder: (token: string, id: string) =>
-    request<Order>(`/orders/${id}/cancel`, { method: 'POST' }, token),
-  requestReturn: (token: string, id: string, reason: string) =>
-    request<OrderReturn>(
-      `/orders/${id}/return`,
-      { method: 'POST', body: JSON.stringify({ reason }) },
-      token,
-    ),
 
   checkout: (token: string, input: CheckoutInput = {}) =>
     request<Order>(
@@ -296,19 +166,11 @@ export const api = {
       { method: 'POST', body: JSON.stringify(input) },
       token,
     ),
-
-  getLoyalty: (token: string) =>
-    request<LoyaltyBalance>('/loyalty', {}, token),
-
-  applyPromo: (token: string, code: string) =>
-    request<PromoPreview>(
-      '/promo-codes/apply',
-      { method: 'POST', body: JSON.stringify({ code }) },
-      token,
-    ),
-
-  // Public discovery — featured/active deals shown in the checkout panel.
-  listPromoCodes: () => request<PromoCode[]>('/promo-codes', {}),
+  listOrders: (token: string) => request<Order[]>('/orders', {}, token),
+  getOrder: (token: string, id: string) =>
+    request<Order>(`/orders/${id}`, {}, token),
+  cancelOrder: (token: string, id: string) =>
+    request<Order>(`/orders/${id}/cancel`, { method: 'POST' }, token),
 
   listAddresses: (token: string) => request<Address[]>('/addresses', {}, token),
   createAddress: (token: string, input: AddressInput) =>
@@ -326,54 +188,6 @@ export const api = {
   deleteAddress: (token: string, id: string) =>
     request<{ ok: true }>(`/addresses/${id}`, { method: 'DELETE' }, token),
 
-  // --- wishlist ---
-  getWishlist: (token: string) => request<Wishlist>('/wishlist', {}, token),
-  addToWishlist: (token: string, productId: string) =>
-    request<Wishlist>(
-      '/wishlist/items',
-      { method: 'POST', body: JSON.stringify({ productId }) },
-      token,
-    ),
-  removeFromWishlist: (token: string, productId: string) =>
-    request<Wishlist>(
-      `/wishlist/items/${productId}`,
-      { method: 'DELETE' },
-      token,
-    ),
-
-  // --- reviews ---
-  listReviews: (
-    productId: string,
-    query: { sort?: ReviewSort; page?: number; pageSize?: number } = {},
-  ) => {
-    const params = new URLSearchParams();
-    if (query.sort) params.set('sort', query.sort);
-    if (query.page) params.set('page', String(query.page));
-    if (query.pageSize) params.set('pageSize', String(query.pageSize));
-    const qs = params.toString();
-    return request<PagedReviews>(
-      `/products/${productId}/reviews${qs ? `?${qs}` : ''}`,
-    );
-  },
-  reviewSummary: (productId: string) =>
-    request<ReviewSummary>(`/products/${productId}/reviews/summary`),
-  createReview: (
-    token: string,
-    productId: string,
-    input: { rating: number; title: string; body: string },
-  ) =>
-    request<Review>(
-      `/products/${productId}/reviews`,
-      { method: 'POST', body: JSON.stringify(input) },
-      token,
-    ),
-  deleteReview: (token: string, id: string) =>
-    request<{ ok: true }>(`/reviews/${id}`, { method: 'DELETE' }, token),
-  listOrders: (token: string) => request<Order[]>('/orders', {}, token),
-  getOrder: (token: string, id: string) =>
-    request<Order>(`/orders/${id}`, {}, token),
-
-  // ---- admin ----
   adminListProducts: (token: string, page = 1, pageSize = 20) =>
     request<PagedProducts>(
       `/admin/products?page=${page}&pageSize=${pageSize}`,
@@ -398,22 +212,4 @@ export const api = {
     ),
   adminDeleteProduct: (token: string, id: string) =>
     request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' }, token),
-
-  // ---- admin / orders ----
-  adminListOrders: (token: string, status?: OrderStatus, page = 1, pageSize = 20) => {
-    const params = new URLSearchParams({
-      page: String(page),
-      pageSize: String(pageSize),
-    });
-    if (status) params.set('status', status);
-    return request<PagedOrders>(`/admin/orders?${params.toString()}`, {}, token);
-  },
-  adminFulfillOrder: (token: string, id: string) =>
-    request<Order>(`/admin/orders/${id}/fulfill`, { method: 'POST' }, token),
-  adminApproveReturn: (token: string, id: string) =>
-    request<OrderReturn>(`/admin/returns/${id}/approve`, { method: 'POST' }, token),
-  adminRejectReturn: (token: string, id: string) =>
-    request<OrderReturn>(`/admin/returns/${id}/reject`, { method: 'POST' }, token),
-  adminRefundReturn: (token: string, id: string) =>
-    request<OrderReturn>(`/admin/returns/${id}/refund`, { method: 'POST' }, token),
 };

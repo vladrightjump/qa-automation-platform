@@ -1,12 +1,12 @@
 import { test, expect } from '../fixtures';
 import { PagedProductsSchema, ProductSchema } from '@qa/contracts';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 
 test.describe('products', () => {
   test('list returns paginated products with the agreed shape', { tag: ['@smoke', '@catalog'] }, async ({
     api,
   }) => {
-    const page = await api.listProducts({ category: ['office'] });
+    const page = await api.products.list({ category: ['office'] });
     expect(PagedProductsSchema.safeParse(page).success).toBe(true);
     expect(page.total).toBeGreaterThan(0);
     expect(page.items.length).toBeLessThanOrEqual(page.pageSize);
@@ -15,15 +15,15 @@ test.describe('products', () => {
   });
 
   test('default sort is name ascending', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
-    const page = await api.listProducts({ pageSize: 100 });
+    const page = await api.products.list({ pageSize: 100 });
     const names = page.items.map((p) => p.name);
     const sorted = [...names].sort((a, b) => a.localeCompare(b));
     expect(names).toEqual(sorted);
   });
 
   test('filter by category narrows results', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
-    const all = await api.listProducts({ pageSize: 100 });
-    const apparel = await api.listProducts({
+    const all = await api.products.list({ pageSize: 100 });
+    const apparel = await api.products.list({
       category: ['apparel'],
       pageSize: 100,
     });
@@ -34,7 +34,7 @@ test.describe('products', () => {
   test('filter by multiple categories returns union', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const result = await api.listProducts({
+    const result = await api.products.list({
       category: ['apparel', 'home'],
       pageSize: 100,
     });
@@ -49,7 +49,7 @@ test.describe('products', () => {
   test('search q matches name and description case-insensitively', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const result = await api.listProducts({ q: 'widget' });
+    const result = await api.products.list({ q: 'widget' });
     expect(result.total).toBeGreaterThan(0);
     expect(
       result.items.every(
@@ -63,13 +63,13 @@ test.describe('products', () => {
   test('search returns empty page when no match', { tag: ['@regression', '@catalog', '@empty'] }, async ({
     api,
   }) => {
-    const result = await api.listProducts({ q: 'definitelydoesnotexist' });
+    const result = await api.products.list({ q: 'definitelydoesnotexist' });
     expect(result.total).toBe(0);
     expect(result.items).toEqual([]);
   });
 
   test('price filter respects min/max', { tag: ['@regression', '@catalog'] }, async ({ api }) => {
-    const result = await api.listProducts({
+    const result = await api.products.list({
       minPriceCents: 1000,
       maxPriceCents: 2000,
       pageSize: 100,
@@ -84,7 +84,7 @@ test.describe('products', () => {
   test('sort=price_asc orders by price ascending', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const result = await api.listProducts({ sort: 'price_asc', pageSize: 100 });
+    const result = await api.products.list({ sort: 'price_asc', pageSize: 100 });
     const prices = result.items.map((p) => p.priceCents);
     expect([...prices].sort((a, b) => a - b)).toEqual(prices);
   });
@@ -92,7 +92,7 @@ test.describe('products', () => {
   test('sort=price_desc orders by price descending', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const result = await api.listProducts({ sort: 'price_desc', pageSize: 100 });
+    const result = await api.products.list({ sort: 'price_desc', pageSize: 100 });
     const prices = result.items.map((p) => p.priceCents);
     expect([...prices].sort((a, b) => b - a)).toEqual(prices);
   });
@@ -100,8 +100,8 @@ test.describe('products', () => {
   test('pagination returns disjoint pages and respects pageSize', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const page1 = await api.listProducts({ page: 1, pageSize: 5 });
-    const page2 = await api.listProducts({ page: 2, pageSize: 5 });
+    const page1 = await api.products.list({ page: 1, pageSize: 5 });
+    const page2 = await api.products.list({ page: 2, pageSize: 5 });
     expect(page1.items).toHaveLength(5);
     expect(page1.page).toBe(1);
     expect(page2.page).toBe(2);
@@ -114,7 +114,7 @@ test.describe('products', () => {
   test('get by id returns a single product matching the shape', { tag: ['@regression', '@catalog'] }, async ({
     api,
   }) => {
-    const product = await api.getProduct('prod_widget');
+    const product = await api.products.get('prod_widget');
     expect(ProductSchema.safeParse(product).success).toBe(true);
     expect(product.name).toBe('Widget');
     expect(product.category).toBe('gadgets');

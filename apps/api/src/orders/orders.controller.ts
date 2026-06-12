@@ -3,22 +3,14 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, type AuthedUser } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { OrdersService } from './orders.service';
-import { PromoService } from './promo.service';
-import { LoyaltyService } from './loyalty.service';
-import { ReturnsService } from './returns.service';
-import { ApplyPromoDto, CheckoutDto, RequestReturnDto } from './dto';
+import { CheckoutDto } from './dto';
 
 @ApiTags('orders')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller()
 export class OrdersController {
-  constructor(
-    private readonly orders: OrdersService,
-    private readonly promo: PromoService,
-    private readonly loyalty: LoyaltyService,
-    private readonly returns: ReturnsService,
-  ) {}
+  constructor(private readonly orders: OrdersService) {}
 
   @Post('orders')
   checkout(@CurrentUser() user: AuthedUser, @Body() dto: CheckoutDto) {
@@ -35,41 +27,8 @@ export class OrdersController {
     return this.orders.get(user.id, id);
   }
 
-  @Post('promo-codes/apply')
-  applyPromo(@CurrentUser() user: AuthedUser, @Body() dto: ApplyPromoDto) {
-    return this.promo.previewPromo(user.id, dto.code);
-  }
-
   @Post('orders/:id/cancel')
   cancel(@CurrentUser() user: AuthedUser, @Param('id') id: string) {
     return this.orders.cancel(user.id, id);
-  }
-
-  @Post('orders/:id/return')
-  requestReturn(
-    @CurrentUser() user: AuthedUser,
-    @Param('id') id: string,
-    @Body() dto: RequestReturnDto,
-  ) {
-    return this.returns.requestReturn(user.id, id, dto.reason);
-  }
-
-  @Get('loyalty')
-  getLoyalty(@CurrentUser() user: AuthedUser) {
-    return this.loyalty.getLoyalty(user.id);
-  }
-}
-
-// Public promo discovery — no auth so the storefront can show available
-// deals to signed-out visitors. Kept separate from the guarded controller
-// above so the class-level AuthGuard does not apply.
-@ApiTags('promo-codes')
-@Controller('promo-codes')
-export class PromoController {
-  constructor(private readonly promo: PromoService) {}
-
-  @Get()
-  list() {
-    return this.promo.listPromoCodes();
   }
 }

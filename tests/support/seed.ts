@@ -4,7 +4,7 @@
 // source so a new feature spec never has to rewrite it.
 import type { PrismaClient } from '@qa/db';
 import type { Order } from '@qa/contracts';
-import { ApiClient } from './api-client';
+import { ApiClient } from '../api-clients';
 import { ProductFactory, type ProductData } from '../factories/product.factory';
 import { AddressFactory } from '../factories/address.factory';
 
@@ -18,7 +18,7 @@ export function seedProduct(
 
 /** Give the user a default shipping address via the API. */
 export function withDefaultAddress(api: ApiClient, token: string) {
-  return api.createAddress(token, AddressFactory.build({ isDefault: true }));
+  return api.checkout.createAddress(token, AddressFactory.build({ isDefault: true }));
 }
 
 export interface SeedPaidOrderOptions {
@@ -41,6 +41,6 @@ export async function seedPaidOrder(
   const { token, priceCents = 1000, stock = 5, qty = 1 } = opts;
   const product = await seedProduct(db, { stock, priceCents });
   await withDefaultAddress(api, token);
-  await api.addToCart(token, product.id, qty);
-  return api.checkout(token, { paymentMethod: 'CARD' });
+  await api.cart.addItem(token, product.id, qty);
+  return api.checkout.checkout(token, { paymentMethod: 'CARD' });
 }

@@ -1,6 +1,6 @@
-import { formatMoney as contractFormatMoney } from '@qa/contracts';
-import type { Locale } from '@qa/contracts';
-
-export function formatMoney(priceCents: number, locale: Locale): string {
-  return contractFormatMoney(priceCents, locale);
+export function formatMoney(priceCents: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(priceCents / 100);
 }
