@@ -176,7 +176,7 @@ export default function CartTable({
           className="text-[12.5px] uppercase tracking-[0.06em] text-ink-faint"
           data-testid="cart-currency-affordance"
         >
-          {t('cart.pricesIn', { currency })}
+          Prices in {currency}
         </span>
         <span className="font-semibold tabular-nums text-ink" data-testid="cart-subtotal">
           {t('cart.subtotal')}: {formatMoney(subtotal)}

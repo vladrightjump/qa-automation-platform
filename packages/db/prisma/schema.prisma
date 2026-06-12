@@ -1,5 +1,4 @@
 // Prisma schema — SUT data model for the QA Automation Platform.
-// See ../../../todos/phase-1-database.md for the design intent.
 
 generator client {
   provider = "prisma-client-js"
@@ -22,18 +21,6 @@ enum UserRole {
   ADMIN
 }
 
-enum ReturnStatus {
-  REQUESTED
-  APPROVED
-  REJECTED
-  REFUNDED
-}
-
-enum LoyaltyType {
-  EARN
-  REDEEM
-}
-
 enum PaymentMethod {
   CARD
   PAYPAL
@@ -45,65 +32,31 @@ model User {
   email     String     @unique
   password  String // hashed by the API in Phase 2
   role      UserRole   @default(USER)
-  // Persisted UI locale preference. null = infer from geo / Accept-Language.
-  // Validated against the LocaleSchema in @qa/contracts at the API boundary.
-  preferredLocale String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   cart      Cart?
   orders    Order[]
   auditLogs AuditLog[]
   addresses Address[]
-  wishlist  Wishlist?
-  reviews   Review[]
-  returns   Return[]
-  stockAlerts StockAlert[]
-  loyaltyTransactions LoyaltyTransaction[]
 }
 
 // Product IDs are deterministic strings (e.g. `prod_widget`) so seeded
 // fixtures and assertions remain stable across runs / CI shards.
-//
-// `searchVector` is a PostgreSQL tsvector maintained by a DB trigger from
-// name + description + tags (see migration `_add_product_search`). The
-// FTS query (GET /products/search) uses it with ts_rank_cd for ranking; a
-// GIN index lives on the column. Prisma surfaces it as Unsupported so the
-// client can ignore it — all SQL touching it is raw.
 model Product {
-  id            String         @id
-  name          String
-  description   String?
-  priceCents    Int
-  stock         Int
-  category      String         @default("gadgets")
-  tags          String[]       @default([])
-  searchVector  Unsupported("tsvector")?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  wishlistItems WishlistItem[]
-  reviews       Review[]
-  stockAlerts   StockAlert[]
+  id          String      @id
+  name        String
+  description String?
+  priceCents  Int
+  stock       Int
+  category    String      @default("gadgets")
+  tags        String[]    @default([])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
 
   @@index([category])
   @@index([name])
-}
-
-// "Notify me when back in stock" subscription. Created only while a product
-// is out of stock; flipped to notified=true (with a STOCK_ALERT_NOTIFIED
-// audit row) when an admin restocks the product from 0 → >0.
-model StockAlert {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  notified  Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, productId])
-  @@index([productId, notified])
 }
 
 model Cart {
@@ -133,54 +86,22 @@ model Order {
   user              User           @relation(fields: [userId], references: [id])
   status            OrderStatus    @default(PENDING)
   totalCents        Int
-  discountCents     Int            @default(0)
   paymentMethod     PaymentMethod?
   shippingAddressId String?
   shippingAddress   Address?       @relation(fields: [shippingAddressId], references: [id])
-  promoCodeId       String?
-  promoCode         PromoCode?     @relation(fields: [promoCodeId], references: [id])
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   items             OrderItem[]
-  returns           Return[]
-  loyaltyTransactions LoyaltyTransaction[]
 }
 
-// Return / RMA request against an order. Lifecycle: REQUESTED → APPROVED |
-// REJECTED, and APPROVED → REFUNDED (driven by admins). Status + audit only:
-// no payment integration, no stock restock. At most one open (non-REJECTED)
-// return per order is enforced in the service layer.
-model Return {
-  id          String       @id @default(cuid())
-  orderId     String
-  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
-  reason      String
-  status      ReturnStatus @default(REQUESTED)
-  refundCents Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  @@index([orderId])
-  @@index([status, createdAt])
-}
-
-// Append-only loyalty / store-credit ledger. `points` is signed (+earn /
-// -redeem) and denominated 1 point = 1 cent of store credit. Balance is the
-// sum of points — never denormalised, so it can't drift. Earn/redeem each
-// also leave a LOYALTY_EARNED / LOYALTY_REDEEMED audit row.
-model LoyaltyTransaction {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId   String?
-  order     Order?      @relation(fields: [orderId], references: [id])
-  points    Int
-  type      LoyaltyType
-  createdAt DateTime    @default(now())
-
-  @@index([userId, createdAt])
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  quantity       Int
+  unitPriceCents Int
 }
 
 model Address {
@@ -202,91 +123,13 @@ model Address {
   @@index([userId])
 }
 
-// A supported shipping/pricing region, one row per country. `GET /geo/resolve`
-// maps a visitor's lat/lng to the nearest region by great-circle distance, and
-// the storefront uses the region's locale/currency as its suggestion. IDs are
-// deterministic (`region_us`, `region_de`, `region_fr`) so fixtures and
-// assertions stay stable across CI shards.
-model Region {
-  id       String @id
-  country  String @unique // ISO-3166-1 alpha-2
-  name     String
-  locale   String // one of @qa/contracts SUPPORTED_LOCALES
-  currency String // "USD" | "EUR"
-  lat      Float
-  lng      Float
-}
-
-model PromoCode {
-  id              String    @id @default(cuid())
-  code            String    @unique
-  description     String? // shown on the storefront "available deals" surface
-  percentOff      Int? // 0..100; mutually exclusive with flatOffCents
-  flatOffCents    Int?
-  minSpendCents   Int       @default(0) // cart subtotal required before the code applies
-  featured        Boolean   @default(false) // discoverable via GET /promo-codes
-  maxRedemptions  Int? // null = unlimited
-  timesRedeemed   Int       @default(0)
-  active          Boolean   @default(true)
-  expiresAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  orders          Order[]
-}
-
-model Wishlist {
-  id        String         @id @default(cuid())
-  userId    String         @unique
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-model WishlistItem {
-  id         String   @id @default(cuid())
-  wishlistId String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id])
-  createdAt  DateTime @default(now())
-
-  @@unique([wishlistId, productId])
-}
-
-model Review {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int
-  title     String
-  body      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([productId, userId])
-  @@index([productId, createdAt])
-}
-
-model OrderItem {
-  id             String  @id @default(cuid())
-  orderId        String
-  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId      String
-  product        Product @relation(fields: [productId], references: [id])
-  quantity       Int
-  unitPriceCents Int
-}
-
 // Captures hidden side-effects of API actions so tests can assert on them.
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
-  action    String // e.g. "ORDER_PAID", "STOCK_DECREMENTED"
-  entity    String // e.g. "Order", "Product"
+  action    String // e.g. "ORDER_PAID"
+  entity    String // e.g. "Order"
   entityId  String?
   metadata  Json?
   createdAt DateTime @default(now())

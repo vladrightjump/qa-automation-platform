@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, type Product } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -11,14 +11,12 @@ import { useToast } from '@/components/ui/ToastQueue';
 interface ProductCardProps {
   product: Product;
   onAdded?: () => void;
-  onQuickView?: (product: Product) => void;
   compact?: boolean;
 }
 
 export default function ProductCard({
   product,
   onAdded,
-  onQuickView,
   compact = false,
 }: ProductCardProps) {
   const router = useRouter();
@@ -26,44 +24,6 @@ export default function ProductCard({
   const { token, refreshCartCount } = useAuth();
   const { t, formatMoney } = useLocale();
   const [busy, setBusy] = useState(false);
-  const [inWishlist, setInWishlist] = useState(false);
-  const [pulse, setPulse] = useState(false);
-
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    void api.getWishlist(token).then((w) => {
-      if (cancelled) return;
-      setInWishlist(w.items.some((i) => i.productId === product.id));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [token, product.id]);
-
-  async function toggleWishlist() {
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    const previous = inWishlist;
-    setInWishlist(!previous);
-    setPulse(true);
-    setTimeout(() => setPulse(false), 300);
-    try {
-      if (previous) {
-        await api.removeFromWishlist(token, product.id);
-      } else {
-        await api.addToWishlist(token, product.id);
-      }
-    } catch (e) {
-      setInWishlist(previous);
-      toast.push({
-        variant: 'error',
-        message: e instanceof Error ? e.message : String(e),
-      });
-    }
-  }
 
   async function handleAdd() {
     if (!token) {
@@ -112,35 +72,7 @@ export default function ProductCard({
             {t('product.soldOut')}
           </span>
         )}
-
-        {onQuickView && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onQuickView(product);
-            }}
-            data-testid={`quick-view-${product.id}`}
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-ink/20 flex items-center justify-center"
-          >
-            <span className="bg-card text-ink rounded-lg px-3.5 py-1.5 text-sm font-medium">
-              Quick view
-            </span>
-          </button>
-        )}
       </Link>
-
-      <button
-        type="button"
-        onClick={toggleWishlist}
-        data-testid={`wishlist-toggle-${product.id}`}
-        aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-        aria-pressed={inWishlist}
-        className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-card/95 transition-colors ${inWishlist ? 'text-clay-500' : 'text-ink-faint hover:text-clay-500'} ${pulse ? 'animate-pulse-once' : ''}`}
-      >
-        {inWishlist ? '♥' : '♡'}
-      </button>
 
       <div className="p-4 sm:p-5 flex flex-col gap-1.5 flex-1">
         <Link
@@ -161,19 +93,6 @@ export default function ProductCard({
           <p className="text-xs text-ink-soft line-clamp-2 leading-relaxed">
             {product.description}
           </p>
-        )}
-
-        {!compact && product.tags.length > 0 && (
-          <div hidden>
-            {product.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                data-testid={`product-tag-${product.id}-${tag}`}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
         )}
 
         <div className="mt-auto pt-2 flex items-center justify-between gap-3">
