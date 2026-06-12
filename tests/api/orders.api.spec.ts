@@ -3,7 +3,7 @@ import { OrderSchema } from '@qa/contracts';
 import { ProductFactory } from '../factories/product.factory';
 import { UserFactory } from '../factories/user.factory';
 import { seedPaidOrder } from '../support/seed';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 
 test.describe('orders / checkout', () => {
   test('checkout with empty cart returns 400', { tag: ['@regression', '@orders', '@empty'] }, async ({ api, testUser }) => {
@@ -19,7 +19,7 @@ test.describe('orders / checkout', () => {
   }) => {
     // prod_oos has stock=0 in the seed — addToCart succeeds (it's a future intent)
     // but checkout's stock check fails.
-    await api.addToCart(testUser.token, 'prod_oos', 1);
+    await api.cart.addItem(testUser.token, 'prod_oos', 1);
     const res = await api.raw().post(`${API_BASE}/orders`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
     });
@@ -39,8 +39,8 @@ test.describe('orders / checkout', () => {
       data: ProductFactory.build({ stock: 10, priceCents: 1500 }),
     });
 
-    await api.addToCart(testUser.token, product.id, 2);
-    const order = await api.checkout(testUser.token);
+    await api.cart.addItem(testUser.token, product.id, 2);
+    const order = await api.checkout.checkout(testUser.token);
 
     expect(OrderSchema.safeParse(order).success).toBe(true);
     expect(order.status).toBe('PAID');
@@ -58,10 +58,10 @@ test.describe('orders / checkout', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
-    await api.checkout(testUser.token);
+    await api.cart.addItem(testUser.token, product.id, 1);
+    await api.checkout.checkout(testUser.token);
 
-    const orders = await api.listOrders(testUser.token);
+    const orders = await api.orders.list(testUser.token);
     expect(orders.length).toBeGreaterThan(0);
     for (const o of orders) expect(o.userId).toBe(testUser.id);
   });
@@ -72,9 +72,9 @@ test.describe('orders / checkout', () => {
       data: ProductFactory.build({ stock: 5 }),
     });
     const otherCreds = UserFactory.build();
-    const other = await api.register(otherCreds.email, otherCreds.password);
-    await api.addToCart(other.token, product.id, 1);
-    const otherOrder = await api.checkout(other.token);
+    const other = await api.auth.register(otherCreds.email, otherCreds.password);
+    await api.cart.addItem(other.token, product.id, 1);
+    const otherOrder = await api.checkout.checkout(other.token);
 
     // testUser tries to read the other's order
     const res = await api.raw().get(`${API_BASE}/orders/${otherOrder.id}`, {
@@ -99,7 +99,7 @@ test.describe('orders / checkout', () => {
       stock: 3,
     });
 
-    const cancelled = await api.cancelOrder(testUser.token, order.id);
+    const cancelled = await api.orders.cancel(testUser.token, order.id);
     expect(cancelled.status).toBe('CANCELLED');
 
     const log = await db.auditLog.findFirst({
@@ -116,7 +116,7 @@ test.describe('orders / checkout', () => {
       priceCents: 200,
       stock: 1,
     });
-    await api.cancelOrder(testUser.token, order.id);
+    await api.orders.cancel(testUser.token, order.id);
 
     const res = await api.raw().post(`${API_BASE}/orders/${order.id}/cancel`, {
       headers: { Authorization: `Bearer ${testUser.token}` },
@@ -133,7 +133,7 @@ test.describe('orders / checkout', () => {
       stock: 1,
     });
 
-    const other = await api.register(
+    const other = await api.auth.register(
       `other-${Date.now()}@qa-test.local`,
       'Password123!',
     );

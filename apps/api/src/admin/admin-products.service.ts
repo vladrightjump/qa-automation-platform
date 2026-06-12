@@ -29,7 +29,6 @@ export class AdminProductsService {
         },
       });
       this.cache.invalidatePrefix('/products');
-      this.cache.invalidatePrefix('/admin/metrics');
       return created;
     } catch (e) {
       if (
@@ -53,44 +52,9 @@ export class AdminProductsService {
       ...(dto.tags !== undefined ? { tags: dto.tags } : {}),
     };
 
-    // Back-in-stock transition: restocking a product from 0 → >0 fulfils any
-    // pending alerts. The "notification" is a ground-truth audit row (no email
-    // infra), and each alert is flipped to notified so it fires only once.
-    const restocked =
-      existing.stock === 0 && dto.stock !== undefined && dto.stock > 0;
-
-    if (!restocked) {
-      const updated = await prisma.product.update({ where: { id }, data });
-      this.cache.invalidatePrefix('/products');
-      this.cache.invalidatePrefix('/admin/metrics');
-      return updated;
-    }
-
-    const result = await prisma.$transaction(async (tx) => {
-      const updated = await tx.product.update({ where: { id }, data });
-      const pending = await tx.stockAlert.findMany({
-        where: { productId: id, notified: false },
-      });
-      if (pending.length > 0) {
-        await tx.stockAlert.updateMany({
-          where: { productId: id, notified: false },
-          data: { notified: true },
-        });
-        await tx.auditLog.createMany({
-          data: pending.map((alert) => ({
-            userId: alert.userId,
-            action: 'STOCK_ALERT_NOTIFIED',
-            entity: 'StockAlert',
-            entityId: alert.id,
-            metadata: { productId: id } as Prisma.InputJsonValue,
-          })),
-        });
-      }
-      return updated;
-    });
+    const updated = await prisma.product.update({ where: { id }, data });
     this.cache.invalidatePrefix('/products');
-    this.cache.invalidatePrefix('/admin/metrics');
-    return result;
+    return updated;
   }
 
   async remove(id: string) {
@@ -107,7 +71,6 @@ export class AdminProductsService {
     await prisma.cartItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
     this.cache.invalidatePrefix('/products');
-    this.cache.invalidatePrefix('/admin/metrics');
     return { ok: true };
   }
 

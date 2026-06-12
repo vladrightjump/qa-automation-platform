@@ -14,7 +14,7 @@ test.describe('cart quantity + remove modal (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 10, priceCents: 1000 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
+    await api.cart.addItem(testUser.token, product.id, 1);
 
     await cart.goto();
     await expect(
@@ -50,7 +50,7 @@ test.describe('cart quantity + remove modal (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 500 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
+    await api.cart.addItem(testUser.token, product.id, 1);
 
     await cart.goto();
     await authedPage.getByTestId(`cart-remove-${product.id}`).click();
@@ -79,7 +79,7 @@ test.describe('cart quantity + remove modal (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 500 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
+    await api.cart.addItem(testUser.token, product.id, 1);
 
     await cart.goto();
     await authedPage.getByTestId(`cart-remove-${product.id}`).click();
@@ -101,7 +101,7 @@ test.describe('cart quantity + remove modal (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 2, priceCents: 100 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
+    await api.cart.addItem(testUser.token, product.id, 1);
 
     await cart.goto();
     const input = authedPage.getByTestId(`cart-qty-input-${product.id}`);

@@ -23,7 +23,7 @@ import { test as base } from '@playwright/test';
 import { expect } from '../support/matchers';
 import { prisma, ADMIN_EMAIL, ADMIN_PASSWORD, type PrismaClient } from '@qa/db';
 import type { UserRole } from '@qa/contracts';
-import { ApiClient } from '../support/api-client';
+import { ApiClient } from '../api-clients';
 import { TOKEN_KEY, USER_KEY } from '../support/keys';
 import { UserFactory } from '../factories/user.factory';
 import { StorefrontPage } from '../pages/storefront.page';
@@ -77,7 +77,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
 
   testUser: async ({ api }, use) => {
     const creds = UserFactory.build();
-    const { token, user } = await api.register(creds.email, creds.password);
+    const { token, user } = await api.auth.register(creds.email, creds.password);
     await use({
       id: user.id,
       email: user.email,
@@ -89,7 +89,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
 
   adminUser: async ({ api }, use) => {
     // The deterministic admin is seeded (and re-seeded by /test/reset).
-    const { token, user } = await api.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    const { token, user } = await api.auth.login(ADMIN_EMAIL, ADMIN_PASSWORD);
     await use({
       id: user.id,
       email: user.email,

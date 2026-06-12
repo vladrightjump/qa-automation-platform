@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import type { Locale, ProductCategory, ProductSort } from '@qa/contracts';
+import type { ProductCategory, ProductSort } from '@qa/contracts';
 
 /**
  * Page Object for the product list / storefront home.
@@ -119,7 +119,7 @@ export class StorefrontPage {
     return this.page.getByTestId('locale-switcher');
   }
 
-  async selectLocale(locale: Locale): Promise<void> {
+  async selectLocale(locale: string): Promise<void> {
     await this.localeSwitcher().selectOption(locale);
   }
 

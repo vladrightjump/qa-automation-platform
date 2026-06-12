@@ -30,13 +30,7 @@ export default defineConfig({
   testMatch: [
     '**/*.spec.ts',
     'setup/**/*.setup.ts',
-    'perf/setup/**/*.setup.ts',
   ],
-  // Agent-authored drafts under `e2e/_generated/` are excluded from every
-  // run — see e2e/_generated/README.md. Perf specs are excluded from the
-  // default desktop/mobile/tablet projects via per-project `testIgnore`
-  // below (a top-level ignore would also hide them from `lighthouse-perf`).
-  testIgnore: ['**/_generated/**', '**/*.draft.spec.ts'],
   timeout: 30_000,
   expect: {
     timeout: 5_000,

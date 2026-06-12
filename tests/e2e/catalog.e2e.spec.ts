@@ -54,19 +54,43 @@ test.describe('catalog filters', () => {
 
   test('sort=price_asc shows cheapest first in a filtered set', {
     tag: ['@regression', '@catalog'],
-  }, async ({ page, storefront }) => {
+  }, async ({ page, db, storefront }) => {
+    // Own two products with a deterministic, unique-to-this-test name so the
+    // assertion can't be undercut by factory products from parallel specs.
+    const tag = `zztest_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const cheap = await db.product.create({
+      data: {
+        id: `prod_${tag}_cheap`,
+        name: `${tag} cheap`,
+        description: 'cheap',
+        priceCents: 100,
+        stock: 5,
+        category: 'gadgets',
+        tags: [],
+      },
+    });
+    await db.product.create({
+      data: {
+        id: `prod_${tag}_pricey`,
+        name: `${tag} pricey`,
+        description: 'pricey',
+        priceCents: 9_999,
+        stock: 5,
+        category: 'gadgets',
+        tags: [],
+      },
+    });
+
     await storefront.goto();
-    await storefront.search('Gel Pen');
-    await page.waitForURL(/q=/);
-    await storefront.toggleCategory('office');
-    await page.waitForURL(/category=office/);
+    await storefront.search(tag);
+    await page.waitForURL(new RegExp(`q=${tag}`));
     await storefront.setSort('price_asc');
     await page.waitForURL(/sort=price_asc/);
 
     const firstCard = storefront.productCards().first();
     await expect(firstCard).toHaveAttribute(
       'data-testid',
-      'product-card-prod_pen_gel',
+      `product-card-${cheap.id}`,
     );
   });
 

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { API_BASE } from '../support/api-client';
+import { API_BASE } from '../api-clients';
 import { AddressFactory } from '../factories/address.factory';
 import { ProductFactory } from '../factories/product.factory';
 
@@ -8,23 +8,23 @@ test.describe('addresses', () => {
     api,
     testUser,
   }) => {
-    const created = await api.createAddress(
+    const created = await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build({ label: 'Home', isDefault: true }),
     );
     expect(created.userId).toBe(testUser.id);
     expect(created.isDefault).toBe(true);
 
-    const list = await api.listAddresses(testUser.token);
+    const list = await api.checkout.listAddresses(testUser.token);
     expect(list.map((a) => a.id)).toContain(created.id);
 
-    const updated = await api.updateAddress(testUser.token, created.id, {
+    const updated = await api.checkout.updateAddress(testUser.token, created.id, {
       label: 'Renamed',
     });
     expect(updated.label).toBe('Renamed');
 
-    await api.deleteAddress(testUser.token, created.id);
-    const after = await api.listAddresses(testUser.token);
+    await api.checkout.deleteAddress(testUser.token, created.id);
+    const after = await api.checkout.listAddresses(testUser.token);
     expect(after.map((a) => a.id)).not.toContain(created.id);
   });
 
@@ -39,7 +39,7 @@ test.describe('addresses', () => {
     api,
     testUser,
   }) => {
-    const a = await api.createAddress(
+    const a = await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build(),
     );
@@ -48,29 +48,29 @@ test.describe('addresses', () => {
       email: `other-${Date.now()}@qa-test.local`,
       password: 'Password123!',
     };
-    const other = await api.register(otherCreds.email, otherCreds.password);
+    const other = await api.auth.register(otherCreds.email, otherCreds.password);
     const res = await api.raw().patch(`${API_BASE}/addresses/${a.id}`, {
       headers: { Authorization: `Bearer ${other.token}` },
       data: { label: 'hacked' },
     });
     expect(res.status()).toBe(403);
-    await api.deleteAddress(testUser.token, a.id);
+    await api.checkout.deleteAddress(testUser.token, a.id);
   });
 
   test('setting an address default un-flags the previous default', { tag: ['@regression', '@addresses'] }, async ({
     api,
     testUser,
   }) => {
-    const a = await api.createAddress(
+    const a = await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build({ isDefault: true }),
     );
-    const b = await api.createAddress(
+    const b = await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build({ isDefault: true }),
     );
 
-    const list = await api.listAddresses(testUser.token);
+    const list = await api.checkout.listAddresses(testUser.token);
     const aAfter = list.find((x) => x.id === a.id)!;
     const bAfter = list.find((x) => x.id === b.id)!;
     expect(aAfter.isDefault).toBe(false);
@@ -97,8 +97,8 @@ test.describe('checkout side-effects (DB layer)', () => {
       data: ProductFactory.build({ stock: 10, priceCents: 2000 }),
     });
 
-    await api.addToCart(testUser.token, product.id, 3);
-    const order = await api.checkout(testUser.token);
+    await api.cart.addItem(testUser.token, product.id, 3);
+    const order = await api.checkout.checkout(testUser.token);
 
     const updatedProduct = await db.product.findUniqueOrThrow({
       where: { id: product.id },
@@ -134,8 +134,8 @@ test.describe('checkout side-effects (DB layer)', () => {
       data: ProductFactory.build({ stock: 5, priceCents: 1000 }),
     });
 
-    await api.addToCart(testUser.token, ok.id, 2);
-    await api.addToCart(testUser.token, willFail.id, 2);
+    await api.cart.addItem(testUser.token, ok.id, 2);
+    await api.cart.addItem(testUser.token, willFail.id, 2);
 
     await db.product.update({
       where: { id: willFail.id },
@@ -144,7 +144,7 @@ test.describe('checkout side-effects (DB layer)', () => {
 
     let failed = false;
     try {
-      await api.checkout(testUser.token);
+      await api.checkout.checkout(testUser.token);
     } catch {
       failed = true;
     }

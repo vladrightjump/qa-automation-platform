@@ -25,7 +25,7 @@ test('storefront loads with seeded products and an authed user', {
   //    api-client). Use the single-product endpoint so the assertion is
   //    independent of how many factory products other concurrent specs
   //    have left in the DB.
-  const widget = await api.getProduct('prod_widget');
+  const widget = await api.products.get('prod_widget');
   expect(widget.id).toBe('prod_widget');
 
   // 3) Browser session is authenticated (token injected before page load) and

@@ -6,7 +6,7 @@ test.describe('checkout (UI)', () => {
   test('complete flow with seeded address → confirmation hero + DB row', {
     tag: ['@smoke', '@checkout', '@sanity'],
   }, async ({ authedPage, api, db, testUser, storefront, cart }) => {
-    await api.createAddress(
+    await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build({ isDefault: true }),
     );
@@ -29,7 +29,11 @@ test.describe('checkout (UI)', () => {
 
     await test.step('place the order and land on the confirmation hero', async () => {
       await cart.proceedToCheckout();
-      await expect(authedPage.getByTestId('checkout-address')).toBeVisible();
+      // Wait for the saved-address radio to render so the click doesn't
+      // race the initial /addresses fetch.
+      await expect(
+        authedPage.locator('[data-testid^="checkout-address-"]').first(),
+      ).toBeVisible();
       await authedPage.getByTestId('checkout-submit').click();
       await expect(authedPage).toHaveURL(/\/orders\/.+\?just=1$/);
       await expect(authedPage.getByTestId('order-confirmation-hero')).toBeVisible();
@@ -60,7 +64,7 @@ test.describe('checkout (UI)', () => {
     const product = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 800 }),
     });
-    await api.addToCart(testUser.token, product.id, 1);
+    await api.cart.addItem(testUser.token, product.id, 1);
 
     await cart.goto();
     await cart.proceedToCheckout();
@@ -90,8 +94,8 @@ test.describe('checkout (UI)', () => {
     const b = await db.product.create({
       data: ProductFactory.build({ stock: 5, priceCents: 2000 }),
     });
-    await api.addToCart(testUser.token, a.id, 1);
-    await api.addToCart(testUser.token, b.id, 1);
+    await api.cart.addItem(testUser.token, a.id, 1);
+    await api.cart.addItem(testUser.token, b.id, 1);
 
     await cart.goto();
     await expect.soft(cart.item(a.id)).toBeVisible();
