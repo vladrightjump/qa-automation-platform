@@ -103,6 +103,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm --filter @qa/tests exec playwright install --with-deps chromium
+      - name: Build SUT (api + web)
+        # The build/ job runs on a separate runner so its dist/ is gone by
+        # the time this job starts. Playwright's webServer launches
+        # `pnpm @qa/api start` and `pnpm @qa/web start`, which both need
+        # the compiled output — build them here.
+        run: |
+          pnpm -F @qa/contracts build
+          pnpm -F @qa/db build
+          pnpm -F @qa/api build
+          pnpm -F @qa/web build
       - run: pnpm -F @qa/db exec prisma migrate deploy
       - run: pnpm -F @qa/db seed
       - name: Playwright (PR — @smoke only)

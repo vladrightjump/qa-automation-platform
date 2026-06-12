@@ -1,10 +1,6 @@
 # Tests
 
 Six e2e specs, six API specs, six page objects, six API clients.
-The layout below explains how they fit together; `TESTING.md` covers
-how to run them.
-
-## Layout
 
 ```
 tests/
@@ -13,44 +9,53 @@ tests/
   api-clients/   base + auth, products, cart, checkout, orders, admin (+ index)
   pages/         auth catalog cart checkout orders admin
   factories/     user, product, address, admin-product
-  fixtures/      composable Playwright fixtures (the spec entry point)
-  setup/         auth.setup.ts produces shared storageState files
+  fixtures/      composable Playwright fixtures (spec entry point)
+  setup/         auth.setup.ts → shared storageState files
   support/       matchers, jwt-helpers, keys, seed helpers
 ```
 
+## Running
+
+```sh
+pnpm -F @qa/tests test                 # full suite, chromium-desktop
+pnpm -F @qa/tests test:smoke           # @smoke only
+pnpm -F @qa/tests test:ui              # interactive UI mode
+pnpm -F @qa/tests exec playwright test e2e/checkout.e2e.spec.ts
+pnpm -F @qa/tests exec playwright test --grep "cancel button on a PAID"
+```
+
+Playwright boots the API + web and reuses anything already listening.
+
 ## Fixtures
 
-Spec entry point. `import { test, expect } from '../fixtures'`. Each
-fixture is opt-in — destructure only what the spec uses.
+Spec entry: `import { test, expect } from '../fixtures'`. Each fixture
+is opt-in.
 
 | Fixture | Scope | Notes |
 | --- | --- | --- |
 | `db` | worker | The same Prisma singleton the API uses. |
-| `api` | test | Composes `ApiClient` over Playwright's `APIRequestContext`. |
-| `testUser` | test | Fresh user via API register; unique email. |
-| `adminUser` | test | Logs in as the deterministic seeded admin. |
-| `authedPage` | test | Browser page with `testUser` token in localStorage. |
-| `adminPage` | test | Same, for admin. |
+| `api` | test | `ApiClient` over Playwright's `APIRequestContext`. |
+| `testUser` / `adminUser` | test | Fresh / seeded admin user. |
+| `authedPage` / `adminPage` | test | Page with the user's token in localStorage. |
 | `auth` `catalog` `cart` `checkout` `orders` `adminProducts` | test | Page Objects. |
 
 ## Page Objects
 
-One per page. Public methods describe **intent**, locators stay
-private to the POM. Selector preference (in order):
+One per page. Methods describe **intent**; locators stay private.
+Selector preference:
 
-1. `getByRole('button', { name })` — covers most actions.
-2. `getByLabel('…')` for form fields with visible labels.
-3. `getByPlaceholder('…')` for inputs without labels.
-4. `data-testid` only where 1–3 are ambiguous (rows + cards that
-   embed dynamic IDs).
+1. `getByRole('button', { name })`
+2. `getByLabel('…')` for labelled form fields
+3. `getByPlaceholder('…')` for unlabelled inputs
+4. `data-testid` only where 1–3 are ambiguous (rows + cards with
+   dynamic IDs)
 
 ## API clients
 
-`tests/api-clients/` — one file per domain, composed by `ApiClient`.
-Every response is parsed through a Zod schema from `@qa/contracts`;
-contract drift fails at the parse step with the offending field
-highlighted. Negative-path specs use `api.raw()` to inspect status
-codes / error bodies directly.
+`tests/api-clients/` — one file per domain. Every response is parsed
+through a Zod schema from `@qa/contracts`; drift fails at the parse step
+with the offending field highlighted. Negative-path specs use
+`api.raw()` to inspect status codes / error bodies directly.
 
 ```ts
 const { token } = await api.auth.login(email, password);
@@ -60,31 +65,47 @@ const list = await api.orders.list(token);
 
 ## Adding a new test
 
-1. Pick the right subject spec — does it belong in `cart.api.spec.ts`?
-   `checkout.e2e.spec.ts`? Add to the existing file unless the
-   surface you're testing is genuinely new.
+1. Add to the existing subject spec (`cart.api.spec.ts`, `checkout.e2e.spec.ts`,
+   …) unless the surface is genuinely new.
 2. Destructure only the fixtures you need.
-3. Use the `db` fixture for seed + assertion; `api` for state setup;
-   the POM for browser interaction.
-4. Tag the test: `@smoke` for the gate-keeping subset, `@regression`
-   for everything else. Optional subject tags (`@catalog`,
-   `@checkout`, …) help with grep runs.
+3. Use `db` for seed + assertion, `api` for state setup, the POM for UI.
+4. Tag: `@smoke` for the PR gate, `@regression` for everything else.
+   Subject tags (`@catalog`, `@checkout`, …) help with grep runs.
 
-## Tag taxonomy
+## Assertion patterns
 
-| Tag | Use |
-| --- | --- |
-| `@smoke` | Must pass on every PR. Runs in <30s. |
-| `@sanity` | Smoke subset that also runs on chromium-desktop locally before pushing. |
-| `@regression` | Default for non-smoke tests. |
-| `@security`, `@negative`, `@boundary`, `@addresses`, `@catalog`, `@checkout`, `@orders`, `@cart`, `@admin`, `@auth`, `@empty` | Subject filters. |
+```ts
+// Web matcher: count, not "$count items"
+await expect(authedPage).toHaveCartCount(2);
 
-## Notes
+// Poll for an async DB side-effect
+await expect
+  .poll(() => db.auditLog.count({ where: { action: 'ORDER_PAID' } }))
+  .toBe(1);
+
+// Negative path: inspect raw response without throwing
+const res = await api.raw().post(`${API_BASE}/orders`, {
+  headers: { Authorization: `Bearer ${other.token}` },
+});
+expect(res.status()).toBe(403);
+```
+
+## Debugging a failure
+
+1. `pnpm -F @qa/tests exec playwright show-report` opens the HTML
+   report. Failures expand into the `test.step(...)` tree.
+2. Open the **Trace** tab — snapshots, network calls, console logs,
+   frame-by-frame replay. Single best Playwright debugging tool.
+3. CI uploads `tests/playwright-report` as an artifact; download and
+   open `index.html` locally.
+
+Locally, traces are kept on first retry only (`trace: 'on-first-retry'`).
+Use `--trace=on` on the CLI to force them on every run.
+
+## Conventions worth knowing
 
 - The DB is **not** wiped between specs. Each spec creates its own
-  products + users so parallel runs don't collide. The catalog test
-  for `sort=price_asc` owns its own pair of products precisely
-  because factory products from other parallel specs could otherwise
-  undercut a global "cheapest first" assertion.
-- The `/test/reset` API endpoint wipes **user-level** data only;
-  seeded products are deterministic and never cleaned.
+  products + users so parallel runs don't collide. The `sort=price_asc`
+  catalog test owns its own pair of products for the same reason.
+- The `/test/reset` API endpoint wipes **user-level** data only; seeded
+  products are deterministic and never cleaned.
