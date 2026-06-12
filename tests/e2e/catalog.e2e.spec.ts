@@ -3,11 +3,11 @@ import { test, expect } from '../fixtures';
 test.describe('browse', () => {
   test('product list shows seeded products', {
     tag: ['@smoke', '@catalog'],
-  }, async ({ authedPage, storefront }) => {
-    await storefront.goto();
-    await expect(storefront.productCards().first()).toBeVisible();
-    await expect(storefront.resultCount()).toContainText(/\d+ results?/);
-    await expect(storefront.paginationInfo()).toContainText('Page 1');
+  }, async ({ authedPage, catalog }) => {
+    await catalog.goto();
+    await expect(catalog.productCards().first()).toBeVisible();
+    await expect(catalog.resultCount()).toContainText(/\d+ results?/);
+    await expect(catalog.paginationInfo()).toContainText('Page 1');
   });
 
   test('product detail page loads via card link', {
@@ -26,35 +26,35 @@ test.describe('browse', () => {
 test.describe('catalog filters', () => {
   test('search filters products by name (debounced) and persists in URL', {
     tag: ['@smoke', '@catalog', '@sanity'],
-  }, async ({ page, storefront }) => {
-    await storefront.goto();
-    await storefront.search('Thingamajig');
+  }, async ({ page, catalog }) => {
+    await catalog.goto();
+    await catalog.search('Thingamajig');
 
     await page.waitForURL(/q=Thingamajig/, { timeout: 2000 });
-    await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
-    await expect(storefront.productCard('prod_gizmo')).toHaveCount(0);
+    await expect(catalog.productCard('prod_thingamajig')).toBeVisible();
+    await expect(catalog.productCard('prod_gizmo')).toHaveCount(0);
 
     await page.reload();
-    await expect(storefront.searchInput()).toHaveValue('Thingamajig');
-    await expect(storefront.productCard('prod_thingamajig')).toBeVisible();
+    await expect(catalog.searchInput()).toHaveValue('Thingamajig');
+    await expect(catalog.productCard('prod_thingamajig')).toBeVisible();
   });
 
   test('category filter narrows results and writes ?category=', {
     tag: ['@regression', '@catalog'],
-  }, async ({ page, storefront }) => {
-    await storefront.goto();
-    await storefront.search('Basic Tee');
+  }, async ({ page, catalog }) => {
+    await catalog.goto();
+    await catalog.search('Basic Tee');
     await page.waitForURL(/q=/);
-    await storefront.toggleCategory('apparel');
+    await catalog.toggleCategory('apparel');
     await page.waitForURL(/category=apparel/);
 
-    await expect(storefront.productCard('prod_tee_basic')).toBeVisible();
-    await expect(storefront.productCard('prod_widget')).toHaveCount(0);
+    await expect(catalog.productCard('prod_tee_basic')).toBeVisible();
+    await expect(catalog.productCard('prod_widget')).toHaveCount(0);
   });
 
   test('sort=price_asc shows cheapest first in a filtered set', {
     tag: ['@regression', '@catalog'],
-  }, async ({ page, db, storefront }) => {
+  }, async ({ page, db, catalog }) => {
     // Own two products with a deterministic, unique-to-this-test name so the
     // assertion can't be undercut by factory products from parallel specs.
     const tag = `zztest_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -81,13 +81,13 @@ test.describe('catalog filters', () => {
       },
     });
 
-    await storefront.goto();
-    await storefront.search(tag);
+    await catalog.goto();
+    await catalog.search(tag);
     await page.waitForURL(new RegExp(`q=${tag}`));
-    await storefront.setSort('price_asc');
+    await catalog.setSort('price_asc');
     await page.waitForURL(/sort=price_asc/);
 
-    const firstCard = storefront.productCards().first();
+    const firstCard = catalog.productCards().first();
     await expect(firstCard).toHaveAttribute(
       'data-testid',
       `product-card-${cheap.id}`,
@@ -96,30 +96,30 @@ test.describe('catalog filters', () => {
 
   test('empty state appears when no products match', {
     tag: ['@regression', '@catalog'],
-  }, async ({ page, storefront }) => {
-    await storefront.goto();
-    await storefront.search('definitelydoesnotexist');
+  }, async ({ page, catalog }) => {
+    await catalog.goto();
+    await catalog.search('definitelydoesnotexist');
     await page.waitForURL(/q=definitelydoesnotexist/);
 
-    await expect(storefront.emptyState()).toBeVisible();
-    await expect(storefront.productCards()).toHaveCount(0);
+    await expect(catalog.emptyState()).toBeVisible();
+    await expect(catalog.productCards()).toHaveCount(0);
 
     await page.getByTestId('catalog-empty-clear').click();
-    await expect(storefront.emptyState()).toHaveCount(0);
-    await expect(storefront.searchInput()).toHaveValue('');
+    await expect(catalog.emptyState()).toHaveCount(0);
+    await expect(catalog.searchInput()).toHaveValue('');
   });
 
   test('pagination advances pages and result count is stable', {
     tag: ['@regression', '@catalog'],
-  }, async ({ page, storefront }) => {
-    await storefront.goto();
+  }, async ({ page, catalog }) => {
+    await catalog.goto();
 
-    await expect(storefront.paginationInfo()).toContainText('Page 1');
-    await storefront.paginationNext().click();
+    await expect(catalog.paginationInfo()).toContainText('Page 1');
+    await catalog.paginationNext().click();
     await page.waitForURL(/page=2/);
-    await expect(storefront.paginationInfo()).toContainText('Page 2');
-    await storefront.paginationPrev().click();
+    await expect(catalog.paginationInfo()).toContainText('Page 2');
+    await catalog.paginationPrev().click();
     await page.waitForURL((url) => !url.searchParams.has('page'));
-    await expect(storefront.paginationInfo()).toContainText('Page 1');
+    await expect(catalog.paginationInfo()).toContainText('Page 1');
   });
 });

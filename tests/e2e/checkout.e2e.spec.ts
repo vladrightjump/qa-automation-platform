@@ -5,7 +5,7 @@ import { AddressFactory } from '../factories/address.factory';
 test.describe('checkout (UI)', () => {
   test('complete flow with seeded address → confirmation hero + DB row', {
     tag: ['@smoke', '@checkout', '@sanity'],
-  }, async ({ authedPage, api, db, testUser, storefront, cart }) => {
+  }, async ({ authedPage, api, db, testUser, catalog, cart }) => {
     await api.checkout.createAddress(
       testUser.token,
       AddressFactory.build({ isDefault: true }),
@@ -16,8 +16,8 @@ test.describe('checkout (UI)', () => {
 
     await test.step('add product to cart from the detail page', async () => {
       await authedPage.goto(`/products/${product.id}`);
-      await expect(storefront.productCard(product.id)).toBeVisible();
-      await storefront.addToCart(product.id);
+      await expect(catalog.productCard(product.id)).toBeVisible();
+      await catalog.addToCart(product.id);
       await expect(authedPage).toHaveCartCount(1);
     });
 

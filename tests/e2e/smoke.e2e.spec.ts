@@ -1,12 +1,12 @@
 // Trivial smoke spec that exercises all three Phase-4 fixtures together:
 //   - `db`         reads the seeded products straight from Postgres
 //   - `api`        validates the same products via the API + Zod contract
-//   - `authedPage` opens the storefront with the testUser pre-signed-in
+//   - `authedPage` opens the catalog with the testUser pre-signed-in
 //
 // Existence of this passing test is the Phase 4 Definition of Done.
 import { test, expect } from '../fixtures';
 
-test('storefront loads with seeded products and an authed user', {
+test('catalog loads with seeded products and an authed user', {
   tag: ['@smoke', '@auth', '@sanity'],
 }, async ({
   authedPage,

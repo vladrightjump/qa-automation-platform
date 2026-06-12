@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { ProductCategory, ProductSort } from '@qa/contracts';
 
 /**
- * Page Object for the product list / storefront home.
+ * Page Object for the catalog (storefront home + product cards).
  *
  * Selector strategy:
  *   - Visible action buttons → `getByRole('button', { name: ... })`.
@@ -11,7 +11,7 @@ import type { ProductCategory, ProductSort } from '@qa/contracts';
  *   - Container/structural locators that embed dynamic productIds keep
  *     `data-testid` since those have no accessible-name equivalent.
  */
-export class StorefrontPage {
+export class CatalogPage {
   constructor(private readonly page: Page) {}
 
   async goto(): Promise<void> {
@@ -23,9 +23,6 @@ export class StorefrontPage {
   }
 
   async addToCart(productId: string): Promise<void> {
-    // Chained locator: scope to the product card, then pick the button
-    // by its visible name. The OR in the regex covers both states so
-    // the locator stays stable when stock drops to zero.
     await this.productCard(productId)
       .getByRole('button', { name: /add to cart|out of stock/i })
       .click();
@@ -34,8 +31,6 @@ export class StorefrontPage {
   cartCount(): Locator {
     return this.page.getByTestId('cart-count');
   }
-
-  // ---------- catalog filters / search / sort / pagination ----------
 
   searchInput(): Locator {
     return this.page.getByPlaceholder('Find products…');
@@ -46,9 +41,7 @@ export class StorefrontPage {
   }
 
   categoryCheckbox(category: ProductCategory): Locator {
-    // Visible labels are capitalized; map directly.
-    const label =
-      category.charAt(0).toUpperCase() + category.slice(1);
+    const label = category.charAt(0).toUpperCase() + category.slice(1);
     return this.page.getByRole('checkbox', { name: label });
   }
 
@@ -100,54 +93,7 @@ export class StorefrontPage {
     return this.page.locator('[data-testid^="product-card-"]');
   }
 
-  /**
-   * Subset of product cards that have an enabled "Add to cart" button —
-   * i.e. in stock. Use this when a test needs to drive an end-to-end
-   * cart flow; the catalog is bulk-seeded with a long tail of OOS
-   * products and `productCards().first()` will often resolve to one
-   * of them.
-   */
-  inStockProductCards(): Locator {
-    return this.page.locator(
-      '[data-testid^="product-card-"]:has([data-testid^="add-to-cart-"]:not([disabled]))',
-    );
-  }
-
-  // --- i18n / geo ---
-
-  localeSwitcher(): Locator {
-    return this.page.getByTestId('locale-switcher');
-  }
-
-  async selectLocale(locale: string): Promise<void> {
-    await this.localeSwitcher().selectOption(locale);
-  }
-
   productPrice(productId: string): Locator {
     return this.page.getByTestId(`product-price-${productId}`);
-  }
-
-  geoBanner(): Locator {
-    return this.page.getByTestId('geo-banner');
-  }
-
-  geoSuggestion(): Locator {
-    return this.page.getByTestId('geo-suggestion');
-  }
-
-  async acceptGeo(): Promise<void> {
-    await this.page.getByTestId('geo-accept').click();
-  }
-
-  async dismissGeo(): Promise<void> {
-    await this.page.getByTestId('geo-dismiss').click();
-  }
-
-  geoFallback(): Locator {
-    return this.page.getByTestId('geo-fallback');
-  }
-
-  geoRegionSelect(): Locator {
-    return this.page.getByTestId('geo-region-select');
   }
 }
